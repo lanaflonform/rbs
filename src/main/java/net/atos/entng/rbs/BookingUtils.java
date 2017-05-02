@@ -23,11 +23,22 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import net.atos.entng.rbs.service.BookingServiceSqlImpl;
 import org.entcore.common.user.DefaultFunctions;
 import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserInfos.Function;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class BookingUtils {
+	private final static String DATE_FORMAT = BookingServiceSqlImpl.DATE_FORMAT;
+	public static final String TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+
 
 	/**
 	 * @return Return scope (i.e. the list of school_ids) of a local administrator

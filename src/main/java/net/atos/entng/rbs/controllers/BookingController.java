@@ -50,11 +50,44 @@ import fr.wseduc.webutils.Either;
 import fr.wseduc.webutils.I18n;
 import fr.wseduc.webutils.http.Renders;
 import fr.wseduc.webutils.request.RequestUtils;
+import io.vertx.core.AsyncResult;
+import net.atos.entng.rbs.controllers.handler.PeriodicBookingHandlerFactory;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import net.atos.entng.rbs.filters.TypeAndResourceAppendPolicy;
+import net.atos.entng.rbs.model.ExportBooking;
+import net.atos.entng.rbs.model.ExportRequest;
+import net.atos.entng.rbs.model.ExportResponse;
+import net.atos.entng.rbs.service.*;
+import net.atos.entng.rbs.service.pdf.PdfExportService;
+import org.entcore.common.controller.ControllerHelper;
+import org.entcore.common.http.filter.ResourceFilter;
+import org.entcore.common.user.UserInfos;
+import org.entcore.common.user.UserUtils;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.http.HttpServerRequest;
+import org.vertx.java.core.http.RouteMatcher;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+
+
+import java.text.ParseException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import static net.atos.entng.rbs.BookingStatus.REFUSED;
+import static net.atos.entng.rbs.BookingStatus.VALIDATED;
+import static net.atos.entng.rbs.BookingUtils.*;
+import static org.entcore.common.http.response.DefaultResponseHandler.arrayResponseHandler;
 import net.atos.entng.rbs.models.Booking;
 import net.atos.entng.rbs.models.Resource;
 import net.atos.entng.rbs.service.BookingService;
@@ -76,12 +109,24 @@ public class BookingController extends ControllerHelper {
 
 	private static final I18n i18n = I18n.getInstance();
 
+	private final SchoolService schoolService;
 	private final BookingService bookingService;
 	private final ResourceService resourceService;
+	private BookingNotificationService bookingNotificationService;
+	private PeriodicBookingHandlerFactory periodicBookingHandlerFactory;
 
-	public BookingController() {
+	public BookingController(EventBus eb) {
+		super();
 		bookingService = new BookingServiceSqlImpl();
 		resourceService = new ResourceServiceSqlImpl();
+		schoolService = new SchoolService(eb);
+	}
+
+	@Override
+	public void init(Vertx vertx, JsonObject config, RouteMatcher rm, Map<String, fr.wseduc.webutils.security.SecuredAction> securedActions) {
+		super.init(vertx, config, rm, securedActions);
+		bookingNotificationService = new BookingNotificationService(BookingController.log, eb, notification, bookingService);
+		periodicBookingHandlerFactory = new PeriodicBookingHandlerFactory(BookingController.log, bookingNotificationService, bookingService, resourceService);
 	}
 
 	@Post("/resource/:id/booking")
@@ -117,6 +162,8 @@ public class BookingController extends ControllerHelper {
 			public void handle(final JsonObject json) {
 				final String resourceId = request.params().get("id");
 				final String bookingId = request.params().get("bookingId");
+                final JsonArray slots = object.getJsonArray("slots");
+                final long now = getCurrentTimestamp();
 				Booking booking = new Booking(json, null, bookingId);
 
 				resourceService.getDelaysAndTypeProperties(Long.parseLong(resourceId),
@@ -1041,7 +1088,7 @@ public class BookingController extends ControllerHelper {
 
 	/**
 	 * Transforms an SQL formatted date to a java formatted date
-	 * 
+	 *
 	 * @param strDate formatted string to be transformed from SQL type
 	 * @return formatted string to java date
 	 */
@@ -1062,5 +1109,129 @@ public class BookingController extends ControllerHelper {
 		}
 		return new SimpleDateFormat("yyyy-MM-dd").format(target);
 	}
+	@Post("/bookings/export")
+	@ApiDoc("Export bookings in requested format")
+	@SecuredAction(value = "", type = ActionType.AUTHENTICATED)
+	public void exportICal(final HttpServerRequest request) {
+		RequestUtils.bodyToJson(request, pathPrefix + "exportBookings", new Handler<JsonObject>() {
+			@Override
+			public void handle(final JsonObject userExportRequest) {
+
+				UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
+					@Override
+					public void handle(final UserInfos user) {
+						if (user != null) {
+							ExportRequest exportRequest;
+							try {
+								exportRequest = new ExportRequest(userExportRequest, user);
+							} catch (IllegalArgumentException e) {
+								Renders.badRequest(request, e.getMessage());
+								return;
+							}
+							final ExportResponse exportResponse = new ExportResponse(exportRequest);
+							bookingService.getBookingsForExport(exportRequest, new Handler<Either<String, List<ExportBooking>>>() {
+								@Override
+								public void handle(final Either<String, List<ExportBooking>> event) {
+									if (event.isRight()) {
+										final List<ExportBooking> exportBookings = event.right().getValue();
+										if (exportBookings.isEmpty()) {
+											JsonObject error = new JsonObject()
+													.put("error", "No booking in search period");
+											Renders.renderJson(request, error, 204);
+											return;
+										}
+										exportResponse.setBookings(exportBookings);
+
+										schoolService.getSchoolNames(new Handler<Either<String, Map<String, String>>>() {
+											@Override
+											public void handle(Either<String, Map<String, String>> event) {
+												if (event.isRight()) {
+													exportResponse.setSchoolNames(event.right().getValue());
+
+													if (exportResponse.getRequest().getFormat().equals(ExportRequest.Format.PDF)) {
+														generatePDF(request, exportResponse);
+													} else {
+														generateICal(request, exportResponse);
+													}
+												} else {
+													JsonObject error = new JsonObject()
+															.put("error", event.left().getValue());
+													Renders.renderJson(request, error, 400);
+												}
+											}
+										});
+									} else {
+										JsonObject error = new JsonObject()
+												.put("error", event.left().getValue());
+										Renders.renderJson(request, error, 400);
+									}
+								}
+							});
+
+						} else {
+							log.debug("User not found in session.");
+							unauthorized(request);
+						}
+					}
+				});
+			}
+		});
+	}
+
+	private void generateICal(final HttpServerRequest request, final ExportResponse exportResponse) {
+		final JsonObject conversionRequest = new JsonObject();
+		conversionRequest.put("action", "convert");
+		final JsonObject dataToExport = exportResponse.toJson();
+		conversionRequest.put("data", dataToExport);
+
+		eb.send(IcalExportService.ICAL_HANDLER_ADDRESS, conversionRequest, (Handler<AsyncResult<Message<JsonObject>>>) event -> {
+			JsonObject body = event.result().body();
+			Integer status = body.getInteger("status");
+			if (status == 200) {
+				String icsContent = body.getString("content");
+				request.response().putHeader("Content-Type", "text/calendar");
+				request.response().putHeader("Content-Disposition",
+						"attachment; filename=export.ics");
+				request.response().end(Buffer.buffer(icsContent));
+			} else {
+				String errorMessage = body.getString("message");
+				log.warn("An error occurred during ICal generation of " + exportResponse + " : " + errorMessage);
+				JsonObject error = new JsonObject()
+						.put("error", "ICal generation: " + errorMessage)
+						.put("dataToExport", dataToExport);
+				Renders.renderError(request, error);
+			}
+        });
+	}
+
+	private void generatePDF(final HttpServerRequest request, final ExportResponse exportResponse) {
+		final JsonObject conversionRequest = new JsonObject();
+		conversionRequest.put("action", "convert");
+		final JsonObject dataToExport = exportResponse.toJson();
+		conversionRequest.put("data", dataToExport);
+		conversionRequest.put("scheme", getScheme(request));
+		conversionRequest.put("host", Renders.getHost(request));
+
+		eb.send(PdfExportService.PDF_HANDLER_ADDRESS, conversionRequest, (Handler<AsyncResult<Message<JsonObject>>>) event -> {
+			JsonObject body = event.result().body();
+			Integer status = body.getInteger("status");
+			if (status == 200) {
+				byte[] pdfContent = body.getBinary("content");
+				request.response().putHeader("Content-Type", "application/pdf");
+				request.response().putHeader("Content-Disposition",
+						"attachment; filename=export.pdf");
+				request.response().end(Buffer.buffer(pdfContent));
+			} else {
+				String errorMessage = body.getString("message");
+				log.warn("An error occurred during PDF generation of " + exportResponse + " : " + errorMessage);
+				JsonObject error = new JsonObject()
+						.put("error", "PDF generation: " + errorMessage)
+						.put("dataToExport", dataToExport);
+				Renders.renderError(request, error);
+			}
+        });
+
+	}
+
 
 }
