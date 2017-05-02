@@ -24,8 +24,7 @@ import static net.atos.entng.rbs.BookingStatus.REFUSED;
 import static net.atos.entng.rbs.BookingStatus.SUSPENDED;
 import static net.atos.entng.rbs.BookingUtils.getLocalAdminScope;
 import static org.entcore.common.sql.Sql.parseId;
-import static org.entcore.common.sql.SqlResult.parseShared;
-import static org.entcore.common.sql.SqlResult.validResultHandler;
+import static org.entcore.common.sql.SqlResult.*;
 import static org.entcore.common.sql.SqlResult.validUniqueResultHandler;
 
 import java.util.List;
@@ -36,9 +35,9 @@ import org.entcore.common.service.impl.SqlCrudService;
 import org.entcore.common.sql.Sql;
 import org.entcore.common.sql.SqlStatementsBuilder;
 import org.entcore.common.user.UserInfos;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.Handler;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import fr.wseduc.webutils.Either;
 
@@ -53,7 +52,7 @@ public class ResourceServiceSqlImpl extends SqlCrudService implements ResourceSe
 			final Handler<Either<String, JsonArray>> handler) {
 
 		StringBuilder query = new StringBuilder();
-		JsonArray values = new JsonArray();
+		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
 
 		query.append("SELECT r.*,")
 			.append(" json_agg(row_to_json(row(rs.member_id,rs.action)::rbs.share_tuple)) as shared,")
@@ -85,12 +84,12 @@ public class ResourceServiceSqlImpl extends SqlCrudService implements ResourceSe
 		if (scope!=null && !scope.isEmpty()) {
 			query.append(" OR t.school_id IN ").append(Sql.listPrepared(scope.toArray()));
 			for (String schoolId : scope) {
-				values.addString(schoolId);
+				values.add(schoolId);
 			}
 		}
 
 		query.append(" GROUP BY r.id")
-			.append(" ORDER BY r.id");
+			.append(" ORDER BY r.name");
 
 		Sql.getInstance().prepared(query.toString(), values, parseShared(handler));
 	}
@@ -100,8 +99,8 @@ public class ResourceServiceSqlImpl extends SqlCrudService implements ResourceSe
 			final Handler<Either<String, JsonObject>> handler) {
 
 		StringBuilder sb = new StringBuilder();
-		JsonArray values = new JsonArray();
-		for (String attr : resource.getFieldNames()) {
+		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
+		for (String attr : resource.fieldNames()) {
 			if ("was_available".equals(attr)) {
 				continue;
 			}
@@ -139,7 +138,7 @@ public class ResourceServiceSqlImpl extends SqlCrudService implements ResourceSe
 				.append(" AND start_date >= now()")
 				.append(" AND is_periodic = false");
 
-			JsonArray bookingValues = new JsonArray().add(parseId(resourceId));
+			JsonArray bookingValues = new fr.wseduc.webutils.collections.JsonArray().add(parseId(resourceId));
 
 			statementsBuilder.prepared(bookingQuery.toString(), bookingValues);
 
@@ -151,9 +150,9 @@ public class ResourceServiceSqlImpl extends SqlCrudService implements ResourceSe
 	private void unsetFieldIfNull(final JsonObject data, final StringBuilder sb,
 			final JsonArray values, final String fieldname){
 
-		if(data.getField(fieldname) == null) {
+		if(data.getValue(fieldname) == null) {
 			sb.append(fieldname).append(" = ?, ");
-			values.add(null);
+			values.addNull();
 		}
 	}
 
@@ -166,7 +165,7 @@ public class ResourceServiceSqlImpl extends SqlCrudService implements ResourceSe
 			.append(" AND start_date >= now()")
 			.append(" AND is_periodic = false");
 
-		JsonArray values = new JsonArray();
+		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
 		values.add(resourceId)
 			.add(REFUSED.status());
 
@@ -189,9 +188,50 @@ public class ResourceServiceSqlImpl extends SqlCrudService implements ResourceSe
 			.append(" INNER JOIN rbs.resource_type AS t ON r.type_id = t.id")
 			.append(" WHERE r.id = ?");
 
-		JsonArray values = new JsonArray().add(resourceId);
+		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
+		values.add(resourceId);
 
 		Sql.getInstance().prepared(query.toString(), values, validUniqueResultHandler(handler));
+	}
+
+	@Override
+	public void addNotification(String id, UserInfos user, Handler<Either<String, JsonObject>> handler) {
+		StringBuilder query = new StringBuilder("INSERT INTO rbs.notifications (resource_id, user_id)" +
+				" SELECT r.id, ? FROM rbs.resource AS r WHERE r.id = ? AND NOT EXISTS (SELECT resource_id, user_id FROM rbs.notifications WHERE user_id = ? AND resource_id = r.id)");
+		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
+		values.add(user.getUserId());
+		values.add(parseId(id));
+		values.add(user.getUserId());
+		Sql.getInstance().prepared(query.toString(), values, validUniqueResultHandler(handler));
+	}
+
+	@Override
+	public void removeNotification(String id, UserInfos user, Handler<Either<String, JsonObject>> handler) {
+		StringBuilder query = new StringBuilder("DELETE FROM rbs.notifications WHERE resource_id = CAST (? AS BIGINT) AND user_id = ?");
+		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
+		values.add(parseId(id));
+		values.add(user.getUserId());
+		Sql.getInstance().prepared(query.toString(), values, validRowsResultHandler(handler));
+	}
+
+	@Override
+	public void getNotifications(UserInfos user, final Handler<Either<String, JsonArray>> handler) {
+		StringBuilder query = new StringBuilder("SELECT resource_id FROM rbs.notifications WHERE user_id = ?");
+		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
+		values.add(user.getUserId());
+		Sql.getInstance().prepared(query.toString(), values, validResultHandler(handler));
+	}
+
+	@Override
+	public void getUserNotification(long resourceId, UserInfos user, Handler<Either<String, JsonArray>> handler) {
+		StringBuilder query = new StringBuilder();
+		query.append("SELECT user_id FROM rbs.notifications")
+				.append(" WHERE resource_id = ?")
+				.append(" AND user_id != ?");
+		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
+		values.add(resourceId);
+		values.add(user.getUserId());
+		Sql.getInstance().prepared(query.toString(), values, validResultHandler(handler));
 	}
 
 	@Override
@@ -199,7 +239,7 @@ public class ResourceServiceSqlImpl extends SqlCrudService implements ResourceSe
 			final Handler<Either<String, JsonObject>> handler) {
 
 		String typeId = resource.getString("type_id");
-		resource.putValue("type_id", parseId(typeId));
+		resource.put("type_id", parseId(typeId));
 
 		super.create(resource, user, handler);
 	}

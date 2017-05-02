@@ -34,11 +34,11 @@ import org.entcore.common.sql.SqlConf;
 import org.entcore.common.sql.SqlConfs;
 import org.entcore.common.sql.SqlResult;
 import org.entcore.common.user.UserInfos;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.eventbus.Message;
-import org.vertx.java.core.http.HttpServerRequest;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.Handler;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import fr.wseduc.webutils.http.Binding;
 import fr.wseduc.webutils.http.HttpMethod;
@@ -69,7 +69,7 @@ public class TypeAndResourceAppendPolicy implements ResourcesProvider {
 
 			// Query
 			StringBuilder query = new StringBuilder();
-			JsonArray values = new JsonArray();
+			JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
 			query.append("SELECT count(*)")
 				.append(" FROM rbs.resource AS r")
 				.append(" INNER JOIN rbs.resource_type AS t ON r.type_id = t.id");
@@ -80,24 +80,38 @@ public class TypeAndResourceAppendPolicy implements ResourcesProvider {
 
 			query.append(" LEFT JOIN rbs.resource_type_shares AS ts ON t.id = ts.resource_id")
 					.append(" LEFT JOIN rbs.resource_shares AS rs ON r.id = rs.resource_id")
-					.append(" WHERE ((ts.member_id IN ").append(Sql.listPrepared(groupsAndUserIds.toArray())).append(" AND ts.action = ?)");
-			for (String groupOruser : groupsAndUserIds) {
-				values.add(groupOruser);
-			}
-			values.add(sharedMethod);
+					.append(" WHERE (");
 
-			query.append(" OR (rs.member_id IN ").append(Sql.listPrepared(groupsAndUserIds.toArray())).append(" AND rs.action = ?)");
-			for (String groupOruser : groupsAndUserIds) {
-				values.add(groupOruser);
+			if (isUpdateBooking(binding) || isUpdatePeriodicBooking(binding) || isDeleteBooking(binding)) {
+				query.append("(ts.member_id IN ").append(Sql.listPrepared(groupsAndUserIds.toArray())).append(" AND ts.action = 'net-atos-entng-rbs-controllers-BookingController|processBooking')");
+				for (String groupOruser : groupsAndUserIds) {
+					values.add(groupOruser);
+				}
+
+				query.append(" OR (rs.member_id IN ").append(Sql.listPrepared(groupsAndUserIds.toArray())).append(" AND rs.action = 'net-atos-entng-rbs-controllers-BookingController|processBooking')");
+				for (String groupOruser : groupsAndUserIds) {
+					values.add(groupOruser);
+				}
+			} else {
+				query.append("(ts.member_id IN ").append(Sql.listPrepared(groupsAndUserIds.toArray())).append(" AND ts.action = ?)");
+				for (String groupOruser : groupsAndUserIds) {
+					values.add(groupOruser);
+				}
+				values.add(sharedMethod);
+
+				query.append(" OR (rs.member_id IN ").append(Sql.listPrepared(groupsAndUserIds.toArray())).append(" AND rs.action = ?)");
+				for (String groupOruser : groupsAndUserIds) {
+					values.add(groupOruser);
+				}
+				values.add(sharedMethod);
 			}
-			values.add(sharedMethod);
 
 			// Authorize user if he is a local administrator for the resourceType's school_id
 			List<String> scope = getLocalAdminScope(user);
 			if (scope!=null && !scope.isEmpty()) {
 				query.append(" OR t.school_id IN ").append(Sql.listPrepared(scope.toArray()));
 				for (String schoolId : scope) {
-					values.addString(schoolId);
+					values.add(schoolId);
 				}
 			}
 
@@ -106,6 +120,12 @@ public class TypeAndResourceAppendPolicy implements ResourcesProvider {
 			if(isDeleteBooking(binding)) {
 				query.append(" OR b.owner = ?"); // Owner can delete his booking
 				values.add(user.getUserId());
+			} else if(isUpdateBooking(binding) || isUpdatePeriodicBooking(binding)) {
+				// Check that the user is the booking's owner and that the resource is available
+				query.append(" OR b.owner = ?"); // Owner can delete his booking
+				values.add(user.getUserId());
+				query.append(" AND r.is_available = ?");
+				values.add(true);
 			}
 
 			query.append(") AND r.id = ?");
@@ -125,13 +145,6 @@ public class TypeAndResourceAppendPolicy implements ResourcesProvider {
 				// Check that the resource is available
 				query.append(" AND r.is_available = ?");
 				values.add(true);
-			}
-			else if(isUpdateBooking(binding) || isUpdatePeriodicBooking(binding)) {
-				// Check that the resource is available and that the user is the booking's owner
-				query.append(" AND r.is_available = ?")
-					.append(" AND b.owner = ?");
-				values.add(true)
-					.add(user.getUserId());
 			}
 			else if(isProcessBooking(binding)) {
 				// A booking can be validated or refused, only if its status is not "suspended" and the resource is available

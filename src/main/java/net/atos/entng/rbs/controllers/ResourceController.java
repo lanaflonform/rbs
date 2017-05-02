@@ -38,10 +38,10 @@ import org.entcore.common.controller.ControllerHelper;
 import org.entcore.common.http.filter.ResourceFilter;
 import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.http.HttpServerRequest;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.Handler;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import fr.wseduc.rs.ApiDoc;
 import fr.wseduc.rs.Delete;
@@ -128,7 +128,7 @@ public class ResourceController extends ControllerHelper {
 								badRequest(request, "rbs.resource.bad.request.min_delay.greater.than.max_delay");
 							}
 							String resourceTypeId = request.params().get("id");
-							resource.putString("type_id", resourceTypeId);
+							resource.put("type_id", resourceTypeId);
 
 							resourceService.createResource(resource, user, notEmptyResponseHandler(request));
 						}
@@ -173,7 +173,7 @@ public class ResourceController extends ControllerHelper {
 												isAvailable, wasAvailable);
 									} else {
 										JsonObject error = new JsonObject()
-												.putString("error", event.left().getValue());
+												.put("error", event.left().getValue());
 										Renders.renderJson(request, error, 400);
 									}
 								}
@@ -234,13 +234,42 @@ public class ResourceController extends ControllerHelper {
 							List<String> recipients = new ArrayList<>(recipientSet);
 
 							JsonObject params = new JsonObject();
-							params.putString("resource_name", resourceName);
+							params.put("resource_name", resourceName);
 
 							notification.notifyTimeline(request, "rbs." + notificationName, user, recipients, String.valueOf(resourceId), params);
 						}
 
 					} else {
 						log.error("Error when calling service getBookingOwnersIds. Unable to send timeline "
+								+ eventType + " notification.");
+					}
+				}
+			});
+
+			resourceService.getUserNotification(resourceId, user, new Handler<Either<String, JsonArray>>() {
+				@Override
+				public void handle(Either<String, JsonArray> event) {
+					if (event.isRight()) {
+						Set<String> recipientSet = new HashSet<>();
+						for(Object o : event.right().getValue()){
+							if(!(o instanceof JsonObject)){
+								continue;
+							}
+							JsonObject jo = (JsonObject) o;
+							recipientSet.add(jo.getString("user_id"));
+						}
+
+						if(!recipientSet.isEmpty()) {
+							List<String> recipients = new ArrayList<>(recipientSet);
+
+							JsonObject params = new JsonObject();
+							params.put("resource_name", resourceName);
+
+							notification.notifyTimeline(request, "rbs." + notificationName, user, recipients, String.valueOf(resourceId), params);
+						}
+
+					} else {
+						log.error("Error when calling service getUserNotification. Unable to send timeline "
 								+ eventType + " notification.");
 					}
 				}
@@ -260,6 +289,60 @@ public class ResourceController extends ControllerHelper {
 				if (user != null) {
 					String id = request.params().get("id");
 					crudService.delete(id, user, defaultResponseHandler(request));
+				} else {
+					log.debug("User not found in session.");
+					Renders.unauthorized(request);
+				}
+			}
+		});
+	}
+
+	@Post("/resource/notification/add/:id")
+	@ApiDoc("Add notification")
+	@ResourceFilter(TypeAndResourceAppendPolicy.class)
+	@SecuredAction(value = "rbs.read", type = ActionType.RESOURCE)
+	public void addNotification (final HttpServerRequest request){
+		UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
+			@Override
+			public void handle(final UserInfos user) {
+				if (user != null) {
+					String id = request.params().get("id");
+					resourceService.addNotification (id, user, defaultResponseHandler(request));
+				} else {
+					log.debug("User not found in session.");
+					Renders.unauthorized(request);
+				}
+			}
+		});
+	}
+
+	@Delete("/resource/notification/remove/:id")
+	@ApiDoc("Remove notification")
+	@ResourceFilter(TypeAndResourceAppendPolicy.class)
+	@SecuredAction(value = "rbs.read", type = ActionType.RESOURCE)
+	public void removeNotification (final HttpServerRequest request){
+		UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
+			@Override
+			public void handle(final UserInfos user) {
+				if (user != null) {
+					String id = request.params().get("id");
+					resourceService.removeNotification (id, user, defaultResponseHandler(request));
+				} else {
+					log.debug("User not found in session.");
+					Renders.unauthorized(request);
+				}
+			}
+		});
+	}
+
+	@Get("/resource/notifications")
+	@ApiDoc("Get notification")
+	public void getNotifications (final HttpServerRequest request){
+		UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
+			@Override
+			public void handle(final UserInfos user) {
+				if (user != null) {
+					resourceService.getNotifications (user, arrayResponseHandler(request));
 				} else {
 					log.debug("User not found in session.");
 					Renders.unauthorized(request);
