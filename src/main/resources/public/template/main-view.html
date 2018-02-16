@@ -45,7 +45,7 @@
 									</div>
 								</div>
 							</li>
-							<li ng-if="resourceType.resources.empty()">
+							<li ng-if="resourceType.resources.all.length === 0">
 								<i18n>rbs.resources.empty</i18n>
 							</li>
 						</ul>
@@ -64,10 +64,10 @@
 	<container template="bookings"></container>
 </section>
 
-<section class="toggle-buttons" ng-class="{ hide: bookings.selection().length === 0 }">
+<section class="toggle-buttons" ng-class="{ hide: bookings.selected.length === 0 }">
 	<div class="toggle">
 		<div class="row">
-			<behaviour name="process" resource="bookings.selection()" class="cell">
+			<behaviour name="process" resource="bookings.selected" class="cell">
 				<button ng-if="canEditBookingSelection()" ng-click="editBooking()"><i18n>edit</i18n></button>
 				<button ng-if="! canEditBookingSelection()" disabled class="disabled"><i18n>edit</i18n></button>
 				<button ng-click="removeBookingSelection()"><i18n>remove</i18n></button>
