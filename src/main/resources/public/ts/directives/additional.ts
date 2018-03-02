@@ -1,7 +1,4 @@
-import { ng, angular, model, moment, _ } from 'entcore';
-import http from 'axios';
-
-declare let infraPrefix: any;
+import { ng, model, moment, _ } from 'entcore';
 
 export const timePickerRbs = ng.directive('timePickerRbs', function () {
     return {
@@ -25,7 +22,7 @@ export const timePickerRbs = ng.directive('timePickerRbs', function () {
             };
             $('body, lightbox').on('click', hideFunction);
             $('body, lightbox').on('focusin', hideFunction);
-/*
+/* TODO Est-ce que ca marche ? Maintenant charge dans view-src
             http.get('/' + infraPrefix + '/public/js/bootstrap-timepicker.js')
                 .then((response) => {
                     $element.timepicker({
@@ -46,6 +43,13 @@ export const timePickerRbs = ng.directive('timePickerRbs', function () {
             });
 
             $scope.$watch('ngModel', function(newVal){
+                let today = moment();
+                if (typeof(newVal) === "string") {
+                    let [hours, minutes] = newVal.split(':');
+                    today.set({hour: hours, minute:minutes, second:0});
+                    $scope.ngModel = today;
+                    newVal = today;
+                }
                 $scope.ngModel = newVal;
                 $element.val($scope.ngModel.format("HH:mm"));
                 if( ($scope.ngLimit !== undefined && !newVal.isSame($scope.ngLimit))

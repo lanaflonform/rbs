@@ -31,13 +31,12 @@ export class Resource implements Selectable{
 
     constructor(data? : Resource) {
         this.bookings = new Bookings();
-        this.rights = new Rights(this);
-        // this.rights.fromBehaviours(); TODO see other TODO
+        this.rights = new Rights(this); //TODO rights doesn't have the right value when it should
+        this.rights.fromBehaviours();
         if (data) {
             Mix.extend(this, data);
         }
         model.bookings.sync();
-        // this.syncBookings(); TODO
     };
 
     get myRights() {
@@ -133,8 +132,10 @@ export class Resource implements Selectable{
 
     isBookable  (periodic) {
         return this.is_available === true
-            && this.myRights !== undefined
+/*
+            && this.myRights !== undefined // TODO Rights not working
             && this.myRights.contrib !== undefined
+*/
             && (!periodic || this.periodic_booking);
     };
 

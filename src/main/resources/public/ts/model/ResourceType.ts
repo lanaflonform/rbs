@@ -29,7 +29,7 @@ export class ResourceType implements Selectable {
     constructor(data?) {
         this.resources = new Resources();
         this.rights = new Rights(this);
-        // this.rights.fromBehaviours(); TODO in rights.ts and undefined behaviours
+        this.rights.fromBehaviours(); // TODO in rights.ts and undefined behaviours
         if (data) {
             // Can't mix extend because of the readonly attributes in Selection
             // Mix.extend(this, data);

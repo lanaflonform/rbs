@@ -12,7 +12,10 @@
 
 	<!-- non periodic -->
 	<behaviour name="process" resource="item" class="cell checkbox" ng-if="canDeleteBookingDateCheck(item.end_date)">
-		<input type="checkbox" ng-model="item.selected" ng-if="item.owner === me.userId || item.isPending() || item.myRights.process !== undefined" />
+		<!-- TODO Rights not working
+                <input type="checkbox" ng-model="item.selected" ng-if="item.owner === me.userId || item.isPending() || item.myRights.process !== undefined" />
+        -->
+		<input type="checkbox" ng-model="item.selected" ng-if="item.owner === me.userId || item.isPending()" />
 	</behaviour>
 
 	<div class="cell twelve" ng-click="viewBooking(item)">

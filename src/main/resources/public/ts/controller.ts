@@ -67,13 +67,14 @@ export const rbsController = ng.controller('RbsController',
 
                 // Used to display types for moderators (moderators of a type can update a resource, but cannot create one)
                 $scope.keepProcessableResourceTypes = function(type) {
-                    return type.myRights && type.myRights.process;
+                    return true; //TODO Rights not working
+                    // return type.myRights && type.myRights.process;
                 };
 
                 // Used to display types in which current user can create a resource
                 $scope.keepManageableResourceTypes = function(type) {
-                    return true;
-                    // return type.myRights && type.myRights.manage; TODO Rights not working
+                    return true; //TODO Rights not working
+                    // return type.myRights && type.myRights.manage;
                 };
 
                 $scope.status = {
@@ -84,6 +85,7 @@ export const rbsController = ng.controller('RbsController',
                     STATE_PARTIAL: model.STATE_PARTIAL,
                 };
                 $scope.today = moment().startOf('day');
+                $scope.todayDate = $scope.today.toDate();
                 $scope.tomorrow = moment().add(1, 'day').startOf('day');
 
                 $scope.booking = new Booking();
@@ -111,7 +113,7 @@ export const rbsController = ng.controller('RbsController',
                 template.open('top-menu', 'top-menu');
                 template.open('editBookingErrors', 'edit-booking-errors');
 
-                model.calendar.on('date-change', function() {
+                model.calendar.on('date-change', () => {
                     let start = moment(model.calendar.firstDay);
                     let end = moment(model.calendar.firstDay)
                         .add(1, model.calendar.increment + 's')
@@ -121,6 +123,7 @@ export const rbsController = ng.controller('RbsController',
                         model.bookings.startPagingDate.isSame(start, 'day') &&
                         model.bookings.endPagingDate.isSame(end, 'day')
                     ) {
+                        safeApply($scope);
                         return;
                     }
 
@@ -182,15 +185,15 @@ export const rbsController = ng.controller('RbsController',
                                     .add(7, 'day')
                                     .startOf('day');
                                 $scope.bookings.sync();
+                                safeApply($scope);
                             }
                         }
                     },
-                    true
                 );
             };
 
             $scope.hasAnyBookingRight = function(booking){
-                return booking.resource.myRights.process || booking.resource.myRights.manage || booking.owner === model.me.userId;
+                return booking.owner === model.me.userId /*|| booking.resource.myRights.process || booking.resource.myRights.manage*/ /*TODO Rights not working*/ ;
             };
 
             // Initialization
@@ -824,8 +827,8 @@ export const rbsController = ng.controller('RbsController',
             $scope.canCreateBooking = function() {
                 return undefined !==
                     _.find($scope.resourceTypes.all, (resourceType) => {
-                        return (true
-/* TODO See rights problem
+                        return (true // TODO Rights not working
+/*
                             resourceType.myRights !== undefined &&
                             resourceType.myRights.contrib !== undefined
 */
@@ -2480,9 +2483,11 @@ export const rbsController = ng.controller('RbsController',
                     _.find(model.resourceTypes.all, (resourceType) => {
                         return (
                             _.find(resourceType.resources.all, (resource) => {
-                                return (
+                                return (true
+/* TODO Rights not working
                                     resource.myRights !== undefined &&
                                     resource.myRights[ressourceRight] !== undefined
+*/
                                 );
                             }) !== undefined
                         );
@@ -2611,7 +2616,8 @@ export const rbsController = ng.controller('RbsController',
                 model.calendar.firstDay.month(newDate.month());
                 model.calendar.firstDay.year(newDate.year());
                 $scope.bookings.sync();
-                $('.hiddendatepickerform').datepicker('setValue', newDate.format("DD/MM/YYYY")).datepicker('update');
+                $('.hiddendatepickerform')[0].value = newDate.format("DD/MM/YYYY");
+                // $('.hiddendatepickerform').datepicker('setValue', newDate.format("DD/MM/YYYY")).datepicker('update');
                 // $('.hiddendatepickerform').trigger({type: 'changeDate', date: newDate}); TODO type in jqueryEvent doesnt exist
                 $('.hiddendatepickerform').trigger('changeDate', {date: newDate});
             };

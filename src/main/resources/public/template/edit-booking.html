@@ -101,9 +101,9 @@
 						<!-- Booking start - non periodic -->
 						<div class="row" ng-if="! editedBooking.is_periodic">
 							<label class="three cell"><i18n>rbs.booking.edit.start.label</i18n></label>
-							<date-picker ng-if="editedBooking.id === undefined" class="two cell horizontal-spacing" ng-model="booking.startDate" ng-change="showDate = true" past="true" min-date="today.toDate()" exp="true" exp-object="booking.endDate" required></date-picker>
-							<date-picker ng-if="editedBooking.id !== undefined && editedBooking.type.slotprofile === undefined" class="two cell horizontal-spacing" ng-model="booking.startDate" ng-change="showDate = true" past="true" min-date="today.toDate()" exp="true" exp-object="booking.endDate" required></date-picker>
-							<date-picker ng-if="editedBooking.id !== undefined && editedBooking.type.slotprofile !== undefined" class="two cell horizontal-spacing" ng-model="booking.startDate" ng-change="startDateModif();showDate = true" past="true" min-date="today.toDate()" exp="true" exp-object="booking.endDate" required></date-picker>
+							<date-picker ng-if="editedBooking.id === undefined" class="two cell horizontal-spacing" ng-model="booking.startDate" ng-change="showDate = true" past="true" min-date="todayDate" exp="true" exp-object="booking.endDate" required></date-picker>
+							<date-picker ng-if="editedBooking.id !== undefined && editedBooking.type.slotprofile === undefined" class="two cell horizontal-spacing" ng-model="booking.startDate" ng-change="showDate = true" past="true" min-date="todayDate" exp="true" exp-object="booking.endDate" required></date-picker>
+							<date-picker ng-if="editedBooking.id !== undefined && editedBooking.type.slotprofile !== undefined" class="two cell horizontal-spacing" ng-model="booking.startDate" ng-change="startDateModif();showDate = true" past="true" min-date="todayDate" exp="true" exp-object="booking.endDate" required></date-picker>
 							<div ng-if="editedBooking.type.slotprofile === undefined">
 								<div class="one cell centered-text"><i18n>rbs.booking.details.header.at</i18n></div>
 								<div>

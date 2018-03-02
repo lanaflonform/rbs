@@ -71,6 +71,10 @@
 	};
 	entcore_1.Behaviours.register('rbs', {
 	    behaviours: rbsBehaviours,
+	    rights: {
+	        workflow: rbsBehaviours.workflow,
+	        resource: rbsBehaviours.resources
+	    },
 	    resourceRights: function (resource) {
 	        var rightsContainer = resource;
 	        if (resource instanceof model_1.Resource && resource.type) {
@@ -185,7 +189,6 @@
 	var index_1 = __webpack_require__(3);
 	exports.buildModel = function () {
 	    return __awaiter(this, void 0, void 0, function () {
-	        var returnData;
 	        return __generator(this, function (_a) {
 	            switch (_a.label) {
 	                case 0:
@@ -227,7 +230,7 @@
 	                            interval: 1
 	                        }
 	                    };
-	                    returnData = function (hook, params) {
+	                    entcore_1.model.returnData = function (hook, params) {
 	                        if (typeof hook === 'function')
 	                            hook.apply(this, params);
 	                    };
@@ -5157,13 +5160,12 @@
 	var Resource = (function () {
 	    function Resource(data) {
 	        this.bookings = new index_1.Bookings();
-	        this.rights = new entcore_1.Rights(this);
-	        // this.rights.fromBehaviours(); TODO see other TODO
+	        this.rights = new entcore_1.Rights(this); //TODO rights doesn't have the right value when it should
+	        this.rights.fromBehaviours();
 	        if (data) {
 	            entcore_toolkit_1.Mix.extend(this, data);
 	        }
 	        entcore_1.model.bookings.sync();
-	        // this.syncBookings(); TODO
 	    }
 	    ;
 	    Object.defineProperty(Resource.prototype, "myRights", {
@@ -5258,8 +5260,6 @@
 	    ;
 	    Resource.prototype.isBookable = function (periodic) {
 	        return this.is_available === true
-	            && this.myRights !== undefined
-	            && this.myRights.contrib !== undefined
 	            && (!periodic || this.periodic_booking);
 	    };
 	    ;
@@ -5328,7 +5328,7 @@
 	    function ResourceType(data) {
 	        this.resources = new index_1.Resources();
 	        this.rights = new entcore_1.Rights(this);
-	        // this.rights.fromBehaviours(); TODO in rights.ts and undefined behaviours
+	        this.rights.fromBehaviours(); // TODO in rights.ts and undefined behaviours
 	        if (data) {
 	            // Can't mix extend because of the readonly attributes in Selection
 	            // Mix.extend(this, data);

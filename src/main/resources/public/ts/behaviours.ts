@@ -27,6 +27,10 @@ const rbsBehaviours = {
 
 Behaviours.register('rbs', {
 	behaviours: rbsBehaviours,
+	rights: {
+		workflow: rbsBehaviours.workflow,
+		resource :rbsBehaviours.resources
+	},
 	resourceRights: function(resource){
 		let rightsContainer = resource;
 		if(resource instanceof Resource && resource.type){

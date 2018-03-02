@@ -10,12 +10,12 @@ export class Booking implements Selectable{
     id: any;
     color: any;
     beginning: any;
-    startMoment: moment;
-    endMoment: moment;
+    startMoment: any;
+    endMoment: any;
     start_date: any;
     end_date: any;
-    startTime: moment;
-    endTime: moment;
+    startTime: any;
+    endTime: any;
     end: any;
     resource: Resource;
     refusal_reason: boolean;

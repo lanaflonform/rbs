@@ -1,10 +1,9 @@
-import {_, angular, Behaviours, calendar, Collection, loader, model, Model, moment} from 'entcore';
+import {_, angular, calendar, model, Model, moment} from 'entcore';
 import { Eventer } from 'entcore-toolkit';
 
 import http from 'axios';
 
 import {Booking, Bookings, ResourceTypes, SelectionHolder} from './index';
-import {safeApply} from "../functions/safeApply";
 
 export const buildModel = async function () {
 //  cyan', 'green', 'orange', 'pink', 'purple', 'grey'
@@ -50,7 +49,7 @@ export const buildModel = async function () {
         }
     };
 
-    let returnData = function (hook, params) { //TODO params = [data] is it good ?
+    model.returnData = function (hook, params) { //TODO params = [data] is it good ?
         if (typeof hook === 'function')
             hook.apply(this, params)
     };
@@ -90,8 +89,8 @@ export const buildModel = async function () {
     await model.bookings.sync();
 
     model.bookings.eventer.on('sync', (cb) => {
-        _.forEach(model.resourceTypes.all, function (type) {
-            _.forEach(type.resources.all, function (resource) {
+        _.forEach(model.resourceTypes.all, (type) => {
+            _.forEach(type.resources.all, (resource) => {
                 resource.syncBookings();
             });
         });
@@ -145,7 +144,7 @@ export const buildModel = async function () {
         };
 
         // Process
-        _.each(rows, function (row) {
+        _.each(rows, (row) => {
             if (row.parent_booking_id === null) {
                 // Is a Booking
                 bookingIndex.bookings[row.id] = row;
@@ -167,12 +166,12 @@ export const buildModel = async function () {
         });
 
         // Link bookings and slots
-        _.each(bookingIndex.bookings, function (booking) {
+        _.each(bookingIndex.bookings, (booking) => {
             if (booking.is_periodic === true) {
                 // Link
                 booking._slots = bookingIndex.slots[booking.id] || [];
                 // Resolve status of periodic booking
-                let statusCount = _.countBy(booking._slots, function (slot) {
+                let statusCount = _.countBy(booking._slots, (slot) => {
                     // link (here to avoid another loop)
                     slot.booking = booking;
                     slot.color = booking.color;
@@ -220,7 +219,7 @@ export const buildModel = async function () {
         if (bitMask !== undefined) {
             let bits = (bitMask + '').split("");
         }
-        _.each(model.periods.days, function (day) {
+        _.each(model.periods.days, (day) => {
             if (bits[day] === '1') {
                 periodDays.push({number: day, value: true});
             }
@@ -279,7 +278,7 @@ export const buildModel = async function () {
 
     model.loadTreeState = function (cb) {
         http.get('/userbook/preference/rbs')
-            .then(function (response) {
+            .then((response) => {
                 let state = (angular.fromJson(response.data.preference) || {}).treeState;
 
                 if (typeof cb === 'function') {
