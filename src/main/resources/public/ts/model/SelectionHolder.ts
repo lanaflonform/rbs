@@ -30,7 +30,7 @@ export class SelectionHolder {
                     resourceTypeCallback(resourceType);
                 }
             }
-            _.forEach(model.resourceTypes.all, (resource) => {
+            _.forEach(resourceType.resources.all, (resource) => {
                 if (resource.selected === true) {
                     resourceRecords[resource.id] = true;
                     if (typeof resourceCallback === 'function') {
@@ -40,8 +40,8 @@ export class SelectionHolder {
             });
         });
 
-        this.resourceTypes.all = typeRecords;
-        this.resources.all = resourceRecords;
+        this.resourceTypes = typeRecords;
+        this.resources = resourceRecords;
     };
 
     restore (resourceTypeCallback, resourceCallback) {

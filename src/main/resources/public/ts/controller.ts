@@ -2164,13 +2164,17 @@ export const rbsController = ng.controller('RbsController',
 
             $scope.validateBookingSelection = function() {
                 $scope.display.processing = undefined;
-                if ($scope.selectedBooking !== undefined) {
+                let bookingSelected = _.find(model.bookings.all, (booking) => {
+                    return booking.id === $scope.selectedBooking.id;
+                });
+
+                if (bookingSelected !== undefined) {
                     $scope.bookings.deselectAll();
-                    if ($scope.selectedBooking.is_periodic === true) {
-                        $scope.selectedBooking.selectAllSlots();
-                        $scope.selectedBooking.selected = undefined;
+                    if (bookingSelected.is_periodic === true) {
+                        bookingSelected.selectAllSlots();
+                        bookingSelected.selected = undefined;
                     } else {
-                        $scope.selectedBooking.selected = true;
+                        bookingSelected.selected = true;
                     }
                 }
 
@@ -2181,13 +2185,17 @@ export const rbsController = ng.controller('RbsController',
 
             $scope.refuseBookingSelection = function() {
                 $scope.display.processing = undefined;
-                if ($scope.selectedBooking !== undefined) {
+                let bookingSelected = _.find(model.bookings.all, (booking) => {
+                    return booking.id === $scope.selectedBooking.id;
+                });
+
+                if (bookingSelected !== undefined) {
                     $scope.bookings.deselectAll();
-                    if ($scope.selectedBooking.is_periodic === true) {
-                        $scope.selectedBooking.selectAllSlots();
-                        $scope.selectedBooking.selected = undefined;
+                    if (bookingSelected.is_periodic === true) {
+                        bookingSelected.selectAllSlots();
+                        bookingSelected.selected = undefined;
                     } else {
-                        $scope.selectedBooking.selected = true;
+                        bookingSelected.selected = true;
                     }
                 }
 
