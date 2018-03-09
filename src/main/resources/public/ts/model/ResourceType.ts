@@ -31,7 +31,7 @@ export class ResourceType implements Selectable {
         this.rights = new Rights(this);
         this.rights.fromBehaviours(); // TODO in rights.ts and undefined behaviours
         if (data) {
-            // Can't mix extend because of the readonly attributes in Selection
+            // Can't Mix.extend because of the readonly attributes in Selection
             // Mix.extend(this, data);
             this.color = data.color;
             this.created = data.created;
@@ -215,7 +215,6 @@ export class ResourceTypes extends Selection<ResourceType> {
                                 if (newResource.color === null) {
                                     newResource.color = resourceType.color;
                                 }
-                                newResource.syncBookings();
                                 resourceType.resources.push(newResource, false);
                             }
 
@@ -226,7 +225,6 @@ export class ResourceTypes extends Selection<ResourceType> {
                                     Behaviours.applicationsBehaviours.rbs.resourceRights(booking);
                                 });
                                 this.eventer.trigger('sync');
-                                model.bookings.applyFilters();
                             }
                         });
                     });

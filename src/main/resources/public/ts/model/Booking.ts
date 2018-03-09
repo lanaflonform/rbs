@@ -33,7 +33,6 @@ export class Booking implements Selectable{
 
 
     constructor(book?) {
-        // this.resource = new Resource(); // TODO Infinite loop with New Resource() calling bookings.sync calling new Booking callin new Resource
         this.eventer = new Eventer();
         if (book) {
             Mix.extend(this, book);
