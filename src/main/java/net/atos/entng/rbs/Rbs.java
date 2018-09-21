@@ -33,8 +33,8 @@ import org.entcore.common.service.impl.SqlCrudService;
 import org.entcore.common.share.impl.SqlShareService;
 import org.entcore.common.sql.SqlConf;
 import org.entcore.common.sql.SqlConfs;
-import org.vertx.java.core.eventbus.EventBus;
-import org.vertx.java.core.json.JsonArray;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonArray;
 
 public class Rbs extends BaseServer {
 
@@ -46,7 +46,7 @@ public class Rbs extends BaseServer {
 	public final static String RESOURCE_TYPE_SHARE_TABLE = "resource_type_shares";
 
 	@Override
-	public void start() {
+	public void start() throws Exception {
 		super.start();
 		final EventBus eb = getEventBus(vertx);
 
@@ -64,7 +64,7 @@ public class Rbs extends BaseServer {
 		confType.setSchema(getSchema());
 		ResourceTypeController typeController = new ResourceTypeController(eb);
 		SqlCrudService typeSqlCrudService = new SqlCrudService(getSchema(), RESOURCE_TYPE_TABLE, RESOURCE_TYPE_SHARE_TABLE,
-				new JsonArray().addString("*"), new JsonArray().add("*"), true);
+				new fr.wseduc.webutils.collections.JsonArray().add("*"), new JsonArray().add("*"), true);
 		typeController.setCrudService(typeSqlCrudService);
 		typeController.setShareService(new SqlShareService(getSchema(), RESOURCE_TYPE_SHARE_TABLE,
 				eb, securedActions, null));
@@ -76,15 +76,15 @@ public class Rbs extends BaseServer {
 		confResource.setSchema(getSchema());
 		ResourceController resourceController = new ResourceController();
 		SqlCrudService resourceSqlCrudService = new SqlCrudService(getSchema(), RESOURCE_TABLE, RESOURCE_SHARE_TABLE,
-				new JsonArray().addString("*"), new JsonArray().add("*"), true);
+				new fr.wseduc.webutils.collections.JsonArray().add("*"), new JsonArray().add("*"), true);
 		resourceController.setCrudService(resourceSqlCrudService);
 		resourceController.setShareService(new SqlShareService(getSchema(), RESOURCE_SHARE_TABLE,
 				eb, securedActions, null));
 		addController(resourceController);
 
 
-		container.deployWorkerVerticle(PdfExportService.class.getName(), config);
-		container.deployWorkerVerticle(IcalExportService.class.getName(), config);
+//		container.deployWorkerVerticle(PdfExportService.class.getName(), config);
+//		container.deployWorkerVerticle(IcalExportService.class.getName(), config);
 
 		BookingController bookingController = new BookingController(eb);
 		addController(bookingController);

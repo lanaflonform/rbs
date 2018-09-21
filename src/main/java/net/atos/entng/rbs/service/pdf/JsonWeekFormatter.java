@@ -4,8 +4,8 @@ import net.atos.entng.rbs.model.ExportBooking;
 import net.atos.entng.rbs.model.ExportRequest;
 import net.atos.entng.rbs.model.ExportResponse;
 import org.joda.time.*;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 
@@ -23,27 +23,27 @@ public class JsonWeekFormatter extends JsonFormatter {
 		DateTime lastSlotOfADay = automaticGetLastSlotOfADay();
 
 		JsonObject convertedObject = new JsonObject();
-		convertedObject.putString(EDITION_DATE_FIELD_NAME, DateTime.now().toString("dd/MM/YYYY"));
+		convertedObject.put(EDITION_DATE_FIELD_NAME, DateTime.now().toString("dd/MM/YYYY"));
 		int slotNumber = lastSlotOfADay.getHourOfDay() - firstSlotOfADay.getHourOfDay() + 1;
 		double slotHeight = CALENDAR_HEIGHT / slotNumber;
 		double slotWidth = round(CALENDAR_WIDTH / 8, DECIMAL_PRECISION);
 
 		// General calendar settings
-		convertedObject.putNumber(CALENDAR_HEIGHT_FIELD_NAME, round(round(slotHeight, DECIMAL_PRECISION) * slotNumber, DECIMAL_PRECISION));
-		convertedObject.putString(CALENDAR_HEIGHT_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
-		convertedObject.putNumber(CALENDAR_WIDTH_FIELD_NAME, CALENDAR_WIDTH);
-		convertedObject.putString(CALENDAR_WIDTH_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
-		convertedObject.putNumber(SLOT_HEIGHT_FIELD_NAME, round(slotHeight, DECIMAL_PRECISION));
-		convertedObject.putString(SLOT_HEIGHT_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
-		convertedObject.putNumber(SLOT_WIDTH_FIELD_NAME, slotWidth);
-		convertedObject.putString(SLOT_WIDTH_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
+		convertedObject.put(CALENDAR_HEIGHT_FIELD_NAME, round(round(slotHeight, DECIMAL_PRECISION) * slotNumber, DECIMAL_PRECISION));
+		convertedObject.put(CALENDAR_HEIGHT_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
+		convertedObject.put(CALENDAR_WIDTH_FIELD_NAME, CALENDAR_WIDTH);
+		convertedObject.put(CALENDAR_WIDTH_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
+		convertedObject.put(SLOT_HEIGHT_FIELD_NAME, round(slotHeight, DECIMAL_PRECISION));
+		convertedObject.put(SLOT_HEIGHT_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
+		convertedObject.put(SLOT_WIDTH_FIELD_NAME, slotWidth);
+		convertedObject.put(SLOT_WIDTH_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
 
 		DateTime exportStart = new DateTime(exportObject.getString(ExportRequest.START_DATE)).withDayOfWeek(DateTimeConstants.MONDAY);
 		DateTime exportEnd = new DateTime(exportObject.getString(ExportRequest.END_DATE)).withDayOfWeek(DateTimeConstants.SUNDAY).plusDays(1);
-		JsonArray exportBookingList = exportObject.getArray(ExportResponse.BOOKINGS);
+		JsonArray exportBookingList = exportObject.getJsonArray(ExportResponse.BOOKINGS);
 
 		DateTime weekIterator = exportStart;
-		JsonArray weekList = new JsonArray();
+		JsonArray weekList = new fr.wseduc.webutils.collections.JsonArray();
 
 		while (Weeks.weeksBetween(weekIterator, exportEnd).getWeeks() != 0) {
 
@@ -53,26 +53,26 @@ public class JsonWeekFormatter extends JsonFormatter {
 
 			// Building resource list
 			ArrayList<Long> performedResourceId = new ArrayList<>();
-			JsonArray resourceList = new JsonArray();
+			JsonArray resourceList = new fr.wseduc.webutils.collections.JsonArray();
 
 			for (int i = 0; i < exportBookingList.size(); i++) {
-				JsonObject bookingIterator = exportBookingList.get(i);
+				JsonObject bookingIterator = exportBookingList.getJsonObject(i);
 				Long currentResourceId = bookingIterator.getLong(ExportBooking.RESOURCE_ID);
 
 				if (!performedResourceId.contains(currentResourceId)) { // New resource found
 					performedResourceId.add(bookingIterator.getLong(ExportBooking.RESOURCE_ID));
 					JsonObject resource = new JsonObject();
-					resource.putNumber(ExportBooking.RESOURCE_ID, currentResourceId);
-					resource.putString(ExportBooking.RESOURCE_NAME, bookingIterator.getString(ExportBooking.RESOURCE_NAME));
-					resource.putString(ExportBooking.RESOURCE_COLOR, bookingIterator.getString(ExportBooking.RESOURCE_COLOR));
-					resource.putString(ExportBooking.SCHOOL_NAME, bookingIterator.getString(ExportBooking.SCHOOL_NAME));
-					resource.putArray(SLOT_RAW_TITLE_FIELD_NAME, slotRawTitle);
-					resource.putArray(DAYS_FIELD_NAME, dayList);
+					resource.put(ExportBooking.RESOURCE_ID, currentResourceId);
+					resource.put(ExportBooking.RESOURCE_NAME, bookingIterator.getString(ExportBooking.RESOURCE_NAME));
+					resource.put(ExportBooking.RESOURCE_COLOR, bookingIterator.getString(ExportBooking.RESOURCE_COLOR));
+					resource.put(ExportBooking.SCHOOL_NAME, bookingIterator.getString(ExportBooking.SCHOOL_NAME));
+					resource.put(SLOT_RAW_TITLE_FIELD_NAME, slotRawTitle);
+					resource.put(DAYS_FIELD_NAME, dayList);
 
 					// Adding resource bookings
-					JsonArray bookingList = new JsonArray();
+					JsonArray bookingList = new fr.wseduc.webutils.collections.JsonArray();
 					for (int j = 0; j < exportBookingList.size(); j++) {
-						JsonObject exportBooking = exportBookingList.get(j);
+						JsonObject exportBooking = exportBookingList.getJsonObject(j);
 
 						if (exportBooking.getLong(ExportBooking.RESOURCE_ID).equals(currentResourceId)) { // This booking belongs to the current resource
 							// Split booking into several bookings if booked on several days
@@ -100,36 +100,36 @@ public class JsonWeekFormatter extends JsonFormatter {
 									int bookingOffsetFromStart = Seconds.secondsBetween(dayStartDate, bookingStartDate).getSeconds();
 									int bookingDuration = Seconds.secondsBetween(bookingStartDate, bookingEndDate).getSeconds();
 
-									String classId = "booking-" + String.valueOf(exportBooking.getNumber(ExportBooking.BOOKING_ID)) + "-" + String.valueOf(k + 1);
+									String classId = "booking-" + String.valueOf(exportBooking.getInteger(ExportBooking.BOOKING_ID)) + "-" + String.valueOf(k + 1);
 									double leftOffest = slotWidth * bookingStartDate.getDayOfWeek() + 5;
 									double topOffset = 48 + slotHeight * (slotNumber - 1) * bookingOffsetFromStart / dayDurationInSecond;
 									double bookingHeight = slotHeight * (slotNumber - 1) * bookingDuration / dayDurationInSecond - 2;
 
-									booking.putString(ExportBooking.BOOKING_OWNER_NAME, exportBooking.getString(ExportBooking.BOOKING_OWNER_NAME));
-									booking.putString(BOOKING_CLASS_ID_FIELD_NAME, classId);
-									booking.putNumber(BOOKING_TOP_FIELD_NAME, round(topOffset, DECIMAL_PRECISION));
-									booking.putString(BOOKING_TOP_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
-									booking.putNumber(BOOKING_LEFT_FIELD_NAME, leftOffest);
-									booking.putString(BOOKING_LEFT_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
-									booking.putNumber(BOOKING_HEIGHT_FIELD_NAME, round(bookingHeight, DECIMAL_PRECISION));
-									booking.putString(BOOKING_HEIGHT_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
+									booking.put(ExportBooking.BOOKING_OWNER_NAME, exportBooking.getString(ExportBooking.BOOKING_OWNER_NAME));
+									booking.put(BOOKING_CLASS_ID_FIELD_NAME, classId);
+									booking.put(BOOKING_TOP_FIELD_NAME, round(topOffset, DECIMAL_PRECISION));
+									booking.put(BOOKING_TOP_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
+									booking.put(BOOKING_LEFT_FIELD_NAME, leftOffest);
+									booking.put(BOOKING_LEFT_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
+									booking.put(BOOKING_HEIGHT_FIELD_NAME, round(bookingHeight, DECIMAL_PRECISION));
+									booking.put(BOOKING_HEIGHT_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
 
-									bookingList.addObject(booking);
+									bookingList.add(booking);
 								}
 							}
 						}
 					}
 
-					resource.putArray(BOOKING_LIST_FIELD_NAME, bookingList);
-					resourceList.addObject(resource);
+					resource.put(BOOKING_LIST_FIELD_NAME, bookingList);
+					resourceList.add(resource);
 				}
 			}
-			weekObject.putArray(RESOURCES_FIELD_NAME, resourceList);
-			weekList.addObject(weekObject);
+			weekObject.put(RESOURCES_FIELD_NAME, resourceList);
+			weekList.add(weekObject);
 			weekIterator = weekIterator.plusWeeks(1);
 		}
 
-		convertedObject.putArray(WEEK_LIST_FIELD_NAME, weekList);
+		convertedObject.put(WEEK_LIST_FIELD_NAME, weekList);
 
 		return convertedObject;
 	}
@@ -153,9 +153,9 @@ public class JsonWeekFormatter extends JsonFormatter {
 	 * @return The slot raw title list
 	 */
 	private JsonArray buildSlotRawTitle(DateTime firstSlotOfADay, DateTime lastSlotOfADay) {
-		JsonArray slotRawTitle = new JsonArray();
+		JsonArray slotRawTitle = new fr.wseduc.webutils.collections.JsonArray();
 		for (int i = firstSlotOfADay.getHourOfDay(); i < lastSlotOfADay.getHourOfDay(); i++)
-			slotRawTitle.addObject(new JsonObject().putString("value", String.valueOf(i) + ":00 - " + String.valueOf(i + 1) + ":00"));
+			slotRawTitle.add(new JsonObject().put("value", String.valueOf(i) + ":00 - " + String.valueOf(i + 1) + ":00"));
 		return slotRawTitle;
 	}
 
@@ -166,16 +166,16 @@ public class JsonWeekFormatter extends JsonFormatter {
 	 * @return The week day list in which the start date is contained in
 	 */
 	private JsonArray builDayList(DateTime startDate) {
-		JsonArray dayList = new JsonArray();
+		JsonArray dayList = new fr.wseduc.webutils.collections.JsonArray();
 		DateTime firstDayOfWeek = startDate.withDayOfWeek(DateTimeConstants.MONDAY);
 
 		for (int i = 0; i < 7; i++) {
 			JsonObject oneDay = new JsonObject();
 			String dayName = firstDayOfWeek.plusDays(i).toString("EEEE");
 			dayName = dayName.substring(0, 1).toUpperCase() + dayName.substring(1);
-			oneDay.putString("name", dayName);
-			oneDay.putString("date", firstDayOfWeek.plusDays(i).toString("dd/MM/YYYY"));
-			dayList.addObject(oneDay);
+			oneDay.put("name", dayName);
+			oneDay.put("date", firstDayOfWeek.plusDays(i).toString("dd/MM/YYYY"));
+			dayList.add(oneDay);
 		}
 		return dayList;
 	}

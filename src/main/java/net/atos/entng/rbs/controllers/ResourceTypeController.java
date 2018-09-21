@@ -19,6 +19,7 @@
 
 package net.atos.entng.rbs.controllers;
 
+import static fr.wseduc.webutils.Utils.handlerToAsyncHandler;
 import static org.entcore.common.neo4j.Neo4jResult.validResultHandler;
 import static org.entcore.common.http.response.DefaultResponseHandler.arrayResponseHandler;
 import static org.entcore.common.http.response.DefaultResponseHandler.notEmptyResponseHandler;
@@ -38,11 +39,11 @@ import org.entcore.common.controller.ControllerHelper;
 import org.entcore.common.mongodb.MongoDbResult;
 import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.eventbus.EventBus;
-import org.vertx.java.core.http.HttpServerRequest;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.Handler;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import fr.wseduc.rs.ApiDoc;
 import fr.wseduc.rs.Delete;
@@ -111,7 +112,7 @@ public class ResourceTypeController extends ControllerHelper {
 						public void handle(JsonObject resourceType) {
 							String slotprofile = resourceType.getString("slotprofile");
 							if (slotprofile == null || slotprofile.isEmpty()) {
-								resourceType.putString("slotprofile", null);
+								resourceType.putNull("slotprofile");
 							}
 							crudService.create(resourceType, user, notEmptyResponseHandler(request));
 						}
@@ -138,7 +139,7 @@ public class ResourceTypeController extends ControllerHelper {
 							final String id = request.params().get("id");
 							String slotprofile = resourceType.getString("slotprofile");
 							if (slotprofile == null || slotprofile.isEmpty()) {
-								resourceType.putString("slotprofile", null);
+								resourceType.putNull("slotprofile");
 							}
 							crudService.update(id, resourceType, user, new Handler<Either<String, JsonObject>>() {
 								@Override
@@ -165,7 +166,7 @@ public class ResourceTypeController extends ControllerHelper {
 
 									} else {
 										JsonObject error = new JsonObject()
-												.putString("error", event.left().getValue());
+												.put("error", event.left().getValue());
 										renderJson(request, error, 400);
 									}
 								}
@@ -212,8 +213,8 @@ public class ResourceTypeController extends ControllerHelper {
 						renderJson(request, event.right().getValue());
 					}
 					else {
-						JsonArray userIds = new JsonArray();
-						JsonArray groupIds = new JsonArray();
+						JsonArray userIds = new fr.wseduc.webutils.collections.JsonArray();
+						JsonArray groupIds = new fr.wseduc.webutils.collections.JsonArray();
 
 						for (Object m : result) {
 							if(!(m instanceof JsonObject)) continue;
@@ -221,10 +222,10 @@ public class ResourceTypeController extends ControllerHelper {
 							String uId = member.getString("user_id", null);
 							String gId = member.getString("group_id", null);
 							if(uId != null) {
-								userIds.addString(uId);
+								userIds.add(uId);
 							}
 							else if(gId != null) {
-								groupIds.addString(gId);
+								groupIds.add(gId);
 							}
 						}
 
@@ -238,7 +239,7 @@ public class ResourceTypeController extends ControllerHelper {
 
 				} else {
 					JsonObject error = new JsonObject()
-							.putString("error", event.left().getValue());
+							.put("error", event.left().getValue());
 					renderJson(request, error, 400);
 				}
 			}
@@ -285,10 +286,10 @@ public class ResourceTypeController extends ControllerHelper {
 			return;
 		}
 		JsonObject action = new JsonObject()
-				.putString("action", "list-slotprofiles")
-				.putString("structureId", structureId);
+				.put("action", "list-slotprofiles")
+				.put("structureId", structureId);
 		Handler<Either<String, JsonArray>> handler = arrayResponseHandler(request);
-		eb.send(DIRECTORY_ADDRESS, action, validResultHandler(handler));
+		eb.send(DIRECTORY_ADDRESS, action, handlerToAsyncHandler(validResultHandler(handler)));
 	}
 
 	@ApiDoc("Get all slots for a slot profile")
@@ -297,11 +298,11 @@ public class ResourceTypeController extends ControllerHelper {
 	public void listSlotsInAProfile(HttpServerRequest request) {
 		String idSlotProfile = request.params().get("idSlotProfile");
 		JsonObject action = new JsonObject()
-				.putString("action", "list-slots")
-				.putString("slotProfileId", idSlotProfile);
+				.put("action", "list-slots")
+				.put("slotProfileId", idSlotProfile);
 
 		Handler<Either<String, JsonObject>> handler = notEmptyResponseHandler(request);
-		eb.send(DIRECTORY_ADDRESS, action, MongoDbResult.validResultHandler(handler));
+		eb.send(DIRECTORY_ADDRESS, action, handlerToAsyncHandler(MongoDbResult.validResultHandler(handler)));
 	}
 
 	@Post("/type/notification/add/:id")

@@ -3,16 +3,16 @@ package net.atos.entng.rbs.service.pdf;
 import com.samskivert.mustache.Mustache;
 import com.samskivert.mustache.Template;
 import net.atos.entng.rbs.model.ExportRequest;
-import org.vertx.java.core.AsyncResult;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.buffer.Buffer;
-import org.vertx.java.core.eventbus.Message;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
-import org.vertx.java.core.logging.Logger;
-import org.vertx.java.core.logging.impl.LoggerFactory;
-import org.vertx.java.core.shareddata.ConcurrentSharedMap;
-import org.vertx.java.platform.Verticle;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
+import io.vertx.core.shareddata.ConcurrentSharedMap;
+import io.vertx.platform.Verticle;
 
 import java.io.FileOutputStream;
 import java.io.StringWriter;
@@ -36,7 +36,7 @@ public class PdfExportService extends Verticle implements Handler<Message<JsonOb
 
 
 	@Override
-	public void start() {
+	public void start() throws Exception {
 		super.start();
 		vertx.eventBus().registerHandler(PDF_HANDLER_ADDRESS, this);
 	}
@@ -44,7 +44,7 @@ public class PdfExportService extends Verticle implements Handler<Message<JsonOb
 	@Override
 	public void handle(Message<JsonObject> message) {
 		String action = message.body().getString("action", "");
-		JsonObject exportResponse = message.body().getObject("data", new JsonObject());
+		JsonObject exportResponse = message.body().getJsonObject("data", new JsonObject());
 		String scheme = message.body().getString("scheme", "");
 		String host = message.body().getString("host", "");
 		switch (action) {
@@ -53,8 +53,8 @@ public class PdfExportService extends Verticle implements Handler<Message<JsonOb
 				break;
 			default:
 				JsonObject results = new JsonObject();
-				results.putString("message", "Unknown action");
-				results.putNumber("status", 400);
+				results.put("message", "Unknown action");
+				results.put("status", 400);
 				message.reply(results);
 		}
 	}
@@ -69,8 +69,8 @@ public class PdfExportService extends Verticle implements Handler<Message<JsonOb
 					Throwable cause = result.cause();
 					LOG.error("Template " + htmlTemplateFile + "  could not be read", cause);
 					JsonObject results = new JsonObject();
-					results.putNumber("status", 500);
-					results.putString("message", cause != null ? cause.getMessage() : "");
+					results.put("status", 500);
+					results.put("message", cause != null ? cause.getMessage() : "");
 					message.reply(results);
 					return;
 				}
@@ -85,7 +85,7 @@ public class PdfExportService extends Verticle implements Handler<Message<JsonOb
 					JsonObject actionObject = new JsonObject();
 					actionObject
 							.putBinary("content", filledTemplate.getBytes())
-							.putString("baseUrl", baseUrl);
+							.put("baseUrl", baseUrl);
 					String node = (String) vertx.sharedData().getMap("server").get("node");
 					if (node == null) {
 						node = "";
@@ -97,8 +97,8 @@ public class PdfExportService extends Verticle implements Handler<Message<JsonOb
 								String pdfResponseString = pdfResponse.getString("message");
 								LOG.error("Conversion error: " + pdfResponseString);
 								JsonObject results = new JsonObject();
-								results.putNumber("status", 500);
-								results.putString("message", pdfResponseString);
+								results.put("status", 500);
+								results.put("message", pdfResponseString);
 								message.reply(results);
 								return;
 							}
@@ -106,7 +106,7 @@ public class PdfExportService extends Verticle implements Handler<Message<JsonOb
 							byte[] pdf = pdfResponse.getBinary("content");
 
 							JsonObject results = new JsonObject();
-							results.putNumber("status", 200);
+							results.put("status", 200);
 							results.putBinary("content", pdf);
 							message.reply(results);
 						}
@@ -115,8 +115,8 @@ public class PdfExportService extends Verticle implements Handler<Message<JsonOb
 				} catch (Exception e) {
 					LOG.error("Conversion Error", e);
 					JsonObject results = new JsonObject();
-					results.putNumber("status", 500);
-					results.putString("message", e.getMessage());
+					results.put("status", 500);
+					results.put("message", e.getMessage());
 					message.reply(results);
 					return;
 				}
@@ -130,8 +130,8 @@ public class PdfExportService extends Verticle implements Handler<Message<JsonOb
 		JsonFormatter formatter = JsonFormatter.buildFormater(jsonExportResponse);
 
 		JsonObject convertedJson = formatter.format();
-		JsonArray jsonFileArray = new JsonArray();
-		jsonFileArray.addObject(convertedJson);
+		JsonArray jsonFileArray = new fr.wseduc.webutils.collections.JsonArray();
+		jsonFileArray.add(convertedJson);
 
 		return new JsonObject().putElement("export", jsonFileArray);
 	}

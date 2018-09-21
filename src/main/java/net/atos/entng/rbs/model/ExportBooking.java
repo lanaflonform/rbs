@@ -19,7 +19,7 @@
 
 package net.atos.entng.rbs.model;
 
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.json.JsonObject;
 
 /**
  * Contains data used to generate export
@@ -57,7 +57,7 @@ public class ExportBooking {
 	}
 
 	public void setSchoolName(String schoolName) {
-		data.putString(SCHOOL_NAME, schoolName);
+		data.put(SCHOOL_NAME, schoolName);
 	}
 
 	public String getColor() {
@@ -105,7 +105,7 @@ public class ExportBooking {
 	}
 
 	public Number getId() {
-		return data.getNumber(BOOKING_ID);
+		return data.getInteger(BOOKING_ID);
 	}
 
 	public String getOwnerId() {

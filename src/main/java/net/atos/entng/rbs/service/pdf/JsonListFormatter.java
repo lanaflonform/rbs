@@ -2,8 +2,8 @@ package net.atos.entng.rbs.service.pdf;
 
 import net.atos.entng.rbs.model.ExportBooking;
 import org.joda.time.DateTime;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,19 +53,19 @@ public class JsonListFormatter extends JsonFormatter {
 	public JsonObject format(){
 
         JsonObject convertedObject = new JsonObject();
-        convertedObject.putString(EDITION_DATE_FIELD_NAME, DateTime.now().toString("dd/MM/YYYY"));
+        convertedObject.put(EDITION_DATE_FIELD_NAME, DateTime.now().toString("dd/MM/YYYY"));
 
         // General calendar settings
-        convertedObject.putNumber(CALENDAR_WIDTH_FIELD_NAME, CALENDAR_WIDTH);
-        convertedObject.putString(CALENDAR_WIDTH_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
-        JsonArray exportBookingList = exportObject.getArray(BOOKING_LIST_FIELD_NAME);
+        convertedObject.put(CALENDAR_WIDTH_FIELD_NAME, CALENDAR_WIDTH);
+        convertedObject.put(CALENDAR_WIDTH_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
+        JsonArray exportBookingList = exportObject.getJsonArray(BOOKING_LIST_FIELD_NAME);
 
         // Building resource list
         ArrayList<Long> performedResourceId = new ArrayList<Long>();
-        JsonArray resourceList = new JsonArray();
+        JsonArray resourceList = new fr.wseduc.webutils.collections.JsonArray();
 
         for (int i = 0; i < exportBookingList.size(); i++) {
-            JsonObject bookingIterator = exportBookingList.get(i);
+            JsonObject bookingIterator = exportBookingList.getJsonObject(i);
             Long currentResourceId = bookingIterator.getLong(ExportBooking.RESOURCE_ID);
 
             if(!performedResourceId.contains(currentResourceId)){ // New resource found
@@ -74,7 +74,7 @@ public class JsonListFormatter extends JsonFormatter {
                 // Adding resource bookings
                 ArrayList<Booking> bookingList = new ArrayList<>();
                 for (int j = 0; j < exportBookingList.size(); j++) {
-                    JsonObject exportBooking = exportBookingList.get(j);
+                    JsonObject exportBooking = exportBookingList.getJsonObject(j);
 
                     if(exportBooking.getLong(ExportBooking.RESOURCE_ID).equals(currentResourceId)){ // This booking belongs to the current resource
 
@@ -91,15 +91,15 @@ public class JsonListFormatter extends JsonFormatter {
                 Collections.sort(bookingList, new BookingComparator());
 
                 int cpt = 0;
-                JsonArray jsonBookingList = new JsonArray();
+                JsonArray jsonBookingList = new fr.wseduc.webutils.collections.JsonArray();
                 for (Booking b: bookingList) {
                     JsonObject jsonBooking = new JsonObject();
 
-                    jsonBooking.putString(ExportBooking.BOOKING_OWNER_NAME, b.getOwnerName());
-                    jsonBooking.putString(ExportBooking.BOOKING_START_DATE, b.getStartDate().toString("dd/MM/YYYY à kk:mm").replace(':', 'h'));
-                    jsonBooking.putString(ExportBooking.BOOKING_END_DATE, b.getEndDate().toString("dd/MM/YYYY à kk:mm").replace(':', 'h'));
+                    jsonBooking.put(ExportBooking.BOOKING_OWNER_NAME, b.getOwnerName());
+                    jsonBooking.put(ExportBooking.BOOKING_START_DATE, b.getStartDate().toString("dd/MM/YYYY à kk:mm").replace(':', 'h'));
+                    jsonBooking.put(ExportBooking.BOOKING_END_DATE, b.getEndDate().toString("dd/MM/YYYY à kk:mm").replace(':', 'h'));
 
-                    jsonBookingList.addObject(jsonBooking);
+                    jsonBookingList.add(jsonBooking);
                     cpt++;
 
                     if(cpt % NUMBER_OF_BOOKINGS_BY_PAGE == 0) {
@@ -109,8 +109,8 @@ public class JsonListFormatter extends JsonFormatter {
                                 bookingIterator.getString(ExportBooking.SCHOOL_NAME),
                                 jsonBookingList);
 
-                        resourceList.addObject(resource);
-                        jsonBookingList = new JsonArray();
+                        resourceList.add(resource);
+                        jsonBookingList = new fr.wseduc.webutils.collections.JsonArray();
                     }
                 }
 
@@ -121,23 +121,23 @@ public class JsonListFormatter extends JsonFormatter {
                             bookingIterator.getString(ExportBooking.SCHOOL_NAME),
                             jsonBookingList);
 
-                    resourceList.addObject(resource);
+                    resourceList.add(resource);
                 }
             }
         }
 
-        convertedObject.putArray(RESOURCES_FIELD_NAME, resourceList);
+        convertedObject.put(RESOURCES_FIELD_NAME, resourceList);
 
         return convertedObject;
 	}
 
 	private JsonObject buildResource(Long id, String name, String color, String schoolName, JsonArray bookingList) {
         JsonObject resource = new JsonObject();
-        resource.putNumber(ExportBooking.RESOURCE_ID, id);
-        resource.putString(ExportBooking.RESOURCE_NAME, name);
-        resource.putString(ExportBooking.RESOURCE_COLOR, color);
-        resource.putString(ExportBooking.SCHOOL_NAME, schoolName);
-        resource.putArray(BOOKING_LIST_FIELD_NAME, bookingList);
+        resource.put(ExportBooking.RESOURCE_ID, id);
+        resource.put(ExportBooking.RESOURCE_NAME, name);
+        resource.put(ExportBooking.RESOURCE_COLOR, color);
+        resource.put(ExportBooking.SCHOOL_NAME, schoolName);
+        resource.put(BOOKING_LIST_FIELD_NAME, bookingList);
 
         return resource;
     }

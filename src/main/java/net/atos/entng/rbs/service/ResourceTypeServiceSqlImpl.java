@@ -29,14 +29,14 @@ import java.util.List;
 import fr.wseduc.webutils.http.Renders;
 import org.entcore.common.sql.Sql;
 import org.entcore.common.user.UserInfos;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.eventbus.Message;
-import org.vertx.java.core.json.JsonArray;
+import io.vertx.core.Handler;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonArray;
 
 import fr.wseduc.webutils.Either;
-import org.vertx.java.core.json.JsonObject;
-import org.vertx.java.core.logging.Logger;
-import org.vertx.java.core.logging.impl.LoggerFactory;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
 public class ResourceTypeServiceSqlImpl implements ResourceTypeService {
 
@@ -46,7 +46,7 @@ public class ResourceTypeServiceSqlImpl implements ResourceTypeService {
 			final Handler<Either<String, JsonArray>> handler) {
 
 		StringBuilder query = new StringBuilder();
-		JsonArray values = new JsonArray();
+		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
 
 		query.append("SELECT t.*,")
 			.append(" json_agg(row_to_json(row(ts.member_id,ts.action)::rbs.share_tuple)) as shared,")
@@ -68,7 +68,7 @@ public class ResourceTypeServiceSqlImpl implements ResourceTypeService {
 		if (scope!=null && !scope.isEmpty()) {
 			query.append(" OR t.school_id IN ").append(Sql.listPrepared(scope.toArray()));
 			for (String schoolId : scope) {
-				values.addString(schoolId);
+				values.add(schoolId);
 			}
 		}
 
@@ -82,7 +82,7 @@ public class ResourceTypeServiceSqlImpl implements ResourceTypeService {
 	public void getModeratorsIds(final String typeId, final Handler<Either<String, JsonArray>> handler) {
 
 		StringBuilder query = new StringBuilder();
-		JsonArray values = new JsonArray();
+		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
 
 		query.append("SELECT DISTINCT m.*")
 				.append(" FROM rbs.resource_type AS t")
@@ -111,7 +111,7 @@ public class ResourceTypeServiceSqlImpl implements ResourceTypeService {
 	@Override
 	public void overrideColorChild(String typeId, String color, Handler<Either<String,JsonObject>> handler) {
 		StringBuilder query = new StringBuilder();
-		JsonArray values = new JsonArray();
+		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
 		query.append ("UPDATE rbs.resource")
 				.append(" SET color = ?")
 				.append (" WHERE type_id = ?");
@@ -124,7 +124,7 @@ public class ResourceTypeServiceSqlImpl implements ResourceTypeService {
 	@Override
 	public void overrideValidationChild(String typeId, Boolean validation, Handler<Either<String, JsonObject>> handler) {
 		StringBuilder query = new StringBuilder();
-		JsonArray values = new JsonArray();
+		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
 		query.append ("UPDATE rbs.resource")
 				.append(" SET validation = ?")
 				.append (" WHERE type_id = ?");
@@ -137,7 +137,7 @@ public class ResourceTypeServiceSqlImpl implements ResourceTypeService {
 	public void addNotifications(String id, UserInfos user, Handler<Either<String, JsonObject>> handler) {
 		StringBuilder query = new StringBuilder("INSERT INTO rbs.notifications (resource_id, user_id)" +
 				" SELECT r.id, ? FROM rbs.resource AS r WHERE type_id = ? AND NOT EXISTS (SELECT resource_id, user_id FROM rbs.notifications WHERE user_id = ? AND resource_id = r.id)");
-		JsonArray values = new JsonArray();
+		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
 		values.add(user.getUserId());
 		values.add(parseId(id));
 		values.add(user.getUserId());
@@ -147,7 +147,7 @@ public class ResourceTypeServiceSqlImpl implements ResourceTypeService {
 	@Override
 	public void removeNotifications(String id, UserInfos user, Handler<Either<String, JsonObject>> handler) {
 		StringBuilder query = new StringBuilder("DELETE FROM rbs.notifications WHERE resource_id IN (SELECT id FROM rbs.resource WHERE type_id = ?) AND user_id = ?");
-		JsonArray values = new JsonArray();
+		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
 		values.add(parseId(id));
 		values.add(user.getUserId());
 		Sql.getInstance().prepared(query.toString(), values, validRowsResultHandler(handler));

@@ -5,8 +5,8 @@ import net.atos.entng.rbs.model.ExportRequest;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.joda.time.Seconds;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 
@@ -24,29 +24,29 @@ public class JsonDayFormatter extends JsonFormatter {
 		DateTime lastSlotOfADay = automaticGetLastSlotOfADay();
 
 		JsonObject convertedObject = new JsonObject();
-		convertedObject.putString(EDITION_DATE_FIELD_NAME, DateTime.now().toString("dd/MM/YYYY"));
+		convertedObject.put(EDITION_DATE_FIELD_NAME, DateTime.now().toString("dd/MM/YYYY"));
 		int slotNumber = lastSlotOfADay.getHourOfDay() - firstSlotOfADay.getHourOfDay() + 1;
 		double slotHeight = CALENDAR_HEIGHT / slotNumber;
 		double slotWidth = round(CALENDAR_WIDTH / 8, DECIMAL_PRECISION);
 
 		// General calendar settings
-		convertedObject.putNumber(CALENDAR_HEIGHT_FIELD_NAME, round(round(slotHeight, DECIMAL_PRECISION) * slotNumber, DECIMAL_PRECISION));
-		convertedObject.putString(CALENDAR_HEIGHT_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
-		convertedObject.putNumber(CALENDAR_WIDTH_FIELD_NAME, CALENDAR_WIDTH);
-		convertedObject.putString(CALENDAR_WIDTH_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
-		convertedObject.putNumber(BOOKING_WIDTH_FIELD_NAME, CALENDAR_WIDTH - 135);
-		convertedObject.putString(BOOKING_WIDTH_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
-		convertedObject.putNumber(SLOT_HEIGHT_FIELD_NAME, round(slotHeight, DECIMAL_PRECISION));
-		convertedObject.putString(SLOT_HEIGHT_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
-		convertedObject.putNumber(SLOT_WIDTH_FIELD_NAME, slotWidth);
-		convertedObject.putString(SLOT_WIDTH_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
+		convertedObject.put(CALENDAR_HEIGHT_FIELD_NAME, round(round(slotHeight, DECIMAL_PRECISION) * slotNumber, DECIMAL_PRECISION));
+		convertedObject.put(CALENDAR_HEIGHT_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
+		convertedObject.put(CALENDAR_WIDTH_FIELD_NAME, CALENDAR_WIDTH);
+		convertedObject.put(CALENDAR_WIDTH_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
+		convertedObject.put(BOOKING_WIDTH_FIELD_NAME, CALENDAR_WIDTH - 135);
+		convertedObject.put(BOOKING_WIDTH_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
+		convertedObject.put(SLOT_HEIGHT_FIELD_NAME, round(slotHeight, DECIMAL_PRECISION));
+		convertedObject.put(SLOT_HEIGHT_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
+		convertedObject.put(SLOT_WIDTH_FIELD_NAME, slotWidth);
+		convertedObject.put(SLOT_WIDTH_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
 
 		DateTime exportStart = new DateTime(exportObject.getString(ExportRequest.START_DATE));
 		DateTime exportEnd = new DateTime(exportObject.getString(ExportRequest.END_DATE)).plusDays(1);
-		JsonArray exportBookingList = exportObject.getArray(BOOKING_LIST_FIELD_NAME);
+		JsonArray exportBookingList = exportObject.getJsonArray(BOOKING_LIST_FIELD_NAME);
 
 		DateTime dayIterator = exportStart;
-		JsonArray dayList = new JsonArray();
+		JsonArray dayList = new fr.wseduc.webutils.collections.JsonArray();
 
 		while (dayIterator.getDayOfYear() != exportEnd.getDayOfYear() ||
 				dayIterator.getYear() != exportEnd.getYear() ||
@@ -57,7 +57,7 @@ public class JsonDayFormatter extends JsonFormatter {
 
 			// Building resource list
 			ArrayList<Long> performedResourceId = new ArrayList<Long>();
-			JsonArray resourceList = new JsonArray();
+			JsonArray resourceList = new fr.wseduc.webutils.collections.JsonArray();
 
 			for (int i = 0; i < exportBookingList.size(); i++) {
 				JsonObject bookingIterator = exportBookingList.get(i);
@@ -66,14 +66,14 @@ public class JsonDayFormatter extends JsonFormatter {
 				if (!performedResourceId.contains(currentResourceId)) { // New resource found
 					performedResourceId.add(bookingIterator.getLong(ExportBooking.RESOURCE_ID));
 					JsonObject resource = new JsonObject();
-					resource.putNumber(ExportBooking.RESOURCE_ID, currentResourceId);
-					resource.putString(ExportBooking.RESOURCE_NAME, bookingIterator.getString(ExportBooking.RESOURCE_NAME));
-					resource.putString(ExportBooking.RESOURCE_COLOR, bookingIterator.getString(ExportBooking.RESOURCE_COLOR));
-					resource.putString(ExportBooking.SCHOOL_NAME, bookingIterator.getString(ExportBooking.SCHOOL_NAME));
-					resource.putArray(SLOT_RAW_TITLE_FIELD_NAME, slotRawTitle);
+					resource.put(ExportBooking.RESOURCE_ID, currentResourceId);
+					resource.put(ExportBooking.RESOURCE_NAME, bookingIterator.getString(ExportBooking.RESOURCE_NAME));
+					resource.put(ExportBooking.RESOURCE_COLOR, bookingIterator.getString(ExportBooking.RESOURCE_COLOR));
+					resource.put(ExportBooking.SCHOOL_NAME, bookingIterator.getString(ExportBooking.SCHOOL_NAME));
+					resource.put(SLOT_RAW_TITLE_FIELD_NAME, slotRawTitle);
 
 					// Adding resource bookings
-					JsonArray bookingList = new JsonArray();
+					JsonArray bookingList = new fr.wseduc.webutils.collections.JsonArray();
 					for (int j = 0; j < exportBookingList.size(); j++) {
 						JsonObject exportBooking = exportBookingList.get(j);
 
@@ -107,35 +107,35 @@ public class JsonDayFormatter extends JsonFormatter {
 									double topOffset = slotHeight + slotHeight * (slotNumber - 1) * bookingOffsetFromStart / dayDurationInSecond;
 									double bookingHeight = slotHeight * (slotNumber - 1) * bookingDuration / dayDurationInSecond - 2;
 
-									booking.putString(ExportBooking.BOOKING_OWNER_NAME, exportBooking.getString(ExportBooking.BOOKING_OWNER_NAME));
-									booking.putString(BOOKING_CLASS_ID_FIELD_NAME, classId);
-									booking.putNumber(BOOKING_TOP_FIELD_NAME, round(topOffset, DECIMAL_PRECISION));
-									booking.putString(BOOKING_TOP_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
-									booking.putNumber(BOOKING_HEIGHT_FIELD_NAME, round(bookingHeight, DECIMAL_PRECISION));
-									booking.putString(BOOKING_HEIGHT_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
+									booking.put(ExportBooking.BOOKING_OWNER_NAME, exportBooking.getString(ExportBooking.BOOKING_OWNER_NAME));
+									booking.put(BOOKING_CLASS_ID_FIELD_NAME, classId);
+									booking.put(BOOKING_TOP_FIELD_NAME, round(topOffset, DECIMAL_PRECISION));
+									booking.put(BOOKING_TOP_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
+									booking.put(BOOKING_HEIGHT_FIELD_NAME, round(bookingHeight, DECIMAL_PRECISION));
+									booking.put(BOOKING_HEIGHT_UNIT_FIELD_NAME, DEFAULT_SIZE_UNIT);
 
-									bookingList.addObject(booking);
+									bookingList.add(booking);
 								}
 							}
 						}
 					}
 
-					resource.putArray(BOOKING_LIST_FIELD_NAME, bookingList);
-					resourceList.addObject(resource);
+					resource.put(BOOKING_LIST_FIELD_NAME, bookingList);
+					resourceList.add(resource);
 				}
 			}
-			dayObject.putArray(RESOURCES_FIELD_NAME, resourceList);
+			dayObject.put(RESOURCES_FIELD_NAME, resourceList);
 
 			String dayName = dayIterator.toString("EEEE");
 			dayName = dayName.substring(0, 1).toUpperCase() + dayName.substring(1);
-			dayObject.putString("name", dayName);
-			dayObject.putString("date", dayIterator.toString("dd/MM/YYYY"));
+			dayObject.put("name", dayName);
+			dayObject.put("date", dayIterator.toString("dd/MM/YYYY"));
 
-			dayList.addObject(dayObject);
+			dayList.add(dayObject);
 			dayIterator = dayIterator.plusDays(1);
 		}
 
-		convertedObject.putArray(DAY_LIST_FIELD_NAME, dayList);
+		convertedObject.put(DAY_LIST_FIELD_NAME, dayList);
 
 		return convertedObject;
 	}
@@ -157,9 +157,9 @@ public class JsonDayFormatter extends JsonFormatter {
 	 * @return The slot raw title list
 	 */
 	private JsonArray buildSlotRawTitle(DateTime firstSlotOfADay, DateTime lastSlotOfADay) {
-		JsonArray slotRawTitle = new JsonArray();
+		JsonArray slotRawTitle = new fr.wseduc.webutils.collections.JsonArray();
 		for (int i = firstSlotOfADay.getHourOfDay(); i < lastSlotOfADay.getHourOfDay(); i++)
-			slotRawTitle.addObject(new JsonObject().putString("value", String.valueOf(i) + ":00 - " + String.valueOf(i + 1) + ":00"));
+			slotRawTitle.add(new JsonObject().put("value", String.valueOf(i) + ":00 - " + String.valueOf(i + 1) + ":00"));
 		return slotRawTitle;
 	}
 }

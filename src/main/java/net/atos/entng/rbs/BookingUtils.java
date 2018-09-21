@@ -23,8 +23,8 @@ import net.atos.entng.rbs.service.BookingServiceSqlImpl;
 import org.entcore.common.user.DefaultFunctions;
 import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserInfos.Function;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -206,14 +206,14 @@ public class BookingUtils {
 	}
 
 	public static boolean isDelayLessThanMin(JsonObject resource, long startDate, long now) {
-		long minDelay = resource.getLong("min_delay", -1);
+		long minDelay = resource.getLong("min_delay", -1L);
 		long delay = startDate - now;
 
 		return (minDelay > -1 && minDelay > delay);
 	}
 
 	public static boolean isDelayGreaterThanMax(JsonObject resource, long endDate, long now) {
-		long maxDelay = resource.getLong("max_delay", -1);
+		long maxDelay = resource.getLong("max_delay", -1L);
 		if (maxDelay == -1) {
 			return false;
 		}
@@ -278,7 +278,7 @@ public class BookingUtils {
 			userAndGroupIds.addAll(user.getGroupsIds());
 
 			// Return true if managers and userAndGroupIds have at least one common element
-			if (!Collections.disjoint(userAndGroupIds, managers.toList())) {
+			if (!Collections.disjoint(userAndGroupIds, managers.getList())) {
 				return true;
 			}
 		}

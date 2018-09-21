@@ -19,8 +19,8 @@
 
 package net.atos.entng.rbs.model;
 
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,15 +68,15 @@ public class ExportResponse {
 
 	public JsonObject toJson() {
 		JsonObject response = new JsonObject();
-		response.putString(ExportRequest.START_DATE, request.getStartDate());
-		response.putString(ExportRequest.END_DATE, request.getEndDate());
-		response.putString(ExportRequest.FORMAT, request.getFormat().name());
-		response.putString(ExportRequest.VIEW, request.getView().name());
-		JsonArray jsonBookings = new JsonArray();
+		response.put(ExportRequest.START_DATE, request.getStartDate());
+		response.put(ExportRequest.END_DATE, request.getEndDate());
+		response.put(ExportRequest.FORMAT, request.getFormat().name());
+		response.put(ExportRequest.VIEW, request.getView().name());
+		JsonArray jsonBookings = new fr.wseduc.webutils.collections.JsonArray();
 		for (ExportBooking booking : bookings) {
-			jsonBookings.addObject(booking.toJson());
+			jsonBookings.add(booking.toJson());
 		}
-		response.putArray(BOOKINGS, jsonBookings);
+		response.put(BOOKINGS, jsonBookings);
 		return response;
 	}
 
@@ -88,7 +88,7 @@ public class ExportResponse {
 	public static ExportResponse fromJson(JsonObject data) {
 		ExportRequest exportRequest = new ExportRequest(data);
 		ExportResponse exportResponse = new ExportResponse(exportRequest);
-		JsonArray array = data.getArray(BOOKINGS);
+		JsonArray array = data.getJsonArray(BOOKINGS);
 		List<ExportBooking> bookings = new ArrayList<>();
 		for (Object o : array) {
 			ExportBooking booking = new ExportBooking((JsonObject) o);

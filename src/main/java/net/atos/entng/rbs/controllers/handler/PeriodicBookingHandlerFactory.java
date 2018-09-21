@@ -25,11 +25,11 @@ import net.atos.entng.rbs.service.BookingNotificationService;
 import net.atos.entng.rbs.service.BookingService;
 import net.atos.entng.rbs.service.ResourceService;
 import org.entcore.common.user.UserInfos;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.http.HttpServerRequest;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
-import org.vertx.java.core.logging.Logger;
+import io.vertx.core.Handler;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
 
 import java.text.ParseException;
 import java.util.Date;
@@ -87,9 +87,9 @@ public class PeriodicBookingHandlerFactory {
 			}
 			JsonArray selectedDaysArray = null;
 			int firstSlotDayTmp = 0;
-			final JsonArray slots = booking.getArray("slots");
+			final JsonArray slots = booking.getJsonArray("slots");
 			for (int i = 0; i < slots.size(); i++) {
-				JsonObject slot = slots.get(i);
+				JsonObject slot = slots.getJsonObject(i);
 				long firstSlotStartDate = slot.getLong("start_date", 0L);
 				long firstSlotEndDate = slot.getLong("end_date", 0L);
 
@@ -101,7 +101,7 @@ public class PeriodicBookingHandlerFactory {
 
 				firstSlotDayTmp = getDayFromTimestamp(firstSlotStartDate);
 				boolean isMultiDayPeriod = Math.abs(getDayFromTimestamp(firstSlotEndDate) - firstSlotDayTmp) >= 1;
-				JsonArray days = booking.getArray("days", new JsonArray());
+				JsonArray days = booking.getJsonArray("days", new fr.wseduc.webutils.collections.JsonArray());
 				selectedDaysArray = getSelectedDaysArray(days, firstSlotDayTmp, isMultiDayPeriod);
 				if (selectedDaysArray.size() != 7) {
 					badRequest(request, "rbs.booking.bad.request.invalid.days");
@@ -109,7 +109,7 @@ public class PeriodicBookingHandlerFactory {
 				}
 
 				// The day of the first slot must be a selected day
-				if (!(Boolean) selectedDaysArray.toList().get(firstSlotDayTmp)) {
+				if (!(Boolean) selectedDaysArray.getList().get(firstSlotDayTmp)) {
 					badRequest(request, "rbs.booking.bad.request.first.day.not.selected");
 					return;
 				}
@@ -123,7 +123,7 @@ public class PeriodicBookingHandlerFactory {
 					if (event.isRight() && event.right().getValue() != null) {
 						JsonObject resourceDelayAndType = event.right().getValue();
 						for (int i = 0; i < slots.size(); i++) {
-							JsonObject slot = slots.get(i);
+							JsonObject slot = slots.getJsonObject(i);
 							final long firstSlotStartDate = slot.getLong("start_date", 0L);
 							final long firstSlotEndDate = slot.getLong("end_date", 0L);
 							Either<Boolean, String> checkResult = checkResourceConstraintsRespectedByPeriodicBooking(request, user, resourceId, resourceDelayAndType, booking, firstSlotStartDate, firstSlotEndDate, selectedDays);
@@ -157,13 +157,13 @@ public class PeriodicBookingHandlerFactory {
 	}
 
 	private JsonArray getSelectedDaysArray(JsonArray days, int firstSlotDay, boolean isMultiDayPeriod) {
-		final JsonArray selectedDaysArray = new JsonArray();
+		final JsonArray selectedDaysArray = new fr.wseduc.webutils.collections.JsonArray();
 		int i = 0;
 		for (Object obj : days) {
 			if (isMultiDayPeriod && i == firstSlotDay) {
-				selectedDaysArray.addBoolean(new Boolean(true));
+				selectedDaysArray.add(new Boolean(true));
 			} else {
-				selectedDaysArray.addBoolean((Boolean) obj);
+				selectedDaysArray.add((Boolean) obj);
 			}
 			i++;
 		}
@@ -177,7 +177,7 @@ public class PeriodicBookingHandlerFactory {
 		String owner = resourceDelayAndType.getString("owner", null);
 		String schoolId = resourceDelayAndType.getString("school_id", null);
 		String jsonString = resourceDelayAndType.getString("managers", null);
-		JsonArray managers = (jsonString != null) ? new JsonArray(jsonString) : null;
+		JsonArray managers = (jsonString != null) ? new fr.wseduc.webutils.collections.JsonArray(jsonString) : null;
 
 		if (owner == null || schoolId == null) {
 			log.warn("Could not get owner or school_id for type of resource " + resourceId);
@@ -195,7 +195,7 @@ public class PeriodicBookingHandlerFactory {
 						Long.toString(nbDays));
 				return new Either.Right<>(errorMessage);
 			} else {
-				final JsonArray selectedDaysArray = booking.getArray("days", null);
+				final JsonArray selectedDaysArray = booking.getJsonArray("days", null);
 				long lastSlotEndDate;
 				final long endDate = booking.getLong("periodic_end_date", 0L);
 				final int periodicity = booking.getInteger("periodicity");
@@ -203,7 +203,7 @@ public class PeriodicBookingHandlerFactory {
 				if (endDate > 0L) { // Case when end_date is supplied
 					try {
 						int endDateDay = getDayFromTimestamp(endDate);
-						Object endDateDayIsSelected = selectedDaysArray.toList().get(endDateDay);
+						Object endDateDayIsSelected = selectedDaysArray.getList().get(endDateDay);
 
 						if ((Boolean) endDateDayIsSelected) {
 							lastSlotEndDate = endDate;
@@ -214,9 +214,9 @@ public class PeriodicBookingHandlerFactory {
 							lastSlotEndDate = getLastSlotDate(nbOccurrences, periodicity, firstSlotEndDate, firstSlotDay, selectedDays);
 
 							// Replace the end date with the last slot's end date
-							booking.putNumber("periodic_end_date", lastSlotEndDate);
+							booking.put("periodic_end_date", lastSlotEndDate);
 							// Put the computed value of occurrences
-							booking.putNumber("occurrences", nbOccurrences);
+							booking.put("occurrences", nbOccurrences);
 						}
 					} catch (Exception e) {
 						log.error("Error when checking that the day of the end date is selected", e);
@@ -274,8 +274,8 @@ public class PeriodicBookingHandlerFactory {
 				return;
 			}
 
-			final JsonArray slots = booking.getArray("slots");
-			final JsonObject slot = slots.get(0);
+			final JsonArray slots = booking.getJsonArray("slots");
+			final JsonObject slot = slots.getJsonObject(0);
 			final long firstSlotStartDate = slot.getLong("start_date", 0L);
 			final long firstSlotEndDate = slot.getLong("end_date", 0L);
 
@@ -294,7 +294,7 @@ public class PeriodicBookingHandlerFactory {
 			// The first slot must begin and end on the same day
 			final int firstSlotDay = getDayFromTimestamp(firstSlotStartDate);
 			boolean isMultiDayPeriod = getDayFromTimestamp(firstSlotEndDate) - getDayFromTimestamp(firstSlotStartDate) >= 1;
-			JsonArray daysSelectedByUser = booking.getArray("days", new JsonArray());
+			JsonArray daysSelectedByUser = booking.getJsonArray("days", new fr.wseduc.webutils.collections.JsonArray());
 			final JsonArray selectedDaysArray = getSelectedDaysArray(daysSelectedByUser, firstSlotDay, isMultiDayPeriod);
 
 			if (selectedDaysArray.size() != 7) {
@@ -302,7 +302,7 @@ public class PeriodicBookingHandlerFactory {
 				return;
 			}
 			// The day of the first slot must be a selected day
-			if (!(Boolean) selectedDaysArray.toList().get(firstSlotDay)) {
+			if (!(Boolean) selectedDaysArray.getList().get(firstSlotDay)) {
 				badRequest(request, "rbs.booking.bad.request.first.day.not.selected");
 				return;
 			}

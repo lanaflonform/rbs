@@ -32,12 +32,12 @@ import net.fortuna.ical4j.model.component.VEvent;
 import net.fortuna.ical4j.model.parameter.Cn;
 import net.fortuna.ical4j.model.parameter.Role;
 import net.fortuna.ical4j.model.property.*;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.eventbus.Message;
-import org.vertx.java.core.json.JsonObject;
-import org.vertx.java.core.logging.Logger;
-import org.vertx.java.core.logging.impl.LoggerFactory;
-import org.vertx.java.platform.Verticle;
+import io.vertx.core.Handler;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
+import io.vertx.platform.Verticle;
 
 import java.net.URISyntaxException;
 import java.text.ParseException;
@@ -58,7 +58,7 @@ public class IcalExportService extends Verticle implements Handler<Message<JsonO
 	private UserService userService;
 
 	@Override
-	public void start() {
+	public void start() throws Exception {
 		super.start();
 		userService = new UserServiceDirectoryImpl(vertx.eventBus());
 		vertx.eventBus().registerHandler(ICAL_HANDLER_ADDRESS, this);
@@ -68,15 +68,15 @@ public class IcalExportService extends Verticle implements Handler<Message<JsonO
 	@Override
 	public void handle(Message<JsonObject> message) {
 		String action = message.body().getString("action", "");
-		JsonObject exportResponse = message.body().getObject("data", new JsonObject());
+		JsonObject exportResponse = message.body().getJsonObject("data", new JsonObject());
 		switch (action) {
 			case ACTION_CONVERT:
 				generateIcsFile(exportResponse, message);
 				break;
 			default:
 				JsonObject results = new JsonObject();
-				results.putString("message", "Unknown action");
-				results.putNumber("status", 400);
+				results.put("message", "Unknown action");
+				results.put("status", 400);
 				message.reply(results);
 		}
 	}
@@ -151,14 +151,14 @@ public class IcalExportService extends Verticle implements Handler<Message<JsonO
 						components.add(vEvent);
 					}
 					JsonObject results = new JsonObject();
-					results.putNumber("status", 200);
-					results.putString("content", icsCalendar.toString());
+					results.put("status", 200);
+					results.put("content", icsCalendar.toString());
 					message.reply(results);
 				} catch (Exception e) {
 					LOG.error("Conversion error", e);
 					JsonObject results = new JsonObject();
-					results.putString("message", "Unknown action");
-					results.putNumber("status", 400);
+					results.put("message", "Unknown action");
+					results.put("status", 400);
 					message.reply(results);
 				}
 			}

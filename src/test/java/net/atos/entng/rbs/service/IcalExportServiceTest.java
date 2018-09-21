@@ -27,7 +27,7 @@ import net.fortuna.ical4j.model.parameter.Cn;
 import net.fortuna.ical4j.model.property.*;
 import org.entcore.common.user.UserInfos;
 import org.junit.Test;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.json.JsonObject;
 
 import java.net.SocketException;
 import java.net.URISyntaxException;
@@ -129,13 +129,13 @@ public class IcalExportServiceTest {
 
 	private JsonObject getJsonBooking(Number bookingId, String resourceName, String reason, String schoolName, String startDate, String endDate, String owner) {
 		JsonObject jsonObject = new JsonObject();
-		jsonObject.putNumber(ExportBooking.BOOKING_ID, bookingId);
-		jsonObject.putString(ExportBooking.RESOURCE_NAME, resourceName);
-		jsonObject.putString(ExportBooking.BOOKING_REASON, reason);
-		jsonObject.putString(ExportBooking.SCHOOL_NAME, schoolName);
-		jsonObject.putString(ExportBooking.BOOKING_START_DATE, startDate);
-		jsonObject.putString(ExportBooking.BOOKING_END_DATE, endDate);
-		jsonObject.putString(ExportBooking.BOOKING_OWNER_NAME, owner);
+		jsonObject.put(ExportBooking.BOOKING_ID, bookingId);
+		jsonObject.put(ExportBooking.RESOURCE_NAME, resourceName);
+		jsonObject.put(ExportBooking.BOOKING_REASON, reason);
+		jsonObject.put(ExportBooking.SCHOOL_NAME, schoolName);
+		jsonObject.put(ExportBooking.BOOKING_START_DATE, startDate);
+		jsonObject.put(ExportBooking.BOOKING_END_DATE, endDate);
+		jsonObject.put(ExportBooking.BOOKING_OWNER_NAME, owner);
 		return jsonObject;
 	}
 

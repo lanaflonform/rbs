@@ -26,6 +26,7 @@ import fr.wseduc.webutils.Either;
 import fr.wseduc.webutils.I18n;
 import fr.wseduc.webutils.http.Renders;
 import fr.wseduc.webutils.request.RequestUtils;
+import io.vertx.core.AsyncResult;
 import net.atos.entng.rbs.controllers.handler.PeriodicBookingHandlerFactory;
 import net.atos.entng.rbs.filters.TypeAndResourceAppendPolicy;
 import net.atos.entng.rbs.model.ExportBooking;
@@ -37,16 +38,16 @@ import org.entcore.common.controller.ControllerHelper;
 import org.entcore.common.http.filter.ResourceFilter;
 import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.Vertx;
-import org.vertx.java.core.buffer.Buffer;
-import org.vertx.java.core.eventbus.EventBus;
-import org.vertx.java.core.eventbus.Message;
-import org.vertx.java.core.http.HttpServerRequest;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.http.HttpServerRequest;
 import org.vertx.java.core.http.RouteMatcher;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
-import org.vertx.java.platform.Container;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+
 
 import java.text.ParseException;
 import java.util.Calendar;
@@ -78,8 +79,8 @@ public class BookingController extends ControllerHelper {
 	}
 
 	@Override
-	public void init(Vertx vertx, Container container, RouteMatcher rm, Map<String, fr.wseduc.webutils.security.SecuredAction> securedActions) {
-		super.init(vertx, container, rm, securedActions);
+	public void init(Vertx vertx, JsonObject config, RouteMatcher rm, Map<String, fr.wseduc.webutils.security.SecuredAction> securedActions) {
+		super.init(vertx, config, rm, securedActions);
 		bookingNotificationService = new BookingNotificationService(BookingController.log, eb, notification, bookingService);
 		periodicBookingHandlerFactory = new PeriodicBookingHandlerFactory(BookingController.log, bookingNotificationService, bookingService, resourceService);
 	}
@@ -116,7 +117,7 @@ public class BookingController extends ControllerHelper {
 			@Override
 			public void handle(final JsonObject object) {
 				final String resourceId = request.params().get("id");
-				final JsonArray slots = object.getArray("slots");
+				final JsonArray slots = object.getJsonArray("slots");
 				final long now = getCurrentTimestamp();
 
 				resourceService.getDelaysAndTypeProperties(Long.parseLong(resourceId), new Handler<Either<String, JsonObject>>() {
@@ -128,7 +129,7 @@ public class BookingController extends ControllerHelper {
 							String owner = resource.getString("owner", null);
 							String schoolId = resource.getString("school_id", null);
 							String jsonString = resource.getString("managers", null);
-							JsonArray managers = (jsonString != null) ? new JsonArray(jsonString) : null;
+							JsonArray managers = (jsonString != null) ? new fr.wseduc.webutils.collections.JsonArray(jsonString) : null;
 
 							if (owner == null || schoolId == null) {
 								log.warn("Could not get owner or school_id for type of resource " + resourceId);
@@ -136,7 +137,7 @@ public class BookingController extends ControllerHelper {
 
 							if (!canBypassDelaysConstraints(owner, schoolId, user, managers)) {
 								for (int i = 0; i < slots.size(); i++) {
-									JsonObject slot = slots.get(i);
+									JsonObject slot = slots.getJsonObject(i);
 									long startDate = slot.getLong("start_date", 0L);
 									long endDate = slot.getLong("end_date", 0L);
 									// check that booking dates respect min and max delays
@@ -176,7 +177,7 @@ public class BookingController extends ControllerHelper {
 										} else {
 											String errorMessage = "rbs.booking.create.conflict";
 											JsonObject error = new JsonObject()
-													.putString("error", errorMessage);
+													.put("error", errorMessage);
 											renderJson(request, error, 409);
 										}
 									} else {
@@ -185,7 +186,7 @@ public class BookingController extends ControllerHelper {
 								}
 
 								private JsonArray extractCreationResponses(JsonArray storageResponse) {
-									JsonArray storageResponses = new JsonArray();
+									JsonArray storageResponses = new fr.wseduc.webutils.collections.JsonArray();
 									if (storageResponse != null && storageResponse.size() > 0) {
 										for (Object o : storageResponse) {
 											if (!(o instanceof JsonArray)) continue;
@@ -194,7 +195,7 @@ public class BookingController extends ControllerHelper {
 												for (Object o1 : response) {
 													if (!(o1 instanceof JsonObject)) continue;
 													JsonObject creationResult = (JsonObject) o1;
-													if (creationResult.containsField("start_date")) {
+													if (creationResult.containsKey("start_date")) {
 														storageResponses.add(creationResult);
 													}
 												}
@@ -230,7 +231,7 @@ public class BookingController extends ControllerHelper {
 			public void handle(final JsonObject object) {
 				final String resourceId = request.params().get("id");
 				final String bookingId = request.params().get("bookingId");
-				final JsonArray slots = object.getArray("slots");
+				final JsonArray slots = object.getJsonArray("slots");
 				final long now = getCurrentTimestamp();
 
 				resourceService.getDelaysAndTypeProperties(Long.parseLong(resourceId), new Handler<Either<String, JsonObject>>() {
@@ -242,8 +243,8 @@ public class BookingController extends ControllerHelper {
 							String owner = resource.getString("owner", null);
 							String schoolId = resource.getString("school_id", null);
 							String jsonString = resource.getString("managers", null);
-							JsonArray managers = (jsonString != null) ? new JsonArray(jsonString) : null;
-							JsonObject slot = slots.get(0);
+							JsonArray managers = (jsonString != null) ? new fr.wseduc.webutils.collections.JsonArray(jsonString) : null;
+							JsonObject slot = slots.getJsonObject(0);
 							
 							if (slot.getLong("start_date", 0L)< getCurrentTimestamp()) {
 								badRequest(request, "rbs.booking.bad.request.invalid.dates");
@@ -288,7 +289,7 @@ public class BookingController extends ControllerHelper {
 											renderJson(request, storageResponse, 200);
 										} else {
 											JsonObject error = new JsonObject()
-													.putString("error", "rbs.booking.update.conflict");
+													.put("error", "rbs.booking.update.conflict");
 											renderJson(request, error, 409);
 										}
 									} else {
@@ -388,7 +389,7 @@ public class BookingController extends ControllerHelper {
 								return;
 							}
 
-							object.putString("moderator_id", user.getUserId());
+							object.put("moderator_id", user.getUserId());
 
 							Handler<Either<String, JsonArray>> handler = new Handler<Either<String, JsonArray>>() {
 								@Override
@@ -397,7 +398,7 @@ public class BookingController extends ControllerHelper {
 										if (event.right().getValue() != null && event.right().getValue().size() >= 3) {
 											final JsonArray results = event.right().getValue();
 											try {
-												final JsonObject processedBooking = ((JsonArray) results.get(2)).get(0);
+												final JsonObject processedBooking = results.getJsonArray(2).getJsonObject(0);
 
 												Handler<Either<String, JsonObject>> notifHandler = new Handler<Either<String, JsonObject>>() {
 													@Override
@@ -408,7 +409,7 @@ public class BookingController extends ControllerHelper {
 															final String resourceName = event.right().getValue().getString("resource_name");
 															bookingNotificationService.notifyBookingProcessed(resourceService, request, user, processedBooking, resourceName, Long.parseLong(resourceId));
 															if (results.size() >= 4) {
-																JsonArray concurrentBookings = results.get(3);
+																JsonArray concurrentBookings = results.getJsonArray(3);
 																for (Object o : concurrentBookings) {
 																	JsonObject booking = (JsonObject) o;
 																	bookingNotificationService.notifyBookingProcessed(resourceService, request, user, booking, resourceName, Long.parseLong(resourceId));
@@ -610,7 +611,7 @@ public class BookingController extends ControllerHelper {
 							if (event.isRight()) {
 								Renders.renderJson(request, event.right().getValue());
 							} else {
-								Renders.renderError(request, new JsonObject().putString("error", event.left().getValue()));
+								Renders.renderError(request, new JsonObject().put("error", event.left().getValue()));
 							}
 						}
 					});
@@ -643,7 +644,7 @@ public class BookingController extends ControllerHelper {
 									Renders.renderJson(request, event.right().getValue());
 								} else {
 									JsonObject error = new JsonObject()
-											.putString("error", event.left().getValue());
+											.put("error", event.left().getValue());
 									Renders.renderJson(request, error, 400);
 								}
 							}
@@ -677,7 +678,7 @@ public class BookingController extends ControllerHelper {
 									Renders.renderJson(request, event.right().getValue());
 								} else {
 									JsonObject error = new JsonObject()
-											.putString("error", event.left().getValue());
+											.put("error", event.left().getValue());
 									Renders.renderJson(request, error, 400);
 								}
 							}
@@ -777,7 +778,7 @@ public class BookingController extends ControllerHelper {
 										final List<ExportBooking> exportBookings = event.right().getValue();
 										if (exportBookings.isEmpty()) {
 											JsonObject error = new JsonObject()
-													.putString("error", "No booking in search period");
+													.put("error", "No booking in search period");
 											Renders.renderJson(request, error, 204);
 											return;
 										}
@@ -796,14 +797,14 @@ public class BookingController extends ControllerHelper {
 													}
 												} else {
 													JsonObject error = new JsonObject()
-															.putString("error", event.left().getValue());
+															.put("error", event.left().getValue());
 													Renders.renderJson(request, error, 400);
 												}
 											}
 										});
 									} else {
 										JsonObject error = new JsonObject()
-												.putString("error", event.left().getValue());
+												.put("error", event.left().getValue());
 										Renders.renderJson(request, error, 400);
 									}
 								}
@@ -821,63 +822,56 @@ public class BookingController extends ControllerHelper {
 
 	private void generateICal(final HttpServerRequest request, final ExportResponse exportResponse) {
 		final JsonObject conversionRequest = new JsonObject();
-		conversionRequest.putString("action", PdfExportService.ACTION_CONVERT);
+		conversionRequest.put("action", PdfExportService.ACTION_CONVERT);
 		final JsonObject dataToExport = exportResponse.toJson();
-		conversionRequest.putObject("data", dataToExport);
-		eb.send(IcalExportService.ICAL_HANDLER_ADDRESS, conversionRequest, new Handler<Message<JsonObject>>() {
+		conversionRequest.put("data", dataToExport);
 
-			@Override
-			public void handle(Message<JsonObject> message) {
-				JsonObject body = message.body();
-				Number status = body.getNumber("status");
-				if (status.intValue() == 200) {
-					String icsContent = body.getString("content");
-					request.response().putHeader("Content-Type", "text/calendar");
-					request.response().putHeader("Content-Disposition",
-							"attachment; filename=export.ics");
-					request.response().end(new Buffer(icsContent));
-				} else {
-					String errorMessage = body.getString("message");
-					log.warn("An error occurred during ICal generation of " + exportResponse + " : " + errorMessage);
-					JsonObject error = new JsonObject()
-							.putString("error", "ICal generation: " + errorMessage)
-							.putObject("dataToExport", dataToExport);
-					Renders.renderError(request, error);
-				}
+		eb.send(IcalExportService.ICAL_HANDLER_ADDRESS, conversionRequest, (Handler<AsyncResult<Message<JsonObject>>>) event -> {
+			JsonObject body = event.result().body();
+			Integer status = body.getInteger("status");
+			if (status == 200) {
+				String icsContent = body.getString("content");
+				request.response().putHeader("Content-Type", "text/calendar");
+				request.response().putHeader("Content-Disposition",
+						"attachment; filename=export.ics");
+				request.response().end(Buffer.buffer(icsContent));
+			} else {
+				String errorMessage = body.getString("message");
+				log.warn("An error occurred during ICal generation of " + exportResponse + " : " + errorMessage);
+				JsonObject error = new JsonObject()
+						.put("error", "ICal generation: " + errorMessage)
+						.put("dataToExport", dataToExport);
+				Renders.renderError(request, error);
 			}
-		});
+        });
 	}
 
 	private void generatePDF(final HttpServerRequest request, final ExportResponse exportResponse) {
 		final JsonObject conversionRequest = new JsonObject();
-		conversionRequest.putString("action", PdfExportService.ACTION_CONVERT);
+		conversionRequest.put("action", PdfExportService.ACTION_CONVERT);
 		final JsonObject dataToExport = exportResponse.toJson();
-		conversionRequest.putObject("data", dataToExport);
-		conversionRequest.putString("scheme", getScheme(request));
-		conversionRequest.putString("host", Renders.getHost(request));
+		conversionRequest.put("data", dataToExport);
+		conversionRequest.put("scheme", getScheme(request));
+		conversionRequest.put("host", Renders.getHost(request));
 
-		eb.send(PdfExportService.PDF_HANDLER_ADDRESS, conversionRequest, new Handler<Message<JsonObject>>() {
-
-			@Override
-			public void handle(Message<JsonObject> message) {
-				JsonObject body = message.body();
-				Number status = body.getNumber("status");
-				if (status.intValue() == 200) {
-					byte[] pdfContent = body.getBinary("content");
-					request.response().putHeader("Content-Type", "application/pdf");
-					request.response().putHeader("Content-Disposition",
-							"attachment; filename=export.pdf");
-					request.response().end(new Buffer(pdfContent));
-				} else {
-					String errorMessage = body.getString("message");
-					log.warn("An error occurred during PDF generation of " + exportResponse + " : " + errorMessage);
-					JsonObject error = new JsonObject()
-							.putString("error", "PDF generation: " + errorMessage)
-							.putObject("dataToExport", dataToExport);
-					Renders.renderError(request, error);
-				}
+		eb.send(PdfExportService.PDF_HANDLER_ADDRESS, conversionRequest, (Handler<AsyncResult<Message<JsonObject>>>) event -> {
+			JsonObject body = event.result().body();
+			Integer status = body.getInteger("status");
+			if (status == 200) {
+				byte[] pdfContent = body.getBinary("content");
+				request.response().putHeader("Content-Type", "application/pdf");
+				request.response().putHeader("Content-Disposition",
+						"attachment; filename=export.pdf");
+				request.response().end(Buffer.buffer(pdfContent));
+			} else {
+				String errorMessage = body.getString("message");
+				log.warn("An error occurred during PDF generation of " + exportResponse + " : " + errorMessage);
+				JsonObject error = new JsonObject()
+						.put("error", "PDF generation: " + errorMessage)
+						.put("dataToExport", dataToExport);
+				Renders.renderError(request, error);
 			}
-		});
+        });
 
 	}
 

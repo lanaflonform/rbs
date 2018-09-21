@@ -19,14 +19,15 @@
 package net.atos.entng.rbs.service;
 
 import fr.wseduc.webutils.Either;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.eventbus.EventBus;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.Handler;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static fr.wseduc.webutils.Utils.handlerToAsyncHandler;
 import static org.entcore.common.neo4j.Neo4jResult.validResultHandler;
 
 
@@ -40,9 +41,9 @@ public class SchoolService {
 
 	public void getSchoolNames(final Handler<Either<String, Map<String, String>>> handler) {
 		JsonObject action = new JsonObject()
-				.putString("action", "list-structures");
+				.put("action", "list-structures");
 
-		eb.send(DIRECTORY_ADDRESS, action, validResultHandler(new Handler<Either<String, JsonArray>>() {
+		eb.send(DIRECTORY_ADDRESS, action, handlerToAsyncHandler(validResultHandler(new Handler<Either<String, JsonArray>>() {
 					@Override
 					public void handle(Either<String, JsonArray> event) {
 						if (event.isRight()) {
@@ -62,7 +63,7 @@ public class SchoolService {
 							handler.handle(new Either.Left<String, Map<String, String>>(event.left().getValue()));
 						}
 					}
-				})
+				}))
 		);
 	}
 

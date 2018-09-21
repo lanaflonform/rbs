@@ -2,9 +2,8 @@ package net.atos.entng.rbs.service.pdf;
 
 import net.atos.entng.rbs.model.ExportRequest;
 import net.atos.entng.rbs.model.ExportResponse;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonElement;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 public abstract class JsonFormatter {
 	protected static final String EDITION_DATE_FIELD_NAME = "edition_date";
@@ -38,12 +37,12 @@ public abstract class JsonFormatter {
 	protected JsonObject exportObject = null;
 
 	protected JsonFormatter(JsonObject jsonFileObject) {
-		JsonArray jsonFileArray = new JsonArray();
-		jsonFileArray.addObject(jsonFileObject);
+		JsonArray jsonFileArray = new fr.wseduc.webutils.collections.JsonArray();
+		jsonFileArray.add(jsonFileObject);
 
-		this.jsonExport = new JsonObject().putElement("export", jsonFileArray);
-		JsonElement exportArrayElement = jsonExport.getElement("export");
-		exportObject = (JsonObject) exportArrayElement.asArray().get(0);
+		this.jsonExport = new JsonObject().put("export", jsonFileArray);
+		JsonArray exportArrayElement = jsonExport.getJsonArray("export");
+		exportObject = exportArrayElement.getJsonObject(0);
 	}
 
 	abstract JsonObject format();

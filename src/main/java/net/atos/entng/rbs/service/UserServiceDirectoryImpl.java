@@ -20,17 +20,18 @@
 package net.atos.entng.rbs.service;
 
 import fr.wseduc.webutils.Either;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.eventbus.EventBus;
-import org.vertx.java.core.eventbus.Message;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.Handler;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static fr.wseduc.webutils.Utils.handlerToAsyncHandler;
 import static org.entcore.common.neo4j.Neo4jResult.validResultHandler;
 
 public class UserServiceDirectoryImpl implements UserService {
@@ -47,11 +48,11 @@ public class UserServiceDirectoryImpl implements UserService {
 	                     final Handler<Either<String, JsonArray>> handler) {
 
 		JsonObject action = new JsonObject()
-				.putString("action", "list-users")
-				.putArray("userIds", userIds)
-				.putArray("groupIds", groupIds);
+				.put("action", "list-users")
+				.put("userIds", userIds)
+				.put("groupIds", groupIds);
 
-		eb.send(DIRECTORY_ADDRESS, action, validResultHandler(handler));
+		eb.send(DIRECTORY_ADDRESS, action, handlerToAsyncHandler(validResultHandler(handler)));
 	}
 
 
@@ -63,14 +64,14 @@ public class UserServiceDirectoryImpl implements UserService {
 		for (final String userId : userIds) {
 
 			JsonObject action = new JsonObject()
-					.putString("action", "getUser")
-					.putString("userId", userId);
+					.put("action", "getUser")
+					.put("userId", userId);
 
-			eb.send(DIRECTORY_ADDRESS, action, new Handler<Message<JsonObject>>() {
+			eb.send(DIRECTORY_ADDRESS, action, handlerToAsyncHandler(new Handler<Message<JsonObject>>() {
 				@Override
 				public void handle(Message<JsonObject> res) {
 					if ("ok".equals(res.body().getString("status"))) {
-						JsonObject user = res.body().getObject("result", new JsonObject());
+						JsonObject user = res.body().getJsonObject("result", new JsonObject());
 						String email = user.getString("email");
 						userMailById.put(userId, email);
 					} else {
@@ -81,7 +82,7 @@ public class UserServiceDirectoryImpl implements UserService {
 						handler.handle(userMailById);
 					}
 				}
-			});
+			}));
 
 
 

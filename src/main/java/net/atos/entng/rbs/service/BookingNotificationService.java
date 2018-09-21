@@ -23,12 +23,12 @@ import net.atos.entng.rbs.BookingUtils;
 import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.user.UserInfos;
 import org.entcore.common.user.UserUtils;
-import org.vertx.java.core.Handler;
-import org.vertx.java.core.eventbus.EventBus;
-import org.vertx.java.core.http.HttpServerRequest;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
-import org.vertx.java.core.logging.Logger;
+import io.vertx.core.Handler;
+import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -106,11 +106,11 @@ public class BookingNotificationService {
 								recipients.add(owner);
 							}
 							JsonObject params = new JsonObject();
-							params.putString("username", user.getUsername())
-									.putString("uri", "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
-									.putString("startdate", startDate)
-									.putString("enddate", endDate)
-									.putString("resourcename", resourceName);
+							params.put("username", user.getUsername())
+									.put("uri", "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
+									.put("startdate", startDate)
+									.put("enddate", endDate)
+									.put("resourcename", resourceName);
 
 							notification.notifyTimeline(request, "rbs." + notificationName, user, recipients, bookingId, params);
 						}
@@ -209,8 +209,8 @@ public class BookingNotificationService {
 			return;
 		}
 
-		if (sendNotification && childBookings.get(0) != null) {
-			JsonObject firstBooking = (JsonObject) childBookings.get(0);
+		if (sendNotification && childBookings.getJsonObject(0) != null) {
+			JsonObject firstBooking =childBookings.getJsonObject(0);
 			final long id = firstBooking.getLong("id", 0L);
 
 			final String eventType;
@@ -349,13 +349,13 @@ public class BookingNotificationService {
 		List<String> recipients = new ArrayList<>(recipientSet);
 
 		JsonObject params = new JsonObject();
-		params.putString("uri", "/userbook/annuaire#" + user.getUserId() + "#" + user.getType());
-		params.putString("bookingUri", "/rbs#/booking/" + bookingId + "/" + formatStringForRoute(startDate))
-				.putString("username", user.getUsername())
-				.putString("startdate", startDate)
-				.putString("enddate", endDate)
-				.putString("resourcename", resourceName);
-		params.putString("resourceUri", params.getString("bookingUri"));
+		params.put("uri", "/userbook/annuaire#" + user.getUserId() + "#" + user.getType());
+		params.put("bookingUri", "/rbs#/booking/" + bookingId + "/" + formatStringForRoute(startDate))
+				.put("username", user.getUsername())
+				.put("startdate", startDate)
+				.put("enddate", endDate)
+				.put("resourcename", resourceName);
+		params.put("resourceUri", params.getString("bookingUri"));
 
 		notification.notifyTimeline(request, "rbs." + notificationName, user, recipients, bookingId, params);
 	}
@@ -408,13 +408,13 @@ public class BookingNotificationService {
 							recipients.add(owner);
 						}
 						JsonObject params = new JsonObject();
-						params.putString("username", user.getUsername())
-								.putString("uri", "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
-								.putString("startdate", startDate)
-								.putString("enddate", endDate)
-								.putString("resourcename", resourceName)
-								.putString("bookingUri", "/rbs#/booking/" + bookingId + "/" + formatStringForRoute(startDate));
-						params.putString("resourceUri", params.getString("bookingUri"));
+						params.put("username", user.getUsername())
+								.put("uri", "/userbook/annuaire#" + user.getUserId() + "#" + user.getType())
+								.put("startdate", startDate)
+								.put("enddate", endDate)
+								.put("resourcename", resourceName)
+								.put("bookingUri", "/rbs#/booking/" + bookingId + "/" + formatStringForRoute(startDate));
+						params.put("resourceUri", params.getString("bookingUri"));
 
 						notification.notifyTimeline(request, "rbs." + notificationName, user, recipients, bookingId, params);
 					}

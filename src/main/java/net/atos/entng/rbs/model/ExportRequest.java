@@ -20,8 +20,8 @@
 package net.atos.entng.rbs.model;
 
 import org.entcore.common.user.UserInfos;
-import org.vertx.java.core.json.JsonArray;
-import org.vertx.java.core.json.JsonObject;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.json.JsonObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -66,7 +66,7 @@ public class ExportRequest {
 		checkPeriodValid(startDate, endDate);
 
 		try {
-			JsonArray userExportResourceArray = userExportRequest.getArray(RESOURCE_IDS, new JsonArray());
+			JsonArray userExportResourceArray = userExportRequest.getJsonArray(RESOURCE_IDS, new fr.wseduc.webutils.collections.JsonArray());
 			for (Object resourceId : userExportResourceArray) {
 				this.resourceIds.add(new Long((Integer) resourceId));
 			}
