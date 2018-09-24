@@ -403,6 +403,7 @@ function RbsController($scope, template, model, date, route) {
     $scope.bookings.syncForShowList();
     $scope.bookings.applyFilters();
     template.open('bookings', 'main-list');
+    $scope.$apply();
   };
 
   $scope.showCalendar = function(refresh) {
@@ -414,6 +415,7 @@ function RbsController($scope, template, model, date, route) {
     $scope.bookings.filters.booking = undefined;
     $scope.bookings.applyFilters();
     template.open('bookings', 'main-calendar');
+    $scope.$apply();
   };
 
   $scope.showManage = function() {
