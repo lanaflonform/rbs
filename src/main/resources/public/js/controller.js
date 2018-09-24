@@ -2561,27 +2561,30 @@ function RbsController($scope, template, model, date, route) {
     }
   };
 
-  $scope.nextWeekButton = function() {
-    model.calendar.next();
-  };
+    $scope.nextWeekButton = function() {
+        var next = moment(model.calendar.firstDay).add(7, 'day');
+        model.bookings.startPagingDate = moment(model.bookings.startPagingDate).add(7, 'day');
+        model.bookings.endPagingDate = moment(model.bookings.endPagingDate).add(7, 'day');
+        updateCalendarSchedule(next);
+    };
 
-  $scope.previousWeekButton = function() {
-    model.calendar.previous();
-  };
-  $scope.nextWeekBookingButton = function() {
-    var nextStart = moment(model.bookings.filters.startMoment).add(7, 'day');
-    var nextEnd = moment(model.bookings.filters.endMoment).add(7, 'day');
-    updateCalendarList(nextStart, nextEnd);
-  };
+    $scope.previousWeekButton = function() {
+        var prev = moment(model.calendar.firstDay).subtract(7, 'day');
+        model.bookings.startPagingDate = moment(model.bookings.startPagingDate).subtract(7, 'day');
+        model.bookings.endPagingDate = moment(model.bookings.endPagingDate).subtract(7, 'day');
+        updateCalendarSchedule(prev);
+    };
+    $scope.nextWeekBookingButton = function() {
+        var nextStart = moment(model.bookings.filters.startMoment).add(7, 'day');
+        var nextEnd = moment(model.bookings.filters.endMoment).add(7, 'day');
+        updateCalendarList(nextStart,nextEnd);
+    };
 
-  $scope.previousWeekBookingButton = function() {
-    var prevStart = moment(model.bookings.filters.startMoment).subtract(
-      7,
-      'day'
-    );
-    var prevEnd = moment(model.bookings.filters.endMoment).subtract(7, 'day');
-    updateCalendarList(prevStart, prevEnd);
-  };
+    $scope.previousWeekBookingButton = function() {
+        var prevStart = moment(model.bookings.filters.startMoment).subtract(7, 'day');
+        var prevEnd = moment(model.bookings.filters.endMoment).subtract(7, 'day');
+        updateCalendarList(prevStart,prevEnd);
+    };
 
   $scope.editSelectedType = function() {
     $scope.display.processing = undefined;
