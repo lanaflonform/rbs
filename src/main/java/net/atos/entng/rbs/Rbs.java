@@ -27,6 +27,7 @@ import net.atos.entng.rbs.controllers.ResourceTypeController;
 import net.atos.entng.rbs.events.RbsRepositoryEvents;
 import net.atos.entng.rbs.events.RbsSearchingEvents;
 import net.atos.entng.rbs.filters.TypeOwnerSharedOrLocalAdmin;
+import net.atos.entng.rbs.service.IcalExportService;
 import net.atos.entng.rbs.service.pdf.PdfExportService;
 import org.entcore.common.http.BaseServer;
 import org.entcore.common.service.impl.SqlCrudService;
@@ -85,7 +86,7 @@ public class Rbs extends BaseServer {
 
 		DeploymentOptions options = new DeploymentOptions().setWorker(true);
 		vertx.deployVerticle(new PdfExportService(), options);
-		//container.deployWorkerVerticle(IcalExportService.class.getName(), config);
+		vertx.deployVerticle(new IcalExportService(), options);
 
 		BookingController bookingController = new BookingController(eb);
 		addController(bookingController);
