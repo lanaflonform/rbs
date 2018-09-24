@@ -26,8 +26,6 @@ import net.atos.entng.rbs.controllers.ResourceTypeController;
 import net.atos.entng.rbs.events.RbsRepositoryEvents;
 import net.atos.entng.rbs.events.RbsSearchingEvents;
 import net.atos.entng.rbs.filters.TypeOwnerSharedOrLocalAdmin;
-import net.atos.entng.rbs.service.IcalExportService;
-import net.atos.entng.rbs.service.pdf.PdfExportService;
 import org.entcore.common.http.BaseServer;
 import org.entcore.common.service.impl.SqlCrudService;
 import org.entcore.common.share.impl.SqlShareService;

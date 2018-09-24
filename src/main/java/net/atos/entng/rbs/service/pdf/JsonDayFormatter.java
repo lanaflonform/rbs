@@ -60,7 +60,7 @@ public class JsonDayFormatter extends JsonFormatter {
 			JsonArray resourceList = new fr.wseduc.webutils.collections.JsonArray();
 
 			for (int i = 0; i < exportBookingList.size(); i++) {
-				JsonObject bookingIterator = exportBookingList.get(i);
+				JsonObject bookingIterator = exportBookingList.getJsonObject(i);
 				Long currentResourceId = bookingIterator.getLong(ExportBooking.RESOURCE_ID);
 
 				if (!performedResourceId.contains(currentResourceId)) { // New resource found
@@ -75,7 +75,7 @@ public class JsonDayFormatter extends JsonFormatter {
 					// Adding resource bookings
 					JsonArray bookingList = new fr.wseduc.webutils.collections.JsonArray();
 					for (int j = 0; j < exportBookingList.size(); j++) {
-						JsonObject exportBooking = exportBookingList.get(j);
+						JsonObject exportBooking = exportBookingList.getJsonObject(j);
 
 						if (exportBooking.getLong(ExportBooking.RESOURCE_ID).equals(currentResourceId)) { // This booking belongs to the current resource
 							// Split booking into several bookings if booked on several days
@@ -103,7 +103,7 @@ public class JsonDayFormatter extends JsonFormatter {
 									int bookingOffsetFromStart = Seconds.secondsBetween(dayStartDate, bookingStartDate).getSeconds();
 									int bookingDuration = Seconds.secondsBetween(bookingStartDate, bookingEndDate).getSeconds();
 
-									String classId = "booking-" + String.valueOf(exportBooking.getNumber(ExportBooking.BOOKING_ID)) + "-" + String.valueOf(k + 1);
+									String classId = "booking-" + String.valueOf(exportBooking.getInteger(ExportBooking.BOOKING_ID)) + "-" + String.valueOf(k + 1);
 									double topOffset = slotHeight + slotHeight * (slotNumber - 1) * bookingOffsetFromStart / dayDurationInSecond;
 									double bookingHeight = slotHeight * (slotNumber - 1) * bookingDuration / dayDurationInSecond - 2;
 
