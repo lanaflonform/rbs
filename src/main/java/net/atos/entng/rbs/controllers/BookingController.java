@@ -33,6 +33,7 @@ import net.atos.entng.rbs.model.ExportBooking;
 import net.atos.entng.rbs.model.ExportRequest;
 import net.atos.entng.rbs.model.ExportResponse;
 import net.atos.entng.rbs.service.*;
+import net.atos.entng.rbs.service.pdf.PdfExportService;
 import org.entcore.common.controller.ControllerHelper;
 import org.entcore.common.http.filter.ResourceFilter;
 import org.entcore.common.user.UserInfos;
@@ -853,7 +854,7 @@ public class BookingController extends ControllerHelper {
 		conversionRequest.put("scheme", getScheme(request));
 		conversionRequest.put("host", Renders.getHost(request));
 
-		eb.send("rbs.pdf.handler", conversionRequest, (Handler<AsyncResult<Message<JsonObject>>>) event -> {
+		eb.send(PdfExportService.PDF_HANDLER_ADDRESS, conversionRequest, (Handler<AsyncResult<Message<JsonObject>>>) event -> {
 			JsonObject body = event.result().body();
 			Integer status = body.getInteger("status");
 			if (status == 200) {

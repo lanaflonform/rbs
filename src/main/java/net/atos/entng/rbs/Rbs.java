@@ -19,6 +19,7 @@
 
 package net.atos.entng.rbs;
 
+import io.vertx.core.DeploymentOptions;
 import net.atos.entng.rbs.controllers.BookingController;
 import net.atos.entng.rbs.controllers.DisplayController;
 import net.atos.entng.rbs.controllers.ResourceController;
@@ -26,6 +27,7 @@ import net.atos.entng.rbs.controllers.ResourceTypeController;
 import net.atos.entng.rbs.events.RbsRepositoryEvents;
 import net.atos.entng.rbs.events.RbsSearchingEvents;
 import net.atos.entng.rbs.filters.TypeOwnerSharedOrLocalAdmin;
+import net.atos.entng.rbs.service.pdf.PdfExportService;
 import org.entcore.common.http.BaseServer;
 import org.entcore.common.service.impl.SqlCrudService;
 import org.entcore.common.share.impl.SqlShareService;
@@ -81,8 +83,9 @@ public class Rbs extends BaseServer {
 		addController(resourceController);
 
 
-//		container.deployWorkerVerticle(PdfExportService.class.getName(), config);
-//		container.deployWorkerVerticle(IcalExportService.class.getName(), config);
+		DeploymentOptions options = new DeploymentOptions().setWorker(true);
+		vertx.deployVerticle(new PdfExportService(), options);
+		//container.deployWorkerVerticle(IcalExportService.class.getName(), config);
 
 		BookingController bookingController = new BookingController(eb);
 		addController(bookingController);
