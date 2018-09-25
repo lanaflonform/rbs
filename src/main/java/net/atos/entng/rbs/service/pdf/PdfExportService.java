@@ -15,7 +15,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
-import java.io.FileOutputStream;
 import java.io.StringWriter;
 import java.util.Map;
 
@@ -146,7 +145,7 @@ public class PdfExportService extends AbstractVerticle implements Handler<Messag
 		Mustache.Compiler compiler = Mustache.compiler().defaultValue("");
 		Template template = compiler.compile(templateAsString);
 
-		Map<String, Object> ctx = preparedData.getMap();
+		Map<String, Object> ctx = new JsonObject(preparedData.toString()).getMap();
 
 		StringWriter writer = new StringWriter();
 		template.execute(ctx, writer);
