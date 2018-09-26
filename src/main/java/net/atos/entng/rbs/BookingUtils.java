@@ -31,6 +31,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import static fr.wseduc.webutils.Utils.getOrElse;
+
 public class BookingUtils {
 	private final static String DATE_FORMAT = BookingServiceSqlImpl.DATE_FORMAT;
 	public static final String TIMESTAMP_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSS";
@@ -206,14 +208,14 @@ public class BookingUtils {
 	}
 
 	public static boolean isDelayLessThanMin(JsonObject resource, long startDate, long now) {
-		long minDelay = resource.getLong("min_delay", -1L);
+		long minDelay = getOrElse(resource.getLong("min_delay"), -1L);
 		long delay = startDate - now;
 
 		return (minDelay > -1 && minDelay > delay);
 	}
 
 	public static boolean isDelayGreaterThanMax(JsonObject resource, long endDate, long now) {
-		long maxDelay = resource.getLong("max_delay", -1L);
+		long maxDelay = getOrElse(resource.getLong("max_delay"), -1L);
 		if (maxDelay == -1) {
 			return false;
 		}
