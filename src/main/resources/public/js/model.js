@@ -680,8 +680,9 @@ SlotProfile.prototype.getSlotProfiles = function(structId, callback) {
     .done(function(data){
       returnData (callback, [data]);
     }).error(function(e){
-      var error = JSON.parse(e.responseText);
-      notify.error(error.error);
+      console.log('error get \'rbs/slotprofiles/schools\'', e);
+      //var error = JSON.parse(e.responseText);
+      //notify.error(error.error);
     });
 };
 
