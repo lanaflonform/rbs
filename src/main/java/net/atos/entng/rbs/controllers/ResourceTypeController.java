@@ -340,4 +340,11 @@ public class ResourceTypeController extends ControllerHelper {
 			}
 		});
 	}
+
+	@Put("/share/resource/:id")
+	@SecuredAction(value = "rbs.manager", type = ActionType.RESOURCE)
+	public void shareResource(final HttpServerRequest request) {
+		super.shareResource(request, null, false, null, null);
+	}
+
 }
