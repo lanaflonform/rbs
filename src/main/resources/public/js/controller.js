@@ -35,7 +35,7 @@ function RbsController($scope, template, model, date, route) {
     $scope.display.routed = true;
     $scope.resourceTypes.one('sync', function() {
       $scope.initResourcesRouted(id, function() {
-        updateCalendarSchedule(moment(date), true);
+          updateCalendarScheduleBooking(moment(date), true);
       });
     });
   };
@@ -2649,7 +2649,7 @@ function RbsController($scope, template, model, date, route) {
     $scope.bookings.applyFilters();
   };
 
-  var updateCalendarSchedule = function(date, skipSync) {
+  var updateCalendarScheduleBooking = function(date, skipSync) {
     // model.calendar.setDate(date);
     if (skipSync === undefined) {
       $scope.bookings.sync();
