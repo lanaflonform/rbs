@@ -19,6 +19,7 @@
 package net.atos.entng.rbs.service;
 
 import fr.wseduc.webutils.Either;
+import fr.wseduc.webutils.I18n;
 import net.atos.entng.rbs.BookingUtils;
 import org.entcore.common.notification.TimelineHelper;
 import org.entcore.common.user.UserInfos;
@@ -35,6 +36,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static fr.wseduc.webutils.http.Renders.getHost;
 import static net.atos.entng.rbs.BookingStatus.*;
 import static net.atos.entng.rbs.Rbs.RBS_NAME;
 
@@ -111,6 +113,7 @@ public class BookingNotificationService {
 									.put("startdate", startDate)
 									.put("enddate", endDate)
 									.put("resourcename", resourceName);
+							params.put("pushNotif", getPushNotification(request, notificationName, user, resourceName, startDate, endDate));
 
 							notification.notifyTimeline(request, "rbs." + notificationName, user, recipients, bookingId, params);
 						}
@@ -356,10 +359,29 @@ public class BookingNotificationService {
 				.put("enddate", endDate)
 				.put("resourcename", resourceName);
 		params.put("resourceUri", params.getString("bookingUri"));
+		params.put("pushNotif", getPushNotification(request, notificationName, user, resourceName, startDate, endDate));
 
 		notification.notifyTimeline(request, "rbs." + notificationName, user, recipients, bookingId, params);
 	}
 
+	private JsonObject getPushNotification(HttpServerRequest request, String notificationName,
+										   UserInfos user,
+										   String resourceName,
+										   String startDate,
+										   String endDate) {
+		JsonObject notification = new JsonObject()
+				.put("title", "rbs.push.notif." + notificationName);
+		String body = I18n.getInstance().translate(
+				"rbs.push.notif." + notificationName + ".body",
+				getHost(request),
+				I18n.acceptLanguage(request),
+				user.getUsername(),
+				resourceName,
+				startDate,
+				endDate);
+		notification.put("body", body);
+		return notification;
+	}
 
 	public void notifyBookingProcessed(final ResourceService resourceService, final HttpServerRequest request, final UserInfos user,
 	                                   final JsonObject booking, final String resourceName, final long resourceId) {
@@ -415,6 +437,7 @@ public class BookingNotificationService {
 								.put("resourcename", resourceName)
 								.put("bookingUri", "/rbs#/booking/" + bookingId + "/" + formatStringForRoute(startDate));
 						params.put("resourceUri", params.getString("bookingUri"));
+						params.put("pushNotif", getPushNotification(request, notificationName, user, resourceName, startDate, endDate));
 
 						notification.notifyTimeline(request, "rbs." + notificationName, user, recipients, bookingId, params);
 					}
