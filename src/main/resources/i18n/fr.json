@@ -1,4 +1,7 @@
 {
+    "calendar.mode.day": "Jour",
+    "calendar.mode.week": "Semaine",
+    "calendar.mode.month": "Mois",
     "group.AdminLocal": "Tous les administrateurs locaux du groupe {0}.",
     "group.Personnel": "Tous les personnels du groupe {0}.",
     "group.Relative": "Tous les parents du groupe {0}.",
