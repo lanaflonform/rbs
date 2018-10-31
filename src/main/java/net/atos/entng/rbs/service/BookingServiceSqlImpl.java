@@ -37,6 +37,7 @@ import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
 import java.text.ParseException;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.time.*;
 import net.atos.entng.rbs.models.Booking;
@@ -130,11 +131,11 @@ public class BookingServiceSqlImpl extends SqlCrudService implements BookingServ
 				new fr.wseduc.webutils.collections.JsonArray().add(user.getUserId()).add(user.getUsername()));
 
 
-		JsonArray slots = booking.getJsonArray("slots", null);
+		JsonArray slots = booking.getSlots() ;
 		// case of creation during an update
 		if (slots == null) {
-			long startDate = booking.getLong("start_date", 0L);
-			long endDate = booking.getLong("end_date", 0L);
+			long startDate = booking.getStartDateAsUTCSeconds();
+			long endDate = booking.getEndDateAsUTCSeconds();
 			slots = new fr.wseduc.webutils.collections.JsonArray();
 			JsonObject uniqueSlot = new JsonObject();
 			uniqueSlot.put("start_date", startDate);
@@ -332,19 +333,20 @@ public class BookingServiceSqlImpl extends SqlCrudService implements BookingServ
 		SqlStatementsBuilder statementsBuilder = new SqlStatementsBuilder();
 		Object rId = parseId(resourceId);
 		Object bId = parseId(booking.getBookingId());
-
+		JsonArray slots = booking.getSlots();
+		JsonObject slot = slots.getJsonObject(0);
 		// Lock query to avoid race condition
 		statementsBuilder.raw(LOCK_BOOKING_QUERY);
 
 		// Update query
 		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
 		StringBuilder sb = new StringBuilder();
-		for (String fieldname : data.fieldNames()) {
+		for (String fieldname : booking.getJson().fieldNames()) {
 			if (fieldname.equals("slots")) {
 				addFieldToUpdate(sb, "start_date", slot, values);
 				addFieldToUpdate(sb, "end_date", slot, values);
 			} else {
-				addFieldToUpdate(sb, fieldname, data, values);
+				addFieldToUpdate(sb, fieldname, booking.getJson(), values);
 			}
 		}
 

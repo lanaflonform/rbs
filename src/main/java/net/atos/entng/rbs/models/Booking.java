@@ -39,6 +39,8 @@ public class Booking {
 		return json.getString("iana");
 	}
 
+	public JsonArray getSlots() { return  json.getJsonArray("slots", null); }
+
 	public Object getRawStartDate() {
 		return this.json.getValue("start_date");
 	}

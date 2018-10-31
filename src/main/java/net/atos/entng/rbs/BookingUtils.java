@@ -54,5 +54,13 @@ public class BookingUtils {
 
 		return new ArrayList<String>();
 	}
+    public static List<String> getUserIdAndGroupIds(UserInfos user) {
+        final List<String> groupsAndUserIds = new ArrayList<>();
+        groupsAndUserIds.add(user.getUserId());
+        if (user.getGroupsIds() != null) {
+            groupsAndUserIds.addAll(user.getGroupsIds());
+        }
+        return groupsAndUserIds;
+    }
 
 }
