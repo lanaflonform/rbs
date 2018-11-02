@@ -51,7 +51,6 @@ import fr.wseduc.webutils.I18n;
 import fr.wseduc.webutils.http.Renders;
 import fr.wseduc.webutils.request.RequestUtils;
 import io.vertx.core.AsyncResult;
-import net.atos.entng.rbs.controllers.handler.PeriodicBookingHandlerFactory;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
@@ -113,7 +112,7 @@ public class BookingController extends ControllerHelper {
 	private final BookingService bookingService;
 	private final ResourceService resourceService;
 	private BookingNotificationService bookingNotificationService;
-	private PeriodicBookingHandlerFactory periodicBookingHandlerFactory;
+
 
 	public BookingController(EventBus eb) {
 		super();
@@ -126,7 +125,6 @@ public class BookingController extends ControllerHelper {
 	public void init(Vertx vertx, JsonObject config, RouteMatcher rm, Map<String, fr.wseduc.webutils.security.SecuredAction> securedActions) {
 		super.init(vertx, config, rm, securedActions);
 		bookingNotificationService = new BookingNotificationService(BookingController.log, eb, notification, bookingService);
-		periodicBookingHandlerFactory = new PeriodicBookingHandlerFactory(BookingController.log, bookingNotificationService, bookingService, resourceService);
 	}
 
 	@Post("/resource/:id/booking")
@@ -162,7 +160,7 @@ public class BookingController extends ControllerHelper {
 			public void handle(final JsonObject json) {
 				final String resourceId = request.params().get("id");
 				final String bookingId = request.params().get("bookingId");
-                final JsonArray slots = object.getJsonArray("slots");
+                final JsonArray slots = json.getJsonArray("slots");
                 final long now = getCurrentTimestamp();
 				Booking booking = new Booking(json, null, bookingId);
 
