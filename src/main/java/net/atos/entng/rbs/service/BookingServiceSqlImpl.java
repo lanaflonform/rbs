@@ -23,6 +23,7 @@ import fr.wseduc.webutils.Either;
 import fr.wseduc.webutils.Either.Right;
 import net.atos.entng.rbs.model.ExportBooking;
 import net.atos.entng.rbs.model.ExportRequest;
+import net.atos.entng.rbs.models.Slots;
 import org.entcore.common.service.impl.SqlCrudService;
 import org.entcore.common.sql.Sql;
 import org.entcore.common.sql.SqlStatementsBuilder;
@@ -68,16 +69,26 @@ public class BookingServiceSqlImpl extends SqlCrudService implements BookingServ
 	@Override
 	public void createBooking(final String resourceId, final Booking booking, final UserInfos user,
 			final Handler<Either<String, JsonObject>> handler) {
-
 		SqlStatementsBuilder statementsBuilder = new SqlStatementsBuilder();
-		Object rId = parseId(resourceId);
-
-		// Upsert current user
+// Upsert current user
 		statementsBuilder.prepared(UPSERT_USER_QUERY,
 				new fr.wseduc.webutils.collections.JsonArray().add(user.getUserId()).add(user.getUsername()));
 
 		// Lock query to avoid race condition
 		statementsBuilder.raw(LOCK_BOOKING_QUERY);
+		booking.getSlots().forEach(slot->{
+			JsonObject statment = getCreationBooking( resourceId, booking, slot,   user);
+			statementsBuilder.prepared(statment.getString("query"),statment.getJsonArray("values") );
+		});
+
+		// Send queries to eventbus
+		Sql.getInstance().transaction(statementsBuilder.build(), validUniqueResultHandler(2, handler));
+	}
+
+	private JsonObject getCreationBooking(final String resourceId, final Booking booking, final Slot slot, final UserInfos user){
+
+
+		Object rId = parseId(resourceId);
 
 		// Insert query
 		StringBuilder query = new StringBuilder();
@@ -99,8 +110,8 @@ public class BookingServiceSqlImpl extends SqlCrudService implements BookingServ
 
 		// Unix timestamps are converted into postgresql timestamps.
 		query.append(" ?, ?");
-		values.add(toSQLTimestamp(booking.getStartDateAsUTCSeconds()))
-				.add(toSQLTimestamp(booking.getEndDateAsUTCSeconds()));
+		values.add(toSQLTimestamp(slot.getStartUTC()))
+				.add(toSQLTimestamp(slot.getEndUTC()));
 
 		// Check that there does not exist a validated booking that overlaps the new
 		// booking.
@@ -110,13 +121,9 @@ public class BookingServiceSqlImpl extends SqlCrudService implements BookingServ
 				.append("') AS start_date,").append(" to_char(end_date, '").append(DATE_FORMAT)
 				.append("') AS end_date");
 
-		values.add(rId).add(VALIDATED.status()).add(toSQLTimestamp(booking.getStartDateAsUTCSeconds()))
-				.add(toSQLTimestamp(booking.getEndDateAsUTCSeconds()));
-
-		statementsBuilder.prepared(query.toString(), values);
-
-		// Send queries to eventbus
-		Sql.getInstance().transaction(statementsBuilder.build(), validUniqueResultHandler(2, handler));
+		values.add(rId).add(VALIDATED.status()).add(toSQLTimestamp(slot.getStartUTC()))
+				.add(toSQLTimestamp(slot.getEndUTC()));
+		return new JsonObject().put("query", query).put("values", values );
 	}
 
 	/**
@@ -131,22 +138,20 @@ public class BookingServiceSqlImpl extends SqlCrudService implements BookingServ
 				new fr.wseduc.webutils.collections.JsonArray().add(user.getUserId()).add(user.getUsername()));
 
 
-		JsonArray slots = booking.getSlots() ;
+		Slots slots = booking.getSlots() ;
 		// case of creation during an update
-		if (slots == null) {
+		if (slots.isEmpty()) {
 			long startDate = booking.getStartDateAsUTCSeconds();
 			long endDate = booking.getEndDateAsUTCSeconds();
-			slots = new fr.wseduc.webutils.collections.JsonArray();
 			JsonObject uniqueSlot = new JsonObject();
 			uniqueSlot.put("start_date", startDate);
 			uniqueSlot.put("end_date", endDate);
-			slots.add(uniqueSlot);
+			uniqueSlot.put("iana",booking.getIana());
+			slots.add(new Slot(uniqueSlot));
 		}
 		// create a periodic reservation dedicated to each slot
 		for (int i = 0; i < slots.size(); i++) {
-            JsonObject slot = slots.getJsonObject(i);
-            long slotStartDate = slot.getLong("start_date", 0L);
-            long slotEndDate = slot.getLong("end_date", 0L);
+
 
             StringBuilder query = new StringBuilder();
             JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
@@ -333,22 +338,14 @@ public class BookingServiceSqlImpl extends SqlCrudService implements BookingServ
 		SqlStatementsBuilder statementsBuilder = new SqlStatementsBuilder();
 		Object rId = parseId(resourceId);
 		Object bId = parseId(booking.getBookingId());
-		JsonArray slots = booking.getSlots();
-		JsonObject slot = slots.getJsonObject(0);
+		Slots slots = booking.getSlots();
+		Slot slot = slots.get(0);
 		// Lock query to avoid race condition
 		statementsBuilder.raw(LOCK_BOOKING_QUERY);
 
 		// Update query
 		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
 		StringBuilder sb = new StringBuilder();
-		for (String fieldname : booking.getJson().fieldNames()) {
-			if (fieldname.equals("slots")) {
-				addFieldToUpdate(sb, "start_date", slot, values);
-				addFieldToUpdate(sb, "end_date", slot, values);
-			} else {
-				addFieldToUpdate(sb, fieldname, booking.getJson(), values);
-			}
-		}
 
 		StringBuilder query = new StringBuilder();
 		query.append("UPDATE rbs.booking").append(" SET ").append(sb.toString()).append("modified = NOW(),");
@@ -382,17 +379,7 @@ public class BookingServiceSqlImpl extends SqlCrudService implements BookingServ
 		Sql.getInstance().transaction(statementsBuilder.build(), validUniqueResultHandler(1, handler));
 	}
 
-	private void addFieldToUpdate(StringBuilder sb, String fieldname, JsonObject object, JsonArray values) {
-		if ("start_date".equals(fieldname) || "end_date".equals(fieldname)) {
-			sb.append(fieldname).append("= ?, ");
-			values.add(toSQLTimestamp(object.getLong(fieldname)));
-		}else if("iana".equals(fieldname)) {
-			//IGNORE
-		} else {
-			sb.append(fieldname).append("= ?, ");
-			values.add(object.getValue(fieldname));
-		}
-	}
+
 
 	@Override
 	public void updatePeriodicBooking(final String resourceId, final Booking booking, final UserInfos user,

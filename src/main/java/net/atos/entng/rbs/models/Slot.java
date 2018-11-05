@@ -1,11 +1,15 @@
 package net.atos.entng.rbs.models;
 
+import io.vertx.core.json.JsonObject;
+
 import java.time.ZonedDateTime;
 import java.util.Iterator;
 
 public class Slot {
+
 	private final ZonedDateTime start;
 	private final ZonedDateTime end;
+
 
 	public Slot(ZonedDateTime start, ZonedDateTime end) {
 		super();
@@ -13,8 +17,13 @@ public class Slot {
 		this.end = end;
 	}
 
-	public ZonedDateTime getEnd() {
-		return end;
+	public Slot(Long start,Long end, String iana){
+		super();
+		this.start = BookingDateUtils.localDateTimeForTimestampSecondsAndIana(start, iana );
+		this.end = BookingDateUtils.localDateTimeForTimestampSecondsAndIana(end, iana );
+	}
+	public Slot(JsonObject json){
+		this(json.getLong("start_date", 0l), json.getLong("end_date", 0l), json.getString("iana"));
 	}
 
 	public long getStartUTC() {
@@ -88,4 +97,5 @@ public class Slot {
 	public ZonedDateTime getStart() {
 		return start;
 	}
+	public ZonedDateTime getEnd() { return end;	}
 }

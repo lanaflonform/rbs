@@ -10,6 +10,7 @@ public class Booking {
 	private final String bookingId;
 	private final JsonObject json;
 	private Resource resource;
+	private Slots slots = new Slots();
 	private String selectedDaysBitString;
 
 	public Booking(JsonObject json, Resource resource) {
@@ -21,6 +22,13 @@ public class Booking {
 		this.json = json;
 		this.bookingId = id;
 		this.resource = resource;
+	}
+
+	public Booking(JsonObject json, final String id, Slots slots) {
+		super();
+		this.json = json;
+		this.bookingId = id;
+		this.slots = slots;
 	}
 
 	public void setResource(Resource resource) {
@@ -39,7 +47,7 @@ public class Booking {
 		return json.getString("iana");
 	}
 
-	public JsonArray getSlots() { return  json.getJsonArray("slots", null); }
+	public Slots getSlots() { return  this.slots.size() == 0 ? new Slots(json.getJsonArray("slots", null)) : this.slots ; }
 
 	public Object getRawStartDate() {
 		return this.json.getValue("start_date");

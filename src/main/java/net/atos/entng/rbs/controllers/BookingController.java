@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import net.atos.entng.rbs.models.Slots;
 import org.entcore.common.controller.ControllerHelper;
 import org.entcore.common.http.filter.ResourceFilter;
 import org.entcore.common.user.UserInfos;
@@ -160,9 +161,9 @@ public class BookingController extends ControllerHelper {
 			public void handle(final JsonObject json) {
 				final String resourceId = request.params().get("id");
 				final String bookingId = request.params().get("bookingId");
-                final JsonArray slots = json.getJsonArray("slots");
+                Slots slots = new Slots(json.getJsonArray("slots")) ;
                 final long now = getCurrentTimestamp();
-				Booking booking = new Booking(json, null, bookingId);
+				Booking booking = new Booking(json, bookingId, slots);
 
 				resourceService.getDelaysAndTypeProperties(Long.parseLong(resourceId),
 						new Handler<Either<String, JsonObject>>() {
@@ -304,16 +305,13 @@ public class BookingController extends ControllerHelper {
 	@SecuredAction(value = "rbs.contrib", type = ActionType.RESOURCE)
 	@ResourceFilter(TypeAndResourceAppendPolicy.class)
 	public void createPeriodicBooking(final HttpServerRequest request) {
-		UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
-			@Override
-			public void handle(final UserInfos user) {
-				if (user != null) {
-					RequestUtils.bodyToJson(request, pathPrefix + "createPeriodicBooking",
-							getPeriodicBookingHandler(user, request, true));
-				} else {
-					log.debug("User not found in session.");
-					unauthorized(request);
-				}
+		UserUtils.getUserInfos(eb, request, user -> {
+			if (user != null) {
+				RequestUtils.bodyToJson(request, pathPrefix + "createPeriodicBooking",
+						getPeriodicBookingHandler(user, request, true));
+			} else {
+				log.debug("User not found in session.");
+				unauthorized(request);
 			}
 		});
 	}
@@ -324,130 +322,127 @@ public class BookingController extends ControllerHelper {
 	private Handler<JsonObject> getPeriodicBookingHandler(final UserInfos user, final HttpServerRequest request,
 			final boolean isCreation) {
 
-		return new Handler<JsonObject>() {
-			@Override
-			public void handle(final JsonObject json) {
-				final String resourceId = request.params().get("id");
-				final String bookingId = request.params().get("bookingId");
-				Booking booking = new Booking(json, null, bookingId);
-				if (booking.isNotPeriodic()) {
-					badRequest(request, "rbs.booking.bad.request.enddate.or.occurrences");
+		return json -> {
+			final String resourceId = request.params().get("id");
+			final String bookingId = request.params().get("bookingId");
+			Booking booking = new Booking(json, null, bookingId);
+			if (booking.isNotPeriodic()) {
+				badRequest(request, "rbs.booking.bad.request.enddate.or.occurrences");
+				return;
+			}
+
+			// The first slot must begin and end on the same day
+			if (booking.isNotStartingAndEngingSameDay()) {
+				badRequest(request, "rbs.booking.bad.request.invalid.first.slot");
+				return;
+			}
+
+			if (booking.hasNotSelectedDays()) {
+				badRequest(request, "rbs.booking.bad.request.invalid.days");
+				return;
+			}
+			try {
+				// The day of the first slot must be a selected day
+				if (booking.hasNotSelectedStartDayOfWeek()) {
+					badRequest(request, "rbs.booking.bad.request.first.day.not.selected");
 					return;
 				}
+			} catch (Exception e) {
+				log.error("Error when checking that the day of the first slot is selected", e);
+				renderError(request);
+				return;
+			}
 
-				// The first slot must begin and end on the same day
-				if (booking.isNotStartingAndEngingSameDay()) {
-					badRequest(request, "rbs.booking.bad.request.invalid.first.slot");
-					return;
-				}
+			// The first and last slot must end at the same hour
+			if (booking.hasNotFirstSlotAndLastSlotFinishingAtSameHour()) {
+				badRequest(request, "rbs.booking.bad.request.invalid.enddates");
+				return;
+			}
 
-				if (booking.hasNotSelectedDays()) {
-					badRequest(request, "rbs.booking.bad.request.invalid.days");
-					return;
-				}
-				try {
-					// The day of the first slot must be a selected day
-					if (booking.hasNotSelectedStartDayOfWeek()) {
-						badRequest(request, "rbs.booking.bad.request.first.day.not.selected");
-						return;
-					}
-				} catch (Exception e) {
-					log.error("Error when checking that the day of the first slot is selected", e);
-					renderError(request);
-					return;
-				}
+			// Store boolean array (selected days) as a bit string
+			try {
+				booking.computeSelectedDaysAsBitString();
+			} catch (Exception e) {
+				log.error("Error during processing of array 'days'", e);
+				renderError(request);
+				return;
+			}
 
-				// The first and last slot must end at the same hour
-				if (booking.hasNotFirstSlotAndLastSlotFinishingAtSameHour()) {
-					badRequest(request, "rbs.booking.bad.request.invalid.enddates");
-					return;
-				}
+			resourceService.getDelaysAndTypeProperties(Long.parseLong(resourceId),
+					new Handler<Either<String, JsonObject>>() {
+						@Override
+						public void handle(Either<String, JsonObject> event) {
+							if (event.isRight() && event.right().getValue() != null) {
 
-				// Store boolean array (selected days) as a bit string
-				try {
-					booking.computeSelectedDaysAsBitString();
-				} catch (Exception e) {
-					log.error("Error during processing of array 'days'", e);
-					renderError(request);
-					return;
-				}
+								JsonObject json = event.right().getValue();
+								Resource resource = new Resource(json);
+								booking.setResource(resource);
 
-				resourceService.getDelaysAndTypeProperties(Long.parseLong(resourceId),
-						new Handler<Either<String, JsonObject>>() {
-							@Override
-							public void handle(Either<String, JsonObject> event) {
-								if (event.isRight() && event.right().getValue() != null) {
+								if (resource.hasNotOwnerOrSchoolId()) {
+									log.warn("Could not get owner or school_id for type of resource " + resourceId);
+								}
 
-									JsonObject json = event.right().getValue();
-									Resource resource = new Resource(json);
-									booking.setResource(resource);
+								if (!resource.canBypassDelaysConstraints(user)) {
+									// Check that booking dates respect min and max delays
+									if (booking.hasMinDelay() && booking.isNotRespectingMinDelay()) {
+										long nbDays = booking.minDelayAsDay();
+										String errorMessage = i18n.translate(
+												"rbs.booking.bad.request.minDelay.not.respected.by.firstSlot",
+												Renders.getHost(request), I18n.acceptLanguage(request),
+												Long.toString(nbDays));
 
-									if (resource.hasNotOwnerOrSchoolId()) {
-										log.warn("Could not get owner or school_id for type of resource " + resourceId);
-									}
+										badRequest(request, errorMessage);
+										return;
+									} else if (booking.hasMaxDelay()) {
+										try {
+											long lastSlotEndDate = booking.computeAndSetLastEndDateAsUTCSedonds();
+											if (booking.isNotRespectingMaxDelay(lastSlotEndDate)) {
+												long nbDays = booking.maxDelayAsDay();
+												String errorMessage = i18n.translate(
+														"rbs.booking.bad.request.maxDelay.not.respected.by.lastSlot",
+														Renders.getHost(request), I18n.acceptLanguage(request),
+														Long.toString(nbDays));
 
-									if (!resource.canBypassDelaysConstraints(user)) {
-										// Check that booking dates respect min and max delays
-										if (booking.hasMinDelay() && booking.isNotRespectingMinDelay()) {
-											long nbDays = booking.minDelayAsDay();
-											String errorMessage = i18n.translate(
-													"rbs.booking.bad.request.minDelay.not.respected.by.firstSlot",
-													Renders.getHost(request), I18n.acceptLanguage(request),
-													Long.toString(nbDays));
-
-											badRequest(request, errorMessage);
-											return;
-										} else if (booking.hasMaxDelay()) {
-											try {
-												long lastSlotEndDate = booking.computeAndSetLastEndDateAsUTCSedonds();
-												if (booking.isNotRespectingMaxDelay(lastSlotEndDate)) {
-													long nbDays = booking.maxDelayAsDay();
-													String errorMessage = i18n.translate(
-															"rbs.booking.bad.request.maxDelay.not.respected.by.lastSlot",
-															Renders.getHost(request), I18n.acceptLanguage(request),
-															Long.toString(nbDays));
-
-													badRequest(request, errorMessage);
-													return;
-												}
-											} catch (Exception e) {
-												log.error(
-														"Error when checking that the day of the end date is selected",
-														e);
-												renderError(request);
+												badRequest(request, errorMessage);
 												return;
 											}
-
-										}
-									}
-
-									// Create or update booking
-									if (isCreation) {
-										try {
-											bookingService.createPeriodicBooking(resourceId, booking, user,
-													getHandlerForPeriodicNotification(user, request, isCreation));
 										} catch (Exception e) {
-											log.error("Error during service createPeriodicBooking", e);
+											log.error(
+													"Error when checking that the day of the end date is selected",
+													e);
 											renderError(request);
+											return;
 										}
-									} else {
-										try {
-											bookingService.updatePeriodicBooking(resourceId, booking, user,
-													getHandlerForPeriodicNotification(user, request, isCreation));
-										} catch (Exception e) {
-											log.error("Error during service updatePeriodicBooking", e);
-											renderError(request);
-										}
-									}
 
-								} else {
-									badRequest(request, event.left().getValue());
+									}
 								}
+
+								// Create or update booking
+								if (isCreation) {
+									try {
+										bookingService.createPeriodicBooking(resourceId, booking, user,
+												getHandlerForPeriodicNotification(user, request, isCreation));
+									} catch (Exception e) {
+										log.error("Error during service createPeriodicBooking", e);
+										renderError(request);
+									}
+								} else {
+									try {
+										bookingService.updatePeriodicBooking(resourceId, booking, user,
+												getHandlerForPeriodicNotification(user, request, isCreation));
+									} catch (Exception e) {
+										log.error("Error during service updatePeriodicBooking", e);
+										renderError(request);
+									}
+								}
+
+							} else {
+								badRequest(request, event.left().getValue());
 							}
+						}
 
-						});
+					});
 
-			}
 		};
 	}
 
