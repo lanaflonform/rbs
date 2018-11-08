@@ -195,25 +195,33 @@ public class Booking {
 	}
 
 	public boolean hasNotSelectedStartDayOfWeek() {
-		final int startDay = dayOfWeekForStartDate();
-		JsonArray selectedDaysArray = getDays().orElse(null);
-		if (selectedDaysArray == null) {
-			return true;
-		}
-		Object firstSlotDayIsSelected = selectedDaysArray.getList().get(startDay);
-		return !(Boolean) firstSlotDayIsSelected;
+        boolean oneFound = true;
+        for(Slot slot : this.getSlots()){
+			final int startDay = slot.dayOfWeekForStartDate();
+            JsonArray selectedDaysArray = getDays().orElse(null);
+            if (selectedDaysArray == null) {
+                return true;
+            }
+            Object firstSlotDayIsSelected = selectedDaysArray.getList().get(startDay);
+            if(!(boolean) firstSlotDayIsSelected){ oneFound = false;}
+        }
+        return !oneFound;
 	}
 
 	public boolean hasNotFirstSlotAndLastSlotFinishingAtSameHour() {
 		final long endDate = getPeriodicEndDateAsUTCSeconds();
-		final long firstSlotEndDate = getEndDateAsUTCSeconds();
-		ZonedDateTime endDateTime = BookingDateUtils.localDateTimeForTimestampSecondsAndIana(endDate, getIana());
-		ZonedDateTime firstSlotEndDateTime = BookingDateUtils.localDateTimeForTimestampSecondsAndIana(firstSlotEndDate,
-				getIana());
-		boolean haveSameTime = endDateTime.getHour() == firstSlotEndDateTime.getHour()
-				&& endDateTime.getMinute() == firstSlotEndDateTime.getMinute()
-				&& endDateTime.getSecond() == firstSlotEndDateTime.getSecond();
-		return endDate > 0L && !haveSameTime;
+		boolean oneFound = false;
+		for(Slot slot : this.getSlots()){
+			ZonedDateTime endDateTime = BookingDateUtils.localDateTimeForTimestampSecondsAndIana(endDate, getIana());
+			ZonedDateTime firstSlotEndDateTime = slot.getEnd();
+			boolean haveSameTime = endDateTime.getHour() == firstSlotEndDateTime.getHour()
+					&& endDateTime.getMinute() == firstSlotEndDateTime.getMinute()
+					&& endDateTime.getSecond() == firstSlotEndDateTime.getSecond();
+			if( endDate > 0L && !haveSameTime) {
+				oneFound = true;
+			}
+		}
+		return oneFound;
 	}
 
 	public void computeSelectedDaysAsBitString() {

@@ -66,32 +66,32 @@ function Booking() {
 		endDate = moment();
 	}
 
-  this.beginning = this.startMoment = startDate;
-  this.end = this.endMoment = endDate;
+    this.beginning = this.startMoment = startDate;
+    this.end = this.endMoment = endDate;
 
 	this.resource = new Resource();
 }
 
 Booking.prototype.save = function(cb, cbe) {
-  if(this.id) {
-    this.update(cb, cbe);
-  }
-  else {
-    this.create(cb, cbe);
-  }
+	if(this.id) {
+		this.update(cb, cbe);
+	}
+	else {
+		this.create(cb, cbe);
+	}
 };
 
 Booking.prototype.retrieve = function(id, cb, cbe) {
-  var booking = this;
-  http().get('/rbs/booking/' + id).done(function(response){
-    if(typeof cb === 'function'){
-      cb(response.start_date);
-    }
-  }.bind(this)).error(function(e){
-    if(typeof cbe === 'function'){
-      cbe(model.parseError(e, booking, 'retieve'));
-    }
-  });
+    var booking = this;
+    http().get('/rbs/booking/' + id).done(function(response){
+        if(typeof cb === 'function'){
+            cb(response.start_date);
+        }
+    }.bind(this)).error(function(e){
+        if(typeof cbe === 'function'){
+            cbe(model.parseError(e, booking, 'retieve'));
+        }
+    });
 };
 
 Booking.prototype.calendarUpdate = function(cb, cbe) {
@@ -303,6 +303,7 @@ Booking.prototype.toJSON = function() {
 
   if (this.is_periodic === true) {
     json.periodicity = this.periodicity;
+    json.iana =  moment.tz.guess();
     json.days = _.pluck(_.sortBy(this.periodDays, function(day){ return day.number; }), 'value');
 
     if (this.occurrences !== undefined && this.occurrences > 0) {
@@ -665,6 +666,27 @@ var returnData = function(hook, params){
 function SlotProfile() {
 }
 
+function Slot(book) {
+    this.beginning = this.startMoment = moment.utc(book.startMoment);
+    this.end = this.endMoment = moment.utc(book.endMoment);
+    this.iana =  moment.tz.guess();
+}
+function SlotJson(start, end) {
+  return {
+    start_date : moment.utc(start).unix(),
+    end_date :  moment.utc(end).unix(),
+    iana :  moment.tz.guess()
+}
+}
+
+Slot.prototype.toJson = function() {
+  return {
+      start_date : this.startMoment.unix(),
+      end_date : this.endMoment.unix(),
+      iana:  moment.tz.guess()
+  }
+};
+
 SlotProfile.prototype.getSlotProfiles = function(structId, callback) {
   return http().get('/rbs/slotprofiles/schools/' + structId)
     .done(function(data){
@@ -762,7 +784,7 @@ model.build = function(){
   // custom directives loading
   loader.loadFile('/rbs/public/js/additional.js');
   model.me.workflow.load(['rbs']);
-  this.makeModels([ResourceType, Resource, Booking, SelectionHolder]);
+  this.makeModels([ResourceType, Resource, Booking, SelectionHolder, Slot]);
   Model.prototype.inherits(Booking, calendar.ScheduleItem);
 
   model.loadStructures();

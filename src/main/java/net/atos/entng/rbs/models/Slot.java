@@ -11,7 +11,7 @@ public class Slot {
 	private final ZonedDateTime end;
 
 
-	public Slot(ZonedDateTime start, ZonedDateTime end) {
+	public Slot(ZonedDateTime start, ZonedDateTime end, String iana) {
 		super();
 		this.start = start;
 		this.end = end;
@@ -19,6 +19,7 @@ public class Slot {
 
 	public Slot(Long start,Long end, String iana){
 		super();
+
 		this.start = BookingDateUtils.localDateTimeForTimestampSecondsAndIana(start, iana );
 		this.end = BookingDateUtils.localDateTimeForTimestampSecondsAndIana(end, iana );
 	}
@@ -86,14 +87,27 @@ public class Slot {
 				nbDaysFromBeginning += nbDays;
 				selectedDay = BookingDateUtils.nextDayOfWeek(selectedDay, nbDays);
 				Slot slot = new Slot(BookingDateUtils.addDaysIgnoreDST(baseStart, nbDaysFromBeginning),
-						BookingDateUtils.addDaysIgnoreDST(baseEnd, nbDaysFromBeginning));
+						BookingDateUtils.addDaysIgnoreDST(baseEnd, nbDaysFromBeginning),booking.getIana());
 				index++;
 				return slot;
 			}
 
 		}
 	}
+	public boolean isNotStartingAndEndingSameDay() {
+		final long startDay = dayOfWeekForStartDate();
+		final long endDay = dayOfWeekForEndDate();
+		return startDay != endDay;
+	}
 
+	public int dayOfWeekForStartDate() {
+		return getStart().getDayOfWeek().getValue() % 7;
+	}
+
+
+	public int dayOfWeekForEndDate() {
+		return getEnd().getDayOfWeek().getValue() % 7;
+	}
 	public ZonedDateTime getStart() {
 		return start;
 	}

@@ -154,15 +154,15 @@ public class BookingController extends ControllerHelper {
 	 * @return Handler to create or update a booking
 	 */
 	private Handler<JsonObject> getBookingHandler(final UserInfos user, final HttpServerRequest request,
-			final boolean isCreation) {
+												  final boolean isCreation) {
 
 		return new Handler<JsonObject>() {
 			@Override
 			public void handle(final JsonObject json) {
 				final String resourceId = request.params().get("id");
 				final String bookingId = request.params().get("bookingId");
-                Slots slots = new Slots(json.getJsonArray("slots")) ;
-                final long now = getCurrentTimestamp();
+				Slots slots = new Slots(json.getJsonArray("slots")) ;
+				final long now = getCurrentTimestamp();
 				Booking booking = new Booking(json, bookingId, slots);
 
 				resourceService.getDelaysAndTypeProperties(Long.parseLong(resourceId),
@@ -325,14 +325,16 @@ public class BookingController extends ControllerHelper {
 		return json -> {
 			final String resourceId = request.params().get("id");
 			final String bookingId = request.params().get("bookingId");
+
 			Booking booking = new Booking(json, null, bookingId);
+
 			if (booking.isNotPeriodic()) {
 				badRequest(request, "rbs.booking.bad.request.enddate.or.occurrences");
 				return;
 			}
 
 			// The first slot must begin and end on the same day
-			if (booking.isNotStartingAndEngingSameDay()) {
+			if (booking.getSlots().slotsAreNotStartingAndEndingSameDay()) {
 				badRequest(request, "rbs.booking.bad.request.invalid.first.slot");
 				return;
 			}

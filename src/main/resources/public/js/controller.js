@@ -1570,10 +1570,7 @@ function RbsController($scope, template, model, date, route, $timeout) {
             var saveFirst = new Booking();
             saveFirst.booking_reason = $scope.editedBooking.booking_reason;
             saveFirst.resource = $scope.editedBooking.resource;
-            saveFirst.slots = [{
-              start_date : $scope.editedBooking.startMoment.unix(),
-              end_date : $scope.editedBooking.endMoment.unix()
-            }];
+            saveFirst.slots = [new Slot($scope.editedBooking).toJson()];
             //Save the 1st no periodic slot
             saveFirst.is_periodic = false;
             saveFirst.save(
@@ -1620,11 +1617,7 @@ function RbsController($scope, template, model, date, route, $timeout) {
           $scope.booking.endTime.minute()
         ]);
       }
-
-      $scope.editedBooking.slots = [{
-        start_date : $scope.editedBooking.startMoment.unix(),
-        end_date : $scope.editedBooking.endMoment.unix()
-      }];
+      $scope.editedBooking.slots = [new Slot($scope.editedBooking).toJson()];
       $scope.editedBooking.save(
         function() {
           $scope.display.processing = undefined;
@@ -1733,10 +1726,7 @@ function RbsController($scope, template, model, date, route, $timeout) {
                 var saveFirst = new Booking();
                 saveFirst.booking_reason = $scope.editedBooking.booking_reason;
                 saveFirst.resource = $scope.editedBooking.resource;
-                saveFirst.slots = [{
-                  start_date : $scope.editedBooking.startMoment.unix(),
-                  end_date : $scope.editedBooking.endMoment.unix()
-                }];
+                saveFirst.slots = [new Slot($scope.editedBooking).toJson()];
                 //Save the 1st no periodic slot
                 saveFirst.is_periodic = false;
                 saveFirst.save(
@@ -1837,21 +1827,12 @@ function RbsController($scope, template, model, date, route, $timeout) {
                   (start.year() == $scope.today.year() && start.month() == $scope.today.month() && start.date() > $scope.today.date()) ||
                   (start.year() == $scope.today.year() && start.month() == $scope.today.month() && start.date() == $scope.today.date() && start.hour() >= moment().hour())
                 ) {
-                  bookingPeriodicToSave.slots.push({
-                    start_date: start.unix(),
-                    end_date: end.unix()
-                  });
+                  bookingPeriodicToSave.slots.push(SlotJson(start, end));
                 } else {
-                  bookingPeriodicToSave.slots.push({
-                    start_date: start.add(1,'d').unix(),
-                    end_date: end.add(1,'d').unix()
-                  });
+                  bookingPeriodicToSave.slots.push(SlotJson(start.add(1,'d'), end.add(1,'d')));
                 }
               } else {
-                  bookingPeriodicToSave.slots.push({
-                    start_date: start.add(1,'d').unix(),
-                    end_date: end.add(1,'d').unix()
-                  });
+                  bookingPeriodicToSave.slots.push(SlotJson(start.add(1,'d'), end.add(1,'d')));
               }
 
 
@@ -1878,10 +1859,7 @@ function RbsController($scope, template, model, date, route, $timeout) {
               );
 
             } else {
-              $scope.editedBooking.slots.push({
-                start_date: start.unix(),
-                end_date: end.unix()
-              });
+              $scope.editedBooking.slots.push(SlotJson(start, end));
             }
           } else {
             // non periodic
@@ -1911,10 +1889,7 @@ function RbsController($scope, template, model, date, route, $timeout) {
                 $scope.editedBooking.endMoment.hour(),
                 $scope.editedBooking.endMoment.minute()
               ]);
-              $scope.editedBooking.slots.push({
-                start_date: start.unix(),
-                end_date: end.unix()
-              });
+              $scope.editedBooking.slots.push(SlotJson(start, end));
             } else {
               for (var i = 0; i <= diffDays; i++) {
                 var start = moment([
@@ -1938,10 +1913,7 @@ function RbsController($scope, template, model, date, route, $timeout) {
                     (start.year() == $scope.today.year() && start.month() == $scope.today.month() && start.date() > $scope.today.date()) ||
                     (start.year() == $scope.today.year() && start.month() == $scope.today.month() && start.date() == $scope.today.date() && start.hour() >= moment().hour())
                   ) {
-                    $scope.editedBooking.slots.push({
-                      start_date: start.add(i, 'd').unix(),
-                      end_date: end.subtract(diffDays - i, 'd').unix()
-                    });
+                    $scope.editedBooking.slots.push(SlotJson(start.add(i, 'd'), end.subtract(diffDays - i, 'd')));
                   } else {
                     $scope.currentErrors.push({
                       error: 'rbs.booking.invalid.datetimes.past',
@@ -1955,10 +1927,7 @@ function RbsController($scope, template, model, date, route, $timeout) {
                     end_date: end.subtract(diffDays - i, 'd').unix()
                   });
                 } else if (i != 0 && i != diffDays) {
-                  $scope.editedBooking.slots.push({
-                    start_date: start.add(i, 'd').unix(),
-                    end_date: end.subtract(diffDays - i, 'd').unix()
-                  });
+                  $scope.editedBooking.slots.push(SlotJson(start.add(i, 'd'), end.subtract(diffDays - i, 'd')));
                 }
               }
             }

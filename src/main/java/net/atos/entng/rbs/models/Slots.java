@@ -17,4 +17,13 @@ public class Slots extends ArrayList<Slot> {
             this.add(slot);
         });
     }
+
+    public boolean slotsAreNotStartingAndEndingSameDay () {
+        boolean oneFound = false;
+        for(Slot slot : this){
+          if(slot.isNotStartingAndEndingSameDay()){ oneFound = true;}
+        }
+        return oneFound;
+    }
+
 }
