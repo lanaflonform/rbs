@@ -16,6 +16,7 @@ import net.atos.entng.rbs.models.Booking;
 import net.atos.entng.rbs.models.BookingDateUtils;
 import net.atos.entng.rbs.models.Resource;
 import net.atos.entng.rbs.models.Slot;
+import net.atos.entng.rbs.models.Slots;
 import net.atos.entng.rbs.models.Slot.SlotIterable;
 
 public class BookingTest {
@@ -52,15 +53,18 @@ public class BookingTest {
 	public void shouldComputeLastSlotForPeriodicBookingWithEndDate() {
 		JsonObject jsonR = new JsonObject();
 		JsonObject jsonB = new JsonObject();
+		JsonArray jsonS = new JsonArray();
+		jsonS.add(new JsonObject().put("start_date","01/07/2018 15:00").put("end_date","01/07/2018 16:00").put("iana",IANA_PARIS));
 		jsonB.put("periodicity", 1);// every 1 weeks
 		jsonB.put("iana", IANA_PARIS);
-		jsonB.put("start_date", toTimestampSeconds("01/07/2018 15:00", IANA_PARIS));
-		jsonB.put("end_date", toTimestampSeconds("01/07/2018 16:00", IANA_PARIS));
 		jsonB.put("periodic_end_date", toTimestampSeconds("31/07/2018 16:00", IANA_PARIS));
 		jsonB.put("days", new JsonArray("[true,false,false,false,false,false,true]"));// sunday and saturday
 		Booking booking = new Booking(jsonB, new Resource(jsonR));
+		Slots slots = new Slots(jsonS);
+		booking.setSlots(slots);
 		//
-		Assert.assertFalse(booking.isNotStartingAndEngingSameDay());
+
+		Assert.assertFalse(slots.areNotStartingAndEndingSameDay());
 		Assert.assertFalse(booking.isNotPeriodic());
 		Assert.assertFalse(booking.hasPeriodicEndAsLastDay());// 31-07 is not last
 		Assert.assertFalse(booking.hasNotSelectedDays());
@@ -68,9 +72,9 @@ public class BookingTest {
 		Assert.assertTrue(booking.hasPeriodicEndDate());
 		Assert.assertFalse(booking.hasNotFirstSlotAndLastSlotFinishingAtSameHour());
 		Assert.assertEquals("1000001", booking.getSelectedDaysBitString());
-		Assert.assertEquals(30, booking.daysBetweenFirstSlotEndAndPeriodicEndDate());
-		Assert.assertEquals(9, booking.countOccurrences());
-		long lastSlot = booking.getLastSlotDate(booking.countOccurrences());
+		Assert.assertEquals(30, booking.daysBetweenFirstSlotEndAndPeriodicEndDate(slots.getLastSlot()));
+		Assert.assertEquals(9, booking.countOccurrences(slots.getLastSlot()));
+		long lastSlot = booking.getLastSlotDate(booking.countOccurrences(slots.getLastSlot()));
 		Assert.assertEquals("29/07/2018 16:00", fromTimestampSeconds(lastSlot, IANA_PARIS));
 		lastSlot = booking.computeAndSetLastEndDateAsUTCSedonds();
 		Assert.assertEquals("29/07/2018 16:00", fromTimestampSeconds(lastSlot, IANA_PARIS));
@@ -78,7 +82,7 @@ public class BookingTest {
 		Assert.assertEquals("29/07/2018 16:00",
 				fromTimestampSeconds(booking.getPeriodicEndDateAsUTCSeconds(), IANA_PARIS));
 		//
-		SlotIterable it = new SlotIterable(booking);
+		SlotIterable it = new SlotIterable(booking, booking.getSlots().get(0));
 		int count = 0;
 		for (Slot s : it) {
 			Assert.assertTrue(s.getSelectedDay() == 0 || s.getSelectedDay() == 6);
@@ -92,15 +96,17 @@ public class BookingTest {
 	public void shouldComputeLastSlotForPeriodicBookingWithEndDateAsLastDay() {
 		JsonObject jsonR = new JsonObject();
 		JsonObject jsonB = new JsonObject();
+		JsonArray jsonS = new JsonArray();
+		jsonS.add(new JsonObject().put("start_date","01/07/2018 15:00").put("end_date","01/07/2018 16:00").put("iana",IANA_PARIS));
 		jsonB.put("periodicity", 1);// every 1 weeks
 		jsonB.put("iana", IANA_PARIS);
-		jsonB.put("start_date", toTimestampSeconds("01/07/2018 15:00", IANA_PARIS));
-		jsonB.put("end_date", toTimestampSeconds("01/07/2018 16:00", IANA_PARIS));
 		jsonB.put("periodic_end_date", toTimestampSeconds("29/07/2018 16:00", IANA_PARIS));
 		jsonB.put("days", new JsonArray("[true,false,false,false,false,true,false]"));// sunday and saturday
 		Booking booking = new Booking(jsonB, new Resource(jsonR));
+		Slots slots = new Slots(jsonS);
+		booking.setSlots(slots);
 		//
-		Assert.assertFalse(booking.isNotStartingAndEngingSameDay());
+		Assert.assertFalse(slots.areNotStartingAndEndingSameDay());
 		Assert.assertFalse(booking.isNotPeriodic());
 		Assert.assertTrue(booking.hasPeriodicEndAsLastDay());// 29-07 is last
 		Assert.assertFalse(booking.hasNotSelectedDays());
@@ -108,8 +114,8 @@ public class BookingTest {
 		Assert.assertTrue(booking.hasPeriodicEndDate());
 		Assert.assertFalse(booking.hasNotFirstSlotAndLastSlotFinishingAtSameHour());
 		Assert.assertEquals("1000010", booking.getSelectedDaysBitString());
-		Assert.assertEquals(28, booking.daysBetweenFirstSlotEndAndPeriodicEndDate());
-		Assert.assertEquals(9, booking.countOccurrences());
+		Assert.assertEquals(28, booking.daysBetweenFirstSlotEndAndPeriodicEndDate(slots.getLastSlot()));
+		Assert.assertEquals(9, booking.countOccurrences(slots.getLastSlot()));
 		long lastSlot = booking.getLastSlotDate(9);
 		Assert.assertEquals("29/07/2018 16:00", fromTimestampSeconds(lastSlot, IANA_PARIS));
 		lastSlot = booking.computeAndSetLastEndDateAsUTCSedonds();
@@ -118,7 +124,7 @@ public class BookingTest {
 		Assert.assertEquals("29/07/2018 16:00",
 				fromTimestampSeconds(booking.getPeriodicEndDateAsUTCSeconds(), IANA_PARIS));
 		//
-		SlotIterable it = new SlotIterable(booking);
+		SlotIterable it = new SlotIterable(booking, booking.getSlots().get(0));
 		int count = 0;
 		for (Slot s : it) {
 			Assert.assertTrue(s.getSelectedDay() == 0 || s.getSelectedDay() == 5);
@@ -132,6 +138,8 @@ public class BookingTest {
 	public void shouldComputeLastSlotForPeriodicBookingEvery3Weeks() {
 		JsonObject jsonR = new JsonObject();
 		JsonObject jsonB = new JsonObject();
+		JsonArray jsonS = new JsonArray();
+		jsonS.add(new JsonObject().put("start_date","01/07/2018 15:00").put("end_date","01/07/2018 16:00").put("iana",IANA_PARIS));
 		jsonB.put("periodicity", 3);// every 3 weeks
 		jsonB.put("iana", IANA_PARIS);
 		jsonB.put("start_date", toTimestampSeconds("01/07/2018 15:00", IANA_PARIS));
@@ -139,8 +147,10 @@ public class BookingTest {
 		jsonB.put("periodic_end_date", toTimestampSeconds("31/07/2018 16:00", IANA_PARIS));
 		jsonB.put("days", new JsonArray("[true,false,false,false,false,false,true]"));// sunday and saturday
 		Booking booking = new Booking(jsonB, new Resource(jsonR));
+		Slots slots = new Slots(jsonS);
+		booking.setSlots(slots);
 		//
-		Assert.assertFalse(booking.isNotStartingAndEngingSameDay());
+		Assert.assertFalse(slots.areNotStartingAndEndingSameDay());
 		Assert.assertFalse(booking.isNotPeriodic());
 		Assert.assertFalse(booking.hasPeriodicEndAsLastDay());// 31-07 is not last
 		Assert.assertFalse(booking.hasNotSelectedDays());
@@ -148,9 +158,9 @@ public class BookingTest {
 		Assert.assertTrue(booking.hasPeriodicEndDate());
 		Assert.assertFalse(booking.hasNotFirstSlotAndLastSlotFinishingAtSameHour());
 		Assert.assertEquals("1000001", booking.getSelectedDaysBitString());
-		Assert.assertEquals(30, booking.daysBetweenFirstSlotEndAndPeriodicEndDate());
-		Assert.assertEquals(3, booking.countOccurrences());
-		long lastSlot = booking.getLastSlotDate(booking.countOccurrences());
+		Assert.assertEquals(30, booking.daysBetweenFirstSlotEndAndPeriodicEndDate(slots.getLastSlot()));
+		Assert.assertEquals(3, booking.countOccurrences(slots.getLastSlot()));
+		long lastSlot = booking.getLastSlotDate(booking.countOccurrences(slots.getLastSlot()));
 		Assert.assertEquals("22/07/2018 16:00", fromTimestampSeconds(lastSlot, IANA_PARIS));
 		lastSlot = booking.computeAndSetLastEndDateAsUTCSedonds();
 		Assert.assertEquals("22/07/2018 16:00", fromTimestampSeconds(lastSlot, IANA_PARIS));
@@ -158,7 +168,7 @@ public class BookingTest {
 		Assert.assertEquals("22/07/2018 16:00",
 				fromTimestampSeconds(booking.getPeriodicEndDateAsUTCSeconds(), IANA_PARIS));
 		//
-		SlotIterable it = new SlotIterable(booking);
+		SlotIterable it = new SlotIterable(booking,booking.getSlots().get(0));
 		int count = 0;
 		for (Slot s : it) {
 			Assert.assertTrue(s.getSelectedDay() == 0 || s.getSelectedDay() == 6);
@@ -172,6 +182,8 @@ public class BookingTest {
 	public void shouldComputeLastSlotForPeriodicBookingWithOccurrencesCount() {
 		JsonObject jsonR = new JsonObject();
 		JsonObject jsonB = new JsonObject();
+		JsonArray jsonS = new JsonArray();
+		jsonS.add(new JsonObject().put("start_date","01/07/2018 15:00").put("end_date","01/07/2018 16:00").put("iana",IANA_PARIS));
 		jsonB.put("periodicity", 1);// every 1 weeks
 		jsonB.put("iana", IANA_PARIS);
 		jsonB.put("start_date", toTimestampSeconds("01/07/2018 15:00", IANA_PARIS));
@@ -179,8 +191,10 @@ public class BookingTest {
 		jsonB.put("occurrences", 10);
 		jsonB.put("days", new JsonArray("[true,false,false,false,false,false,true]"));// sunday and saturday
 		Booking booking = new Booking(jsonB, new Resource(jsonR));
+		Slots slots = new Slots(jsonS);
+		booking.setSlots(slots);
 		//
-		Assert.assertFalse(booking.isNotStartingAndEngingSameDay());
+		Assert.assertFalse(slots.areNotStartingAndEndingSameDay());
 		Assert.assertFalse(booking.isNotPeriodic());
 		Assert.assertFalse(booking.hasPeriodicEndAsLastDay());// 31-07 is not last
 		Assert.assertFalse(booking.hasNotSelectedDays());
@@ -200,6 +214,8 @@ public class BookingTest {
 	public void shouldNotComputeSlotsWithOneOccurrence() {
 		JsonObject jsonR = new JsonObject();
 		JsonObject jsonB = new JsonObject();
+		JsonArray jsonS = new JsonArray();
+		jsonS.add(new JsonObject().put("start_date","01/07/2018 15:00").put("end_date","01/07/2018 16:00").put("iana",IANA_PARIS));
 		jsonB.put("periodicity", 1);// every 1 weeks
 		jsonB.put("iana", IANA_PARIS);
 		jsonB.put("start_date", toTimestampSeconds("01/07/2018 15:00", IANA_PARIS));
@@ -207,9 +223,10 @@ public class BookingTest {
 		jsonB.put("occurrences", 1);
 		jsonB.put("days", new JsonArray("[true,false,false,false,false,false,true]"));// sunday and saturday
 		Booking booking = new Booking(jsonB, new Resource(jsonR));
+		booking.setSlots(new Slots(jsonS));
 		//
 		//
-		SlotIterable it = new SlotIterable(booking);
+		SlotIterable it = new SlotIterable(booking, booking.getSlots().get(0));
 		int count = 0;
 		for (@SuppressWarnings("unused")
 		Slot s : it) {
@@ -223,6 +240,8 @@ public class BookingTest {
 	public void shouldNotComputeSlotsWithZeroOccurrence() {
 		JsonObject jsonR = new JsonObject();
 		JsonObject jsonB = new JsonObject();
+		JsonArray jsonS = new JsonArray();
+		jsonS.add(new JsonObject().put("start_date","01/07/2018 15:00").put("end_date","01/07/2018 16:00").put("iana",IANA_PARIS));
 		jsonB.put("periodicity", 1);// every 1 weeks
 		jsonB.put("iana", IANA_PARIS);
 		jsonB.put("start_date", toTimestampSeconds("01/07/2018 15:00", IANA_PARIS));
@@ -230,9 +249,10 @@ public class BookingTest {
 		jsonB.put("occurrences", 0);
 		jsonB.put("days", new JsonArray("[true,false,false,false,false,false,true]"));// sunday and saturday
 		Booking booking = new Booking(jsonB, new Resource(jsonR));
+		booking.setSlots(new Slots(jsonS));
 		//
 		//
-		SlotIterable it = new SlotIterable(booking);
+		SlotIterable it = new SlotIterable(booking, booking.getSlots().get(0));
 		int count = 0;
 		for (@SuppressWarnings("unused")
 		Slot s : it) {
@@ -246,12 +266,14 @@ public class BookingTest {
 	public void shouldComputeLastSlotForNonPeriodicBooking() {
 		JsonObject jsonR = new JsonObject();
 		JsonObject jsonB = new JsonObject();
+		JsonArray jsonS = new JsonArray();
+		jsonS.add(new JsonObject().put("start_date","01/07/2018 15:00").put("end_date","01/07/2018 16:00").put("iana",IANA_PARIS));
 		jsonB.put("iana", IANA_PARIS);
-		jsonB.put("start_date", toTimestampSeconds("01/07/2018 15:00", IANA_PARIS));
-		jsonB.put("end_date", toTimestampSeconds("01/07/2018 16:00", IANA_PARIS));
 		Booking booking = new Booking(jsonB, new Resource(jsonR));
+		Slots slots = new Slots(jsonS);
+		booking.setSlots(slots);
 		//
-		Assert.assertFalse(booking.isNotStartingAndEngingSameDay());
+		Assert.assertFalse(slots.areNotStartingAndEndingSameDay());
 		Assert.assertTrue(booking.isNotPeriodic());
 		Assert.assertTrue(booking.hasNotSelectedDays());
 		Assert.assertTrue(booking.hasNotSelectedStartDayOfWeek());
@@ -314,6 +336,8 @@ public class BookingTest {
 	@Test
 	public void shouldReserveAccordingMaxDelayForPeriodicBooking() {
 		JsonObject jsonR = new JsonObject();
+		JsonArray jsonS = new JsonArray();
+		jsonS.add(new JsonObject().put("start_date","01/07/2018 15:00").put("end_date","01/07/2018 16:00").put("iana",IANA_PARIS));
 		jsonR.put("max_delay", BookingDateUtils.daysToSecond(2));// should reserve at max 2 days before
 		JsonObject jsonB = new JsonObject();
 		jsonB.put("periodicity", 1);// every 1 weeks
@@ -323,7 +347,9 @@ public class BookingTest {
 		jsonB.put("occurrences", 4);
 		jsonB.put("days", new JsonArray("[true,true,true,true,true,true,true]"));// everyday
 		Booking booking = new Booking(jsonB, new Resource(jsonR));
-		System.out.println(booking.daysBetweenFirstSlotEndAndPeriodicEndDate());
+		Slots slots = new Slots(jsonS);
+		booking.setSlots(slots);
+		System.out.println(booking.daysBetweenFirstSlotEndAndPeriodicEndDate(slots.getLastSlot()));
 		// more or less 4 days later
 		long lastSlotEndDate = booking.computeAndSetLastEndDateAsUTCSedonds();
 		Assert.assertTrue(booking.isNotRespectingMaxDelay(lastSlotEndDate));
@@ -352,7 +378,7 @@ public class BookingTest {
 		jsonB.put("days", new JsonArray("[true,true,true,true,true,true,true]"));// everyday
 		Booking booking = new Booking(jsonB, new Resource(jsonR));
 		//
-		SlotIterable it = new SlotIterable(booking);
+		SlotIterable it = new SlotIterable(booking,booking.getSlots().get(0));
 		int nbBefore = 0;
 		int nbAfter = 0;
 		for (Slot slot : it) {
@@ -373,6 +399,8 @@ public class BookingTest {
 	// Test both transition
 	@Test
 	public void shouldBookPeriodicEventWithNextNextDSTTransition() {
+		JsonArray jsonS = new JsonArray();
+		jsonS.add(new JsonObject().put("start_date","01/07/2018 15:00").put("end_date","01/07/2018 16:00").put("iana",IANA_PARIS));
 		ZoneId zoneId = ZoneId.of(IANA_PARIS);
 		ZoneRules rules = zoneId.getRules();
 		ZoneOffsetTransition nextTransition = rules.nextTransition(Instant.now());
@@ -392,8 +420,9 @@ public class BookingTest {
 		jsonB.put("periodic_end_date", toTimestampSeconds(startDate.plusDays(4), IANA_PARIS));
 		jsonB.put("days", new JsonArray("[true,true,true,true,true,true,true]"));// everyday
 		Booking booking = new Booking(jsonB, new Resource(jsonR));
+		booking.setSlots(new Slots(jsonS));
 		//
-		SlotIterable it = new SlotIterable(booking);
+		SlotIterable it = new SlotIterable(booking, booking.getSlots().get(0));
 		int nbBefore = 0;
 		int nbAfter = 0;
 		for (Slot slot : it) {

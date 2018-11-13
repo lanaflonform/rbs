@@ -18,12 +18,24 @@ public class Slots extends ArrayList<Slot> {
         });
     }
 
-    public boolean slotsAreNotStartingAndEndingSameDay () {
+    public boolean areNotStartingAndEndingSameDay() {
         boolean oneFound = false;
         for(Slot slot : this){
           if(slot.isNotStartingAndEndingSameDay()){ oneFound = true;}
         }
         return oneFound;
+    }
+
+    public Slot getLastSlot(){
+        Slot slot = this.get(0);
+        if(this.size() > 1){
+            for(int i =1 ; i< this.size(); i++){
+                if(slot.getEnd().isBefore(this.get(i).getEnd())){
+                    slot = this.get(i);
+                }
+            }
+        }
+        return slot;
     }
 
 }

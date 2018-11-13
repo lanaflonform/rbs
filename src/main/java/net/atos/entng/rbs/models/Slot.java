@@ -11,7 +11,7 @@ public class Slot {
 	private final ZonedDateTime end;
 
 
-	public Slot(ZonedDateTime start, ZonedDateTime end, String iana) {
+	public Slot(ZonedDateTime start, ZonedDateTime end) {
 		super();
 		this.start = start;
 		this.end = end;
@@ -41,10 +41,12 @@ public class Slot {
 
 	public static class SlotIterable implements Iterable<Slot> {
 		private final Booking booking;
+		private final Slot slot;
 		int nbDaysFromBeginning = 0;
 
-		public SlotIterable(Booking booking) {
+		public SlotIterable(Booking booking, Slot slot) {
 			this.booking = booking;
+			this.slot = slot;
 		}
 
 		public int getNbDaysFromBeginning() {
@@ -65,14 +67,12 @@ public class Slot {
 			ZonedDateTime baseEnd;
 
 			public SlotIterator() {
-				selectedDay = booking.dayOfWeekForStartDate();
-				nbOccurences = booking.getOccurrences(-1);
-				baseStart = BookingDateUtils.localDateTimeForTimestampSecondsAndIana(booking.getStartDateAsUTCSeconds(),
-						booking.getIana());
-				baseEnd = BookingDateUtils.localDateTimeForTimestampSecondsAndIana(booking.getEndDateAsUTCSeconds(),
-						booking.getIana());
+				selectedDay = slot.dayOfWeekForStartDate();
+				nbOccurences = booking.getOccurrences(-1)   ;
+				baseStart = slot.getStart();
+				baseEnd = slot.getEnd();
 				if (nbOccurences == -1) {
-					nbOccurences = booking.countOccurrences();
+					nbOccurences = booking.countOccurrences(slot);
 				}
 			}
 
@@ -87,7 +87,7 @@ public class Slot {
 				nbDaysFromBeginning += nbDays;
 				selectedDay = BookingDateUtils.nextDayOfWeek(selectedDay, nbDays);
 				Slot slot = new Slot(BookingDateUtils.addDaysIgnoreDST(baseStart, nbDaysFromBeginning),
-						BookingDateUtils.addDaysIgnoreDST(baseEnd, nbDaysFromBeginning),booking.getIana());
+						BookingDateUtils.addDaysIgnoreDST(baseEnd, nbDaysFromBeginning));
 				index++;
 				return slot;
 			}

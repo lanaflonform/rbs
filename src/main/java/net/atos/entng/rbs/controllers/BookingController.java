@@ -62,32 +62,17 @@ import net.atos.entng.rbs.model.ExportRequest;
 import net.atos.entng.rbs.model.ExportResponse;
 import net.atos.entng.rbs.service.*;
 import net.atos.entng.rbs.service.pdf.PdfExportService;
-import org.entcore.common.controller.ControllerHelper;
-import org.entcore.common.http.filter.ResourceFilter;
-import org.entcore.common.user.UserInfos;
-import org.entcore.common.user.UserUtils;
-import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
-import io.vertx.core.http.HttpServerRequest;
 import org.vertx.java.core.http.RouteMatcher;
-import io.vertx.core.json.JsonArray;
-import io.vertx.core.json.JsonObject;
 
 
-import java.text.ParseException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
-import static net.atos.entng.rbs.BookingStatus.REFUSED;
-import static net.atos.entng.rbs.BookingStatus.VALIDATED;
 import static net.atos.entng.rbs.BookingUtils.*;
-import static org.entcore.common.http.response.DefaultResponseHandler.arrayResponseHandler;
+
 import net.atos.entng.rbs.models.Booking;
 import net.atos.entng.rbs.models.Resource;
 import net.atos.entng.rbs.service.BookingService;
@@ -334,7 +319,7 @@ public class BookingController extends ControllerHelper {
 			}
 
 			// The first slot must begin and end on the same day
-			if (booking.getSlots().slotsAreNotStartingAndEndingSameDay()) {
+			if (booking.getSlots().areNotStartingAndEndingSameDay()) {
 				badRequest(request, "rbs.booking.bad.request.invalid.first.slot");
 				return;
 			}

@@ -34,7 +34,9 @@ public class Booking {
 	public void setResource(Resource resource) {
 		this.resource = resource;
 	}
-
+	public void setSlots(Slots slots) {
+		this.slots = slots;
+	}
 	public String getBookingId() {
 		return bookingId;
 	}
@@ -121,10 +123,7 @@ public class Booking {
 		return BookingDateUtils.dayOfWeekForTimestampSecondsAndIana(firstSlotStartDate, getIana());
 	}
 
-	public int dayOfWeekForEndDate() {
-		final long firstSlotEndDate = getEndDateAsUTCSeconds();
-		return BookingDateUtils.dayOfWeekForTimestampSecondsAndIana(firstSlotEndDate, getIana());
-	}
+
 
 	public int dayOfWeekForPeriodicEndDate() {
 		final long firstSlotEndDate = getPeriodicEndDateAsUTCSeconds();
@@ -174,12 +173,6 @@ public class Booking {
 		final long endDate = getPeriodicEndDateAsUTCSeconds();
 		final int occurrences = getOccurrences(0);
 		return endDate == 0L && occurrences == 0;
-	}
-
-	public boolean isNotStartingAndEngingSameDay() {
-		final long startDay = dayOfWeekForStartDate();
-		final long endDay = dayOfWeekForEndDate();
-		return startDay != endDay;
 	}
 
 	public boolean hasPeriodicEndAsLastDay() {
@@ -234,9 +227,9 @@ public class Booking {
 		selectedDaysBitString = selectedDays.toString();
 	}
 
-	public long daysBetweenFirstSlotEndAndPeriodicEndDate() {
+	public long daysBetweenFirstSlotEndAndPeriodicEndDate(Slot slot) {
 		long endDate = getPeriodicEndDateAsUTCSeconds();
-		long firstSlotEnd = getEndDateAsUTCSeconds();
+		long firstSlotEnd = slot.getEndUTC();
 		long duration = endDate - firstSlotEnd;
 		return BookingDateUtils.secondToDays(duration);
 	}
@@ -254,10 +247,10 @@ public class Booking {
 	 *
 	 * @throws IndexOutOfBoundsException
 	 */
-	public int countOccurrences() {
+	public int countOccurrences(Slot slot) {
 		final int periodicity = getPeriodicity();
-		final long durationInDays = daysBetweenFirstSlotEndAndPeriodicEndDate();
-		final int firstSelectedDay = dayOfWeekForStartDate();
+		final long durationInDays = daysBetweenFirstSlotEndAndPeriodicEndDate(slot);
+		final int firstSelectedDay = slot.dayOfWeekForStartDate();
 		final String selectedDays = getSelectedDaysBitString();
 		//
 		int count = 0;
@@ -349,6 +342,7 @@ public class Booking {
 		return count;
 	}
 
+
 	public long computeAndSetLastEndDateAsUTCSedonds() {
 		if (hasPeriodicEndDate()) { // Case when end_date is supplied
 			if (hasPeriodicEndAsLastDay()) {
@@ -356,7 +350,7 @@ public class Booking {
 			} else {
 				// If the endDateDay is not a selected day, compute the end date
 				// of the last slot
-				int nbOccurrences = countOccurrences();
+				int nbOccurrences = countOccurrences(this.getSlots().getLastSlot());
 				final long lastSlotEndDate = getLastSlotDate(nbOccurrences);
 				// Replace the end date with the last slot's end date
 				setPeriodicEndDateAsUTCSeconds(lastSlotEndDate);
