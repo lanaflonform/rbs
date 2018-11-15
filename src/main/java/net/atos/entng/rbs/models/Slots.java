@@ -26,11 +26,23 @@ public class Slots extends ArrayList<Slot> {
         return oneFound;
     }
 
-    public Slot getLastSlot(){
+    public Slot getSlotWithLatestEndDate(){
         Slot slot = this.get(0);
         if(this.size() > 1){
             for(int i =1 ; i< this.size(); i++){
                 if(slot.getEnd().isBefore(this.get(i).getEnd())){
+                    slot = this.get(i);
+                }
+            }
+        }
+        return slot;
+    }
+
+    public Slot getSlotWithFirstStartDate(){
+        Slot slot = this.get(0);
+        if(this.size() > 1){
+            for(int i =1 ; i< this.size(); i++){
+                if(slot.getStart().isAfter(this.get(i).getStart())){
                     slot = this.get(i);
                 }
             }

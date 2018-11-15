@@ -139,16 +139,6 @@ public class BookingServiceSqlImpl extends SqlCrudService implements BookingServ
 
 
 		Slots slots = booking.getSlots() ;
-		// case of creation during an update
-		if (slots.isEmpty()) {
-			long startDate = booking.getStartDateAsUTCSeconds();
-			long endDate = booking.getEndDateAsUTCSeconds();
-			JsonObject uniqueSlot = new JsonObject();
-			uniqueSlot.put("start_date", startDate);
-			uniqueSlot.put("end_date", endDate);
-			uniqueSlot.put("iana",booking.getIana());
-			slots.add(new Slot(uniqueSlot));
-		}
 		// create a periodic reservation dedicated to each slot
 		for (Slot slot: slots) {
             StringBuilder query = new StringBuilder();
@@ -365,8 +355,8 @@ public class BookingServiceSqlImpl extends SqlCrudService implements BookingServ
 				.append("') AS start_date,").append(" to_char(end_date, '").append(DATE_FORMAT)
 				.append("') AS end_date");
 
-		values.add(rId).add(bId).add(VALIDATED.status()).add(toSQLTimestamp(booking.getStartDateAsUTCSeconds()))
-				.add(toSQLTimestamp(booking.getEndDateAsUTCSeconds()));
+		values.add(rId).add(bId).add(VALIDATED.status()).add(toSQLTimestamp(slot.getStartUTC()))
+				.add(toSQLTimestamp(slot.getEndUTC()));
 
 		statementsBuilder.prepared(query.toString(), values);
 
@@ -382,7 +372,7 @@ public class BookingServiceSqlImpl extends SqlCrudService implements BookingServ
 
 		final long endDate = booking.getPeriodicEndDateAsUTCSeconds();
 		final int occurrences = booking.getOccurrences(0);
-
+		final Slot slot = booking.getSlots().get(0);
 		SqlStatementsBuilder statementsBuilder = new SqlStatementsBuilder();
 		Object rId = parseId(resourceId);
 		Object bId = parseId(booking.getBookingId());
@@ -394,7 +384,7 @@ public class BookingServiceSqlImpl extends SqlCrudService implements BookingServ
 		StringBuilder parentQuery = new StringBuilder();
 		JsonArray parentValues = new fr.wseduc.webutils.collections.JsonArray();
 		parentQuery.append("UPDATE rbs.booking").append(" SET booking_reason = ?, start_date = ?, end_date = ?,");
-		parentValues.add(booking.getBookingReason()).add(toSQLTimestamp(booking.getStartDateAsUTCSeconds()))
+		parentValues.add(booking.getBookingReason()).add(toSQLTimestamp(slot.getStartUTC()))
 				.add(endDate > 0L ? toSQLTimestamp(endDate) : null); // the null value will be replaced by the last
 																		// slot's end date
 		final int endDateIndex = parentValues.size() - 1;
@@ -1026,7 +1016,7 @@ public class BookingServiceSqlImpl extends SqlCrudService implements BookingServ
 		if (withBooking) {
 			query.append(", b.owner, b.is_periodic,").append("to_char(b.start_date, '").append(DATE_FORMAT)
 					.append("') as start_date,").append("to_char(b.end_date, '").append(DATE_FORMAT)
-					.append("') as end_date");
+					.append("') as end_date").append(", b.parent_booking_id");
 		}
 		query.append(" FROM rbs.resource AS r").append(" INNER JOIN rbs.booking AS b on r.id = b.resource_id")
 				.append(" WHERE b.id = ?");

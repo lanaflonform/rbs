@@ -1321,20 +1321,11 @@ function RbsController($scope, template, model, date, route, $timeout) {
     $scope.editedBooking.periodicShortSummary = '';
     $scope.editedBooking.periodicError = undefined;
 
-    if (!$scope.editedBooking.id) {
-      $scope.editedBooking.periodicSummary = $scope.summaryBuildDaysSpecialSlot(
-        $scope.booking
-      );
-    }
     $scope.editedBooking.periodicShortSummary = lang.translate(
       'rbs.period.days.some'
     );
 
     if ($scope.showDaySelection) {
-      if (!$scope.editedBooking.id) {
-        $scope.editedBooking.periodicSummary +=
-          ', ' + lang.translate('rbs.period.days.then');
-      }
       // Selected days
       var selected = 0;
       _.each($scope.editedBooking.periodDays, function(d) {
@@ -1437,30 +1428,6 @@ function RbsController($scope, template, model, date, route, $timeout) {
     return summary;
   };
 
-  $scope.summaryBuildDaysSpecialSlot = function(booking) {
-    var summary = undefined;
-    var startDOW = moment(booking.startDate).day();
-    var endDOW = moment(booking.endDate).day();
-
-    if (startDOW !== endDOW) {
-      summary =
-        lang.translate('rbs.period.days.range.start') +
-        ' ' +
-        lang.translate('rbs.period.days.' + startDOW);
-      summary +=
-        ' ' +
-        lang.translate('rbs.period.days.range.to') +
-        ' ' +
-        lang.translate('rbs.period.days.' + endDOW);
-    } else {
-      summary =
-        lang.translate('rbs.period.days.one.start') +
-        ' ' +
-        lang.translate('rbs.period.days.' + startDOW);
-    }
-
-    return summary;
-  };
 
   $scope.summaryWriteRange = function(summary, first, last) {
     if (first.number == last.number) {
@@ -1567,13 +1534,13 @@ function RbsController($scope, template, model, date, route, $timeout) {
               $scope.booking.endTime.minute()
             ]);
             //Save the 1st no periodic slot
-            var saveFirst = new Booking();
+           /* var saveFirst = new Booking();
             saveFirst.booking_reason = $scope.editedBooking.booking_reason;
             saveFirst.resource = $scope.editedBooking.resource;
             saveFirst.slots = [new Slot($scope.editedBooking).toJson()];
             //Save the 1st no periodic slot
-            saveFirst.is_periodic = false;
-            saveFirst.save(
+            saveFirst.is_periodic = false;*/
+            /*saveFirst.save(
               function() {
                 $scope.display.processing = undefined;
                 $scope.closeBooking();
@@ -1585,7 +1552,7 @@ function RbsController($scope, template, model, date, route, $timeout) {
                 $scope.currentErrors.push(e);
                 $scope.$apply();
               }
-            );
+            );*/
           }
         }
         $scope.editedBooking.is_periodic = true;
@@ -1723,7 +1690,7 @@ function RbsController($scope, template, model, date, route, $timeout) {
                   $scope.booking.endTime.minute()
                 ]);
                 //Save the 1st no periodic slot
-                var saveFirst = new Booking();
+             /*   var saveFirst = new Booking();
                 saveFirst.booking_reason = $scope.editedBooking.booking_reason;
                 saveFirst.resource = $scope.editedBooking.resource;
                 saveFirst.slots = [new Slot($scope.editedBooking).toJson()];
@@ -1741,7 +1708,7 @@ function RbsController($scope, template, model, date, route, $timeout) {
                     $scope.currentErrors.push(e);
                     $scope.$apply();
                   }
-                );
+                );*/
               }
             }
             $scope.editedBooking.is_periodic = true;
@@ -2105,12 +2072,14 @@ function RbsController($scope, template, model, date, route, $timeout) {
     $scope.processBookings = $scope.bookings.selectionForProcess();
     template.open('lightbox', 'confirm-delete-booking');
     $scope.display.showPanel = true;
+      $scope.$apply();
   };
 
   $scope.showDeletePeriodicBookingMessage = function() {
     $scope.processBookings = $scope.bookings.selectionForProcess();
     template.open('lightbox', 'delete-periodic-booking');
     $scope.display.showPanel = true;
+    $scope.$apply();
   };
 
   $scope.doRemoveBookingSelection = function() {

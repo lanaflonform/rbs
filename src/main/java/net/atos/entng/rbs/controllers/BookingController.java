@@ -27,13 +27,10 @@ import static org.entcore.common.http.response.DefaultResponseHandler.arrayRespo
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import net.atos.entng.rbs.BookingUtils;
 import net.atos.entng.rbs.models.Slots;
 import org.entcore.common.controller.ControllerHelper;
 import org.entcore.common.http.filter.ResourceFilter;
@@ -68,8 +65,6 @@ import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.eventbus.Message;
 import org.vertx.java.core.http.RouteMatcher;
 
-
-import java.util.Map;
 
 import static net.atos.entng.rbs.BookingUtils.*;
 
@@ -340,11 +335,7 @@ public class BookingController extends ControllerHelper {
 				return;
 			}
 
-			// The first and last slot must end at the same hour
-			if (booking.hasNotFirstSlotAndLastSlotFinishingAtSameHour()) {
-				badRequest(request, "rbs.booking.bad.request.invalid.enddates");
-				return;
-			}
+
 
 			// Store boolean array (selected days) as a bit string
 			try {
@@ -778,61 +769,101 @@ public class BookingController extends ControllerHelper {
 		}
 	}
 
-	@Delete("/resource/:id/booking/:bookingId")
+	@Delete("/resource/:id/booking/:bookingId/:booleanThisAndAfter")
 	@ApiDoc("Delete booking")
 	@SecuredAction(value = "rbs.manager", type = ActionType.RESOURCE)
 	@ResourceFilter(TypeAndResourceAppendPolicy.class)
 	public void deleteBooking(final HttpServerRequest request) {
-		UserUtils.getUserInfos(eb, request, new Handler<UserInfos>() {
-			@Override
-			public void handle(final UserInfos user) {
-				if (user != null) {
-					final String bookingId = request.params().get("bookingId");
-
-					bookingService.getBookingWithResourceName(bookingId, new Handler<Either<String, JsonObject>>() {
-						@Override
-						public void handle(Either<String, JsonObject> event) {
-							if (event.isRight()) {
-								if (event.right().getValue() != null && event.right().getValue().size() > 0) {
-									final JsonObject booking = event.right().getValue();
-
-									bookingService.delete(bookingId, user, new Handler<Either<String, JsonObject>>() {
-										@Override
-										public void handle(Either<String, JsonObject> event) {
-											if (event.isRight()) {
-												if (event.right().getValue() != null
-														&& event.right().getValue().size() > 0) {
-													try {
-														notifyBookingDeleted(request, user, booking, bookingId);
-													} catch (Exception e) {
-														log.error(
-																"Unable to send timeline " + BOOKING_DELETED_EVENT_TYPE
-																		+ " or " + PERIODIC_BOOKING_DELETED_EVENT_TYPE
-																		+ " notification.");
-													}
-													Renders.renderJson(request, event.right().getValue(), 204);
-												} else {
-													notFound(request);
-												}
-											} else {
-												badRequest(request, event.left().getValue());
+		UserUtils.getUserInfos(eb, request, user -> {
+			if (user != null) {
+				final String bookingId = request.params().get("bookingId");
+				final String resourceId = request.params().get("id");
+				bookingService.getBookingWithResourceName(bookingId, event -> {
+					if (event.isRight() && event.right().getValue() != null && event.right().getValue().size() > 0) {
+						final JsonObject booking = event.right().getValue();
+						String thisAndAfterString = request.params().get("booleanThisAndAfter");
+						if (thisAndAfterString.equals("true")) {
+							if (booking.getLong("parent_booking_id") != null) {
+								bookingService.getParentBooking(bookingId, event1 -> {
+									try {
+										JsonObject parentBooking = event1.right().getValue();
+										final long pId = parentBooking.getLong("id", 0L);
+										final String pStartDate = parentBooking.getString("start_date", null);
+										final String pEndDate = parentBooking.getString("end_date", null);
+										final Date endDate = parseDateFromDB(pEndDate);
+										long now = Calendar.getInstance().getTimeInMillis();
+										if (endDate.getTime() < now) {
+											String errorMessage = i18n.translate(
+													"rbs.booking.bad.request.deletion.periodical.booking.already.terminated",
+													Renders.getHost(request),
+													I18n.acceptLanguage(request));
+											badRequest(request, errorMessage);
+											return;
+										}
+										final Date startDate = parseDateFromDB(booking.getString("start_date"));
+										try {
+											bookingService.deleteFuturePeriodicBooking(String.valueOf(pId), startDate,
+													new Handler<Either<String, JsonArray>>() {
+														@Override
+														public void handle(Either<String, JsonArray> event1) {
+															if (event1.isRight()) {
+																bookingNotificationService.notifyPeriodicBookingCreatedOrUpdated(resourceService, request, user, event1.right().getValue(), false, Long.parseLong(resourceId));
+																Renders.renderJson(request, event1.right().getValue());
+															} else {
+																badRequest(request, event1.left().getValue());
+															}
+															}
+														});
+											} catch (Exception e) {
+												log.error("Error during service deleteFuturePeriodicBooking", e);
+												renderError(request);
 											}
+											return;
+										} catch (ParseException e) {
+											log.error("Can't parse date form RBS DB", e);
 										}
 									});
-
 								} else {
-									notFound(request);
+									String errorMessage = i18n.translate(
+											"rbs.booking.bad.request.deletion.booking.with.true",
+											Renders.getHost(request),
+											I18n.acceptLanguage(request));
+									badRequest(request, errorMessage);
+									return;
 								}
 							} else {
-								badRequest(request, event.left().getValue());
+								try {
+									long now = BookingUtils.getCurrentTimestamp();
+									final String endDate = booking.getString("end_date");
+									if (booking.getLong("parent_booking_id") != null && parseDateFromDB(endDate).getTime() < now) {
+										String errorMessage = i18n.translate(
+												"rbs.booking.bad.request.deletion.periodical.booking.already.terminated",
+												Renders.getHost(request),
+												I18n.acceptLanguage(request));
+										badRequest(request, errorMessage);
+										return;
+									}
+								} catch (ParseException e) {
+									e.printStackTrace();
+								}
+								bookingService.delete(bookingId, user, event12 -> {
+									if (event12.isRight() && event12.right().getValue() != null && event12.right().getValue().size() > 0) {
+											bookingNotificationService.notifyBookingDeleted(resourceService, request, user, booking, bookingId, Long.parseLong(resourceId));
+											Renders.renderJson(request, event12.right().getValue(), 204);
+									} else {
+										badRequest(request, event12.left().getValue());
+									}
+								});
 							}
-						}
-					});
 
-				} else {
-					log.debug("User not found in session.");
-					unauthorized(request);
-				}
+					} else {
+						badRequest(request, event.left().getValue());
+					}
+				});
+
+			} else {
+				log.debug("User not found in session.");
+				unauthorized(request);
 			}
 		});
 	}

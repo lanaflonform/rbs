@@ -70,11 +70,11 @@ public class BookingTest {
 		Assert.assertFalse(booking.hasNotSelectedDays());
 		Assert.assertFalse(booking.hasNotSelectedStartDayOfWeek());
 		Assert.assertTrue(booking.hasPeriodicEndDate());
-		Assert.assertFalse(booking.hasNotFirstSlotAndLastSlotFinishingAtSameHour());
+
 		Assert.assertEquals("1000001", booking.getSelectedDaysBitString());
-		Assert.assertEquals(30, booking.daysBetweenFirstSlotEndAndPeriodicEndDate(slots.getLastSlot()));
-		Assert.assertEquals(9, booking.countOccurrences(slots.getLastSlot()));
-		long lastSlot = booking.getLastSlotDate(booking.countOccurrences(slots.getLastSlot()));
+		Assert.assertEquals(30, booking.daysBetweenFirstSlotEndAndPeriodicEndDate(slots.getSlotWithLatestEndDate()));
+		Assert.assertEquals(9, booking.countOccurrences(slots.getSlotWithLatestEndDate()));
+		long lastSlot = booking.getLastSlotDate(booking.countOccurrences(slots.getSlotWithLatestEndDate()));
 		Assert.assertEquals("29/07/2018 16:00", fromTimestampSeconds(lastSlot, IANA_PARIS));
 		lastSlot = booking.computeAndSetLastEndDateAsUTCSedonds();
 		Assert.assertEquals("29/07/2018 16:00", fromTimestampSeconds(lastSlot, IANA_PARIS));
@@ -112,10 +112,10 @@ public class BookingTest {
 		Assert.assertFalse(booking.hasNotSelectedDays());
 		Assert.assertFalse(booking.hasNotSelectedStartDayOfWeek());
 		Assert.assertTrue(booking.hasPeriodicEndDate());
-		Assert.assertFalse(booking.hasNotFirstSlotAndLastSlotFinishingAtSameHour());
+
 		Assert.assertEquals("1000010", booking.getSelectedDaysBitString());
-		Assert.assertEquals(28, booking.daysBetweenFirstSlotEndAndPeriodicEndDate(slots.getLastSlot()));
-		Assert.assertEquals(9, booking.countOccurrences(slots.getLastSlot()));
+		Assert.assertEquals(28, booking.daysBetweenFirstSlotEndAndPeriodicEndDate(slots.getSlotWithLatestEndDate()));
+		Assert.assertEquals(9, booking.countOccurrences(slots.getSlotWithLatestEndDate()));
 		long lastSlot = booking.getLastSlotDate(9);
 		Assert.assertEquals("29/07/2018 16:00", fromTimestampSeconds(lastSlot, IANA_PARIS));
 		lastSlot = booking.computeAndSetLastEndDateAsUTCSedonds();
@@ -156,11 +156,11 @@ public class BookingTest {
 		Assert.assertFalse(booking.hasNotSelectedDays());
 		Assert.assertFalse(booking.hasNotSelectedStartDayOfWeek());
 		Assert.assertTrue(booking.hasPeriodicEndDate());
-		Assert.assertFalse(booking.hasNotFirstSlotAndLastSlotFinishingAtSameHour());
+
 		Assert.assertEquals("1000001", booking.getSelectedDaysBitString());
-		Assert.assertEquals(30, booking.daysBetweenFirstSlotEndAndPeriodicEndDate(slots.getLastSlot()));
-		Assert.assertEquals(3, booking.countOccurrences(slots.getLastSlot()));
-		long lastSlot = booking.getLastSlotDate(booking.countOccurrences(slots.getLastSlot()));
+		Assert.assertEquals(30, booking.daysBetweenFirstSlotEndAndPeriodicEndDate(slots.getSlotWithLatestEndDate()));
+		Assert.assertEquals(3, booking.countOccurrences(slots.getSlotWithLatestEndDate()));
+		long lastSlot = booking.getLastSlotDate(booking.countOccurrences(slots.getSlotWithLatestEndDate()));
 		Assert.assertEquals("22/07/2018 16:00", fromTimestampSeconds(lastSlot, IANA_PARIS));
 		lastSlot = booking.computeAndSetLastEndDateAsUTCSedonds();
 		Assert.assertEquals("22/07/2018 16:00", fromTimestampSeconds(lastSlot, IANA_PARIS));
@@ -200,7 +200,7 @@ public class BookingTest {
 		Assert.assertFalse(booking.hasNotSelectedDays());
 		Assert.assertFalse(booking.hasNotSelectedStartDayOfWeek());
 		Assert.assertFalse(booking.hasPeriodicEndDate());
-		Assert.assertFalse(booking.hasNotFirstSlotAndLastSlotFinishingAtSameHour());
+
 		Assert.assertEquals("1000001", booking.getSelectedDaysBitString());
 		Assert.assertEquals(10, booking.getOccurrences(0));
 		long lastSlot = booking.getLastSlotDate(booking.getOccurrences(0));
@@ -278,7 +278,6 @@ public class BookingTest {
 		Assert.assertTrue(booking.hasNotSelectedDays());
 		Assert.assertTrue(booking.hasNotSelectedStartDayOfWeek());
 		Assert.assertFalse(booking.hasPeriodicEndDate());
-		Assert.assertFalse(booking.hasNotFirstSlotAndLastSlotFinishingAtSameHour());
 		Assert.assertEquals(0, booking.getOccurrences(0));
 		long lastSlot = booking.getLastSlotDate(booking.getOccurrences(0));
 		Assert.assertEquals("01/07/2018 16:00", fromTimestampSeconds(lastSlot, IANA_PARIS));
@@ -349,7 +348,7 @@ public class BookingTest {
 		Booking booking = new Booking(jsonB, new Resource(jsonR));
 		Slots slots = new Slots(jsonS);
 		booking.setSlots(slots);
-		System.out.println(booking.daysBetweenFirstSlotEndAndPeriodicEndDate(slots.getLastSlot()));
+		System.out.println(booking.daysBetweenFirstSlotEndAndPeriodicEndDate(slots.getSlotWithLatestEndDate()));
 		// more or less 4 days later
 		long lastSlotEndDate = booking.computeAndSetLastEndDateAsUTCSedonds();
 		Assert.assertTrue(booking.isNotRespectingMaxDelay(lastSlotEndDate));
