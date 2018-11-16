@@ -323,8 +323,7 @@ public class BookingServiceSqlImpl extends SqlCrudService implements BookingServ
 		SqlStatementsBuilder statementsBuilder = new SqlStatementsBuilder();
 		Object rId = parseId(resourceId);
 		Object bId = parseId(booking.getBookingId());
-		Slots slots = booking.getSlots();
-		Slot slot = slots.get(0);
+		Slot slot = booking.getSlots().get(0);
 		// Lock query to avoid race condition
 		statementsBuilder.raw(LOCK_BOOKING_QUERY);
 
@@ -332,13 +331,18 @@ public class BookingServiceSqlImpl extends SqlCrudService implements BookingServ
 		JsonArray values = new fr.wseduc.webutils.collections.JsonArray();
 		StringBuilder sb = new StringBuilder();
 
+
 		StringBuilder query = new StringBuilder();
-		query.append("UPDATE rbs.booking").append(" SET ").append(sb.toString()).append("modified = NOW(),");
+		query.append("UPDATE rbs.booking").append(" SET ").append(sb.toString()).append("modified = NOW()")
+				.append(", start_date = ?")
+				.append(", end_date = ?" );
+		values.add(toSQLTimestamp(slot.getStartUTC()));
+		values.add(toSQLTimestamp(slot.getEndUTC()));
 
 		// If validation is activated, the booking status is updated to "created" (the
 		// booking must be validated anew).
 		// Otherwise, it is updated to "validated".
-		query.append(" status = (SELECT CASE ").append(" WHEN (t.validation IS true) THEN ?").append(" ELSE ?")
+		query.append(", status = (SELECT CASE ").append(" WHEN (t.validation IS true) THEN ?").append(" ELSE ?")
 				.append(" END").append(" FROM rbs.resource_type AS t")
 				.append(" INNER JOIN rbs.resource AS r ON r.type_id = t.id")
 				.append(" INNER JOIN rbs.booking AS b on b.resource_id = r.id").append(" WHERE b.id = ?)");
@@ -364,7 +368,14 @@ public class BookingServiceSqlImpl extends SqlCrudService implements BookingServ
 		Sql.getInstance().transaction(statementsBuilder.build(), validUniqueResultHandler(1, handler));
 	}
 
-
+	private void addFieldToUpdate(StringBuilder sb, String fieldname, JsonObject object, JsonArray values) {
+		if ("start_date".equals(fieldname) || "end_date".equals(fieldname) || "iana".equals(fieldname)) {
+			//IGNORE
+		} else {
+			sb.append(fieldname).append("= ?, ");
+			values.add(object.getValue(fieldname));
+		}
+	}
 
 	@Override
 	public void updatePeriodicBooking(final String resourceId, final Booking booking, final UserInfos user,

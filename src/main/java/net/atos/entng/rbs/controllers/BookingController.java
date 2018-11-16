@@ -206,6 +206,7 @@ public class BookingController extends ControllerHelper {
 									if (isCreation) {
 										bookingService.createBooking(resourceId, booking, user, handler);
 									} else {
+										booking.setSlots(slots);
 										bookingService.updateBooking(resourceId, booking, handler);
 									}
 

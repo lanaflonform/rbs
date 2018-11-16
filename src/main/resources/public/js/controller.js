@@ -1023,13 +1023,15 @@ function RbsController($scope, template, model, date, route, $timeout) {
       } else {
         $scope.editedBooking.byOccurrences = false;
       }
-      $scope.editedBooking._slots.sort(
-        sort_by('id', false, function(a) {
-          return a;
-        })
-      );
-      $scope.editedBooking.startMoment = $scope.editedBooking._slots[0].startMoment;
-      $scope.editedBooking.endMoment = $scope.editedBooking._slots[0].endMoment;
+        $scope.editedBooking._slots= _.sortBy($scope.editedBooking._slots,'id') ;
+        $scope.editedBooking.startMoment= moment([
+            $scope.editedBooking.beginning._a[0],
+             $scope.editedBooking.beginning._a[1],
+             $scope.editedBooking.beginning._a[2],
+            $scope.editedBooking._slots[0].startMoment._a[3],
+            $scope.editedBooking._slots[0].startMoment._a[4]
+        ]);
+        $scope.editedBooking.endMoment = $scope.editedBooking._slots[0].endMoment;
     }
     $scope.initBookingDates(
       $scope.editedBooking.startMoment,
