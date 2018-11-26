@@ -1024,13 +1024,10 @@ function RbsController($scope, template, model, date, route, $timeout) {
         $scope.editedBooking.byOccurrences = false;
       }
         $scope.editedBooking._slots= _.sortBy($scope.editedBooking._slots,'id') ;
-        $scope.editedBooking.startMoment= moment([
-            $scope.editedBooking.beginning._a[0],
-             $scope.editedBooking.beginning._a[1],
-             $scope.editedBooking.beginning._a[2],
-            $scope.editedBooking._slots[0].startMoment._a[3],
-            $scope.editedBooking._slots[0].startMoment._a[4]
-        ]);
+        $scope.editedBooking.startMoment= $scope.editedBooking._slots[0].startMoment;
+        $scope.editedBooking.startMoment.date($scope.editedBooking.beginning.date());
+        $scope.editedBooking.startMoment.month($scope.editedBooking.beginning.month());
+        $scope.editedBooking.startMoment.year($scope.editedBooking.beginning.year());
         $scope.editedBooking.endMoment = $scope.editedBooking._slots[0].endMoment;
     }
     $scope.initBookingDates(
@@ -1926,17 +1923,13 @@ function RbsController($scope, template, model, date, route, $timeout) {
 
   $scope.resolveSlotsSelected = function(debut, fin) {
     var hasErrors = false;
-    if ($scope.booking.startDate.getDate() != $scope.booking.endDate.getDate()) {
-      $scope.slots.slots.forEach(function(slot) {
-        slot.selected = true;
-      });
-    } else if (debut <= fin) {
-      for (i = debut; i <= fin; i++) {
+    if (debut <= fin) {
+      for (var i = debut; i <= fin; i++) {
         $scope.slots.slots[i].selected = true;
       }
     } else {
       $scope.currentErrors.push({
-        error: 'rbs.booking.invalid.slots',
+        error: 'rbs.booking.invalid.slots'
       });
       notify.error('rbs.booking.invalid.slots');
       hasErrors = true;
@@ -2662,11 +2655,11 @@ function RbsController($scope, template, model, date, route, $timeout) {
       moment($scope.booking.endDate).diff(
         moment($scope.booking.startDate),
         'days'
-      ) >= 1
+      ) >= 0
     ) {
-      $scope.showDaySelection = false;
-    } else {
       $scope.showDaySelection = true;
+    } else {
+      $scope.showDaySelection = false;
     }
     if (
       moment($scope.booking.endDate).diff(
