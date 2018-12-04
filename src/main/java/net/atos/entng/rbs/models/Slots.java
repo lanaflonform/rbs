@@ -4,6 +4,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 public class Slots extends ArrayList<Slot> {
 
@@ -25,7 +26,13 @@ public class Slots extends ArrayList<Slot> {
         }
         return oneFound;
     }
-
+    public boolean areNotRespectingMinDelay(Optional<Long> minDelay) {
+        boolean oneFound = false;
+        for(Slot slot : this){
+            if((minDelay.isPresent() && minDelay.get() > slot.getDelayFromNow())){ oneFound = true;}
+        }
+        return oneFound;
+    }
     public Slot getSlotWithLatestEndDate(){
         Slot slot = this.get(0);
         if(this.size() > 1){

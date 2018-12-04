@@ -128,12 +128,9 @@ public class Booking {
 		return this.getMaxDelayAsSeconds().isPresent();
 	}
 
-	public boolean isNotRespectingMinDelay() {
+	public boolean slotsNotRespectingMinDelay() {
 		Optional<Long> minDelay = getMinDelayAsSeconds();
-		// compare for the same iana
-		long now = BookingDateUtils.currentTimestampSecondsForIana(getIana());
-		long delay = getSlots().getSlotWithLatestEndDate().getStartUTC() - now;
-		return (minDelay.isPresent() && minDelay.get() > delay);
+		return this.getSlots().areNotRespectingMinDelay(minDelay);
 	}
 
 	public boolean isNotRespectingMaxDelayForEndDate() {

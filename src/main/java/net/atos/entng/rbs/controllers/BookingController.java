@@ -160,7 +160,7 @@ public class BookingController extends ControllerHelper {
 
 									if (!resource.canBypassDelaysConstraints(user)) {
 										// check that booking dates respect min and max delays
-										if (booking.hasMinDelay() && booking.isNotRespectingMinDelay()) {
+										if (booking.hasMinDelay() && booking.slotsNotRespectingMinDelay()) {
 											long nbDays = booking.minDelayAsDay();
 											String errorMessage = i18n.translate(
 													"rbs.booking.bad.request.minDelay.not.respected",
@@ -363,7 +363,7 @@ public class BookingController extends ControllerHelper {
 
 								if (!resource.canBypassDelaysConstraints(user)) {
 									// Check that booking dates respect min and max delays
-									if (booking.hasMinDelay() && booking.isNotRespectingMinDelay()) {
+									if (booking.hasMinDelay() && booking.slotsNotRespectingMinDelay()) {
 										long nbDays = booking.minDelayAsDay();
 										String errorMessage = i18n.translate(
 												"rbs.booking.bad.request.minDelay.not.respected.by.firstSlot",

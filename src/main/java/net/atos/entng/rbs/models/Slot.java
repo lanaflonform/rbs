@@ -4,22 +4,24 @@ import io.vertx.core.json.JsonObject;
 
 import java.time.ZonedDateTime;
 import java.util.Iterator;
+import java.util.Optional;
 
 public class Slot {
 
 	private final ZonedDateTime start;
 	private final ZonedDateTime end;
-
+    private final JsonObject json;
 
 	public Slot(ZonedDateTime start, ZonedDateTime end) {
 		super();
 		this.start = start;
 		this.end = end;
+        this.json = new JsonObject().put("start_date",getStartUTC()).put("end_date",getEndUTC()).put("iana",start.getZone());
 	}
 
 	public Slot(Long start,Long end, String iana){
 		super();
-
+        this.json = new JsonObject().put("start_date",start).put("end_date",end).put("iana",iana);
 		this.start = BookingDateUtils.localDateTimeForTimestampSecondsAndIana(start, iana );
 		this.end = BookingDateUtils.localDateTimeForTimestampSecondsAndIana(end, iana );
 	}
@@ -27,6 +29,7 @@ public class Slot {
 		this(json.getLong("start_date", 0l), json.getLong("end_date", 0l), json.getString("iana"));
 	}
 
+	public String getIana() {return this.json.getString("iana");}
 	public long getStartUTC() {
 		return this.start.toEpochSecond();
 	}
@@ -103,7 +106,11 @@ public class Slot {
 	public int dayOfWeekForStartDate() {
 		return getStart().getDayOfWeek().getValue() % 7;
 	}
-
+    public long getDelayFromNow() {
+        long now = BookingDateUtils.currentTimestampSecondsForIana(getIana());
+        long delay = getStartUTC() - now;
+        return  delay;
+    }
 
 	public int dayOfWeekForEndDate() {
 		return getEnd().getDayOfWeek().getValue() % 7;

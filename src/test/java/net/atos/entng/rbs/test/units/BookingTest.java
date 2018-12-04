@@ -298,15 +298,15 @@ public class BookingTest {
 		// 3 days before
 		ZonedDateTime nowMinus3 = nowZoned.plusDays(3);
 		jsonB.put("start_date", nowMinus3.toInstant().getEpochSecond());
-		Assert.assertFalse(booking.isNotRespectingMinDelay());
+		Assert.assertFalse(booking.slotsNotRespectingMinDelay());
 		// 2 days before
 		ZonedDateTime nowMinus2 = nowZoned.plusDays(2);
 		jsonB.put("start_date", nowMinus2.toInstant().getEpochSecond());
-		Assert.assertFalse(booking.isNotRespectingMinDelay());
+		Assert.assertFalse(booking.slotsNotRespectingMinDelay());
 		// 1 days before
 		ZonedDateTime nowMinus1 = nowZoned.plusDays(1);
 		jsonB.put("start_date", nowMinus1.toInstant().getEpochSecond());
-		Assert.assertTrue(booking.isNotRespectingMinDelay());
+		Assert.assertTrue(booking.slotsNotRespectingMinDelay());
 	}
 
 	@Test
