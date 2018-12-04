@@ -170,7 +170,7 @@ public class BookingController extends ControllerHelper {
 											badRequest(request, errorMessage);
 											return;
 										} else if (booking.hasMaxDelay()
-												&& booking.isNotRespectingMaxDelayForEndDate()) {
+												&& booking.slotsNotRespectingMaxDelay()) {
 											long nbDays = booking.maxDelayAsDay();
 											String errorMessage = i18n.translate(
 													"rbs.booking.bad.request.maxDelay.not.respected",
@@ -375,7 +375,7 @@ public class BookingController extends ControllerHelper {
 									} else if (booking.hasMaxDelay()) {
 										try {
 											long lastSlotEndDate = booking.computeAndSetLastEndDateAsUTCSedonds();
-											if (booking.isNotRespectingMaxDelay(lastSlotEndDate)) {
+											if (booking.slotsNotRespectingMaxDelay()) {
 												long nbDays = booking.maxDelayAsDay();
 												String errorMessage = i18n.translate(
 														"rbs.booking.bad.request.maxDelay.not.respected.by.lastSlot",

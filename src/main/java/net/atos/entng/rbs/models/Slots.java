@@ -22,14 +22,24 @@ public class Slots extends ArrayList<Slot> {
     public boolean areNotStartingAndEndingSameDay() {
         boolean oneFound = false;
         for(Slot slot : this){
-          if(slot.isNotStartingAndEndingSameDay()){ oneFound = true;}
+            if(slot.isNotStartingAndEndingSameDay()){ oneFound = true;}
         }
         return oneFound;
     }
+
     public boolean areNotRespectingMinDelay(Optional<Long> minDelay) {
         boolean oneFound = false;
         for(Slot slot : this){
-            if((minDelay.isPresent() && minDelay.get() > slot.getDelayFromNow())){ oneFound = true;}
+            if((minDelay.isPresent() && minDelay.get() > slot.getDelayFromNowToStart())){ oneFound = true;}
+        }
+        return oneFound;
+    }
+    public boolean areNotRespectingMaxDelay(Long maxDelay) {
+        boolean oneFound = false;
+        for(Slot slot : this){
+            maxDelay = (BookingDateUtils.tomorrowTimestampSecondsForIana(slot.getIana()) -
+                    BookingDateUtils.currentTimestampSecondsForIana(slot.getIana())) + maxDelay;
+            if(slot.getDelayFromNowToEnd() > maxDelay){ oneFound = true;}
         }
         return oneFound;
     }

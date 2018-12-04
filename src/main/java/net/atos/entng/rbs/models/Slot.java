@@ -106,10 +106,13 @@ public class Slot {
 	public int dayOfWeekForStartDate() {
 		return getStart().getDayOfWeek().getValue() % 7;
 	}
-    public long getDelayFromNow() {
-        long now = BookingDateUtils.currentTimestampSecondsForIana(getIana());
-        long delay = getStartUTC() - now;
-        return  delay;
+    public long getDelayFromNowToStart() {
+
+        return getStartUTC() -  BookingDateUtils.currentTimestampSecondsForIana(getIana());
+
+    }
+    public long getDelayFromNowToEnd() {
+        return getEndUTC() - BookingDateUtils.currentTimestampSecondsForIana(getIana());
     }
 
 	public int dayOfWeekForEndDate() {

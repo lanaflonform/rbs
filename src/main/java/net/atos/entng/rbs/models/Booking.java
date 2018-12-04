@@ -132,25 +132,13 @@ public class Booking {
 		Optional<Long> minDelay = getMinDelayAsSeconds();
 		return this.getSlots().areNotRespectingMinDelay(minDelay);
 	}
-
-	public boolean isNotRespectingMaxDelayForEndDate() {
-		return this.isNotRespectingMaxDelay(getSlots().getSlotWithLatestEndDate().getEndUTC());
-	}
-
-	public boolean isNotRespectingMaxDelay(long endDateAsSeconds) {
-		Long maxDelay = getMaxDelayAsSeconds().orElse(-1l);
-		// compare for the same iana
-		long now = BookingDateUtils.currentTimestampSecondsForIana(getIana());
-		if (maxDelay == -1) {
-			return false;
-		}
-		// Authorize users to book a resource N days in advance, without taking
-		// hour/minute/seconds into account
-		maxDelay = (BookingDateUtils.tomorrowTimestampSecondsForIana(getIana()) - now) + maxDelay;
-		long delay = endDateAsSeconds - now;
-
-		return (delay > maxDelay);
-	}
+    public boolean slotsNotRespectingMaxDelay() {
+        Long maxDelay = getMaxDelayAsSeconds().orElse(-1l);
+        if (maxDelay == -1) {
+            return false;
+        }
+        return this.getSlots().areNotRespectingMaxDelay(maxDelay);
+    }
 
 	public boolean isNotPeriodic() {
 		final long endDate = getPeriodicEndDateAsUTCSeconds();

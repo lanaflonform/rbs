@@ -321,15 +321,15 @@ public class BookingTest {
 		// 3 days before
 		ZonedDateTime nowMinus3 = nowZoned.plusDays(3);
 		jsonB.put("end_date", nowMinus3.toInstant().getEpochSecond());
-		Assert.assertTrue(booking.isNotRespectingMaxDelayForEndDate());
+		Assert.assertTrue(booking.slotsNotRespectingMaxDelay());
 		// 2 days before
 		ZonedDateTime nowMinus2 = nowZoned.plusDays(2);
 		jsonB.put("end_date", nowMinus2.toInstant().getEpochSecond());
-		Assert.assertFalse(booking.isNotRespectingMaxDelayForEndDate());
+		Assert.assertFalse(booking.slotsNotRespectingMaxDelay());
 		// 1 days before
 		ZonedDateTime nowMinus1 = nowZoned.plusDays(1);
 		jsonB.put("end_date", nowMinus1.toInstant().getEpochSecond());
-		Assert.assertFalse(booking.isNotRespectingMaxDelayForEndDate());
+		Assert.assertFalse(booking.slotsNotRespectingMaxDelay());
 	}
 
 	@Test
@@ -350,11 +350,10 @@ public class BookingTest {
 		booking.setSlots(slots);
 		System.out.println(booking.daysBetweenFirstSlotEndAndPeriodicEndDate(slots.getSlotWithLatestEndDate()));
 		// more or less 4 days later
-		long lastSlotEndDate = booking.computeAndSetLastEndDateAsUTCSedonds();
-		Assert.assertTrue(booking.isNotRespectingMaxDelay(lastSlotEndDate));
+		Assert.assertTrue(booking.slotsNotRespectingMaxDelay());
 		// Augment max delay
 		jsonR.put("max_delay", BookingDateUtils.daysToSecond(4));// should reserve at max 4 days before
-		Assert.assertFalse(booking.isNotRespectingMaxDelay(lastSlotEndDate));
+		Assert.assertFalse(booking.slotsNotRespectingMaxDelay());
 	}
 
 	@Test
