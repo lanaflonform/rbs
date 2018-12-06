@@ -4,7 +4,7 @@ import io.vertx.core.json.JsonObject;
 
 import java.time.ZonedDateTime;
 import java.util.Iterator;
-import java.util.Optional;
+
 
 public class Slot {
 
@@ -16,7 +16,7 @@ public class Slot {
 		super();
 		this.start = start;
 		this.end = end;
-        this.json = new JsonObject().put("start_date",getStartUTC()).put("end_date",getEndUTC()).put("iana",start.getZone());
+        this.json = new JsonObject().put("start_date",getStartUTC()).put("end_date",getEndUTC()).put("iana",start.getZone().toString());
 	}
 
 	public Slot(Long start,Long end, String iana){

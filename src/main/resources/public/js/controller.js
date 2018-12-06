@@ -1522,9 +1522,9 @@ function RbsController($scope, template, model, date, route, $timeout) {
       ]);
       if ($scope.editedBooking.is_periodic === true) {
         // periodic booking 1st slot less than a day
-        if ($scope.showDaySelection === true) {
+        /*if ($scope.showDaySelection === true) {
           var dow = moment($scope.booking.startDate).day();
-          if ($scope.editedBooking.periodDays[dow - 1].value === false) {
+          if ($scope.editedBooking.periodDays[dow].value === false) {
             $scope.editedBooking.endMoment = moment([
               $scope.booking.endDate.getFullYear(),
               $scope.booking.endDate.getMonth(),
@@ -1533,13 +1533,13 @@ function RbsController($scope, template, model, date, route, $timeout) {
               $scope.booking.endTime.minute()
             ]);
             //Save the 1st no periodic slot
-           /* var saveFirst = new Booking();
+           /!* var saveFirst = new Booking();
             saveFirst.booking_reason = $scope.editedBooking.booking_reason;
             saveFirst.resource = $scope.editedBooking.resource;
             saveFirst.slots = [new Slot($scope.editedBooking).toJson()];
             //Save the 1st no periodic slot
-            saveFirst.is_periodic = false;*/
-            /*saveFirst.save(
+            saveFirst.is_periodic = false;*!/
+            /!*saveFirst.save(
               function() {
                 $scope.display.processing = undefined;
                 $scope.closeBooking();
@@ -1551,10 +1551,10 @@ function RbsController($scope, template, model, date, route, $timeout) {
                 $scope.currentErrors.push(e);
                 $scope.$apply();
               }
-            );*/
+            );*!/
           }
-        }
-        $scope.editedBooking.is_periodic = true;
+        }*/
+
         $scope.editedBooking.endMoment = moment([
           $scope.booking.endDate.getFullYear(),
           $scope.booking.endDate.getMonth(),
@@ -1679,8 +1679,8 @@ function RbsController($scope, template, model, date, route, $timeout) {
               if ($scope.checkSaveBooking()) {
                 return;
               }
-              var dow = moment($scope.booking.startDate).day();
-              if ($scope.editedBooking.periodDays[dow - 1].value === false && $scope.editedBooking.id === undefined) {
+             // var dow = moment($scope.booking.startDate).day();
+             /* if ($scope.editedBooking.periodDays[dow].value === false && $scope.editedBooking.id === undefined) {
                 $scope.editedBooking.endMoment = moment([
                   $scope.booking.endDate.getFullYear(),
                   $scope.booking.endDate.getMonth(),
@@ -1689,7 +1689,7 @@ function RbsController($scope, template, model, date, route, $timeout) {
                   $scope.booking.endTime.minute()
                 ]);
                 //Save the 1st no periodic slot
-             /*   var saveFirst = new Booking();
+             /!*   var saveFirst = new Booking();
                 saveFirst.booking_reason = $scope.editedBooking.booking_reason;
                 saveFirst.resource = $scope.editedBooking.resource;
                 saveFirst.slots = [new Slot($scope.editedBooking).toJson()];
@@ -1707,8 +1707,8 @@ function RbsController($scope, template, model, date, route, $timeout) {
                     $scope.currentErrors.push(e);
                     $scope.$apply();
                   }
-                );*/
-              }
+                );*!/
+              }*/
             }
             $scope.editedBooking.is_periodic = true;
             $scope.editedBooking.endMoment = moment([
