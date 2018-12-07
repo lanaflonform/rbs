@@ -794,15 +794,18 @@ function RbsController($scope, template, model, date, route, $timeout) {
   };
 
   $scope.formatMomentLong = function(date) {
-    return date.format('dddd DD MMMM YYYY - HH[h]mm');
+      return lang.translate( date.format('dddd'))+ date.format(' DD ')+lang.translate( date.format('MMMM'))+
+          date.format(' YYYY - HH[h]mm');
   };
 
   $scope.formatMomentDayLong = function(date) {
-    return date.format('dddd DD MMMM YYYY');
+      return lang.translate( date.format('dddd'))+ date.format(' DD ')+lang.translate( date.format('MMMM'))+
+          date.format(' YYYY');
   };
 
   $scope.formatMomentDayMedium = function(date) {
-    return date.format('dddd DD MMM YYYY');
+      return lang.translate( date.format('dddd'))+ date.format(' DD ')+date.format('MM')+
+          date.format(' YYYY');
   };
 
   $scope.formatHour = function(date) {
