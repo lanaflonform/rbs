@@ -3,6 +3,7 @@ package net.atos.entng.rbs.models;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import java.awt.print.Book;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -34,12 +35,20 @@ public class Slots extends ArrayList<Slot> {
         }
         return oneFound;
     }
-    public boolean areNotRespectingMaxDelay(Long maxDelay) {
+    public boolean areNotRespectingMaxDelay(Booking booking, Long maxDelay) {
         boolean oneFound = false;
         for(Slot slot : this){
-            maxDelay = (BookingDateUtils.tomorrowTimestampSecondsForIana(slot.getIana()) -
-                    BookingDateUtils.currentTimestampSecondsForIana(slot.getIana())) + maxDelay;
-            if(slot.getDelayFromNowToEnd() > maxDelay){ oneFound = true;}
+            if(booking.hasPeriodicEndDate() || booking.getOccurrences(0) != 0){
+                for (Slot itSlot : new Slot.SlotIterable(booking, slot)){
+                    maxDelay = (BookingDateUtils.tomorrowTimestampSecondsForIana(itSlot.getIana()) -
+                            BookingDateUtils.currentTimestampSecondsForIana(itSlot.getIana())) + maxDelay;
+                    if(itSlot.getDelayFromNowToEnd() > maxDelay){ oneFound = true;}
+                }
+            }else{
+                maxDelay = (BookingDateUtils.tomorrowTimestampSecondsForIana(slot.getIana()) -
+                        BookingDateUtils.currentTimestampSecondsForIana(slot.getIana())) + maxDelay;
+                if(slot.getDelayFromNowToEnd() > maxDelay){ oneFound = true;}
+            }
         }
         return oneFound;
     }

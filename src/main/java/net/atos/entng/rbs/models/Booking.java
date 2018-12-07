@@ -137,7 +137,7 @@ public class Booking {
         if (maxDelay == -1) {
             return false;
         }
-        return this.getSlots().areNotRespectingMaxDelay(maxDelay);
+        return this.getSlots().areNotRespectingMaxDelay(this,maxDelay);
     }
 
 	public boolean isNotPeriodic() {

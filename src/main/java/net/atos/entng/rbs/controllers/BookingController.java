@@ -374,7 +374,6 @@ public class BookingController extends ControllerHelper {
 										return;
 									} else if (booking.hasMaxDelay()) {
 										try {
-											long lastSlotEndDate = booking.computeAndSetLastEndDateAsUTCSedonds();
 											if (booking.slotsNotRespectingMaxDelay()) {
 												long nbDays = booking.maxDelayAsDay();
 												String errorMessage = i18n.translate(
