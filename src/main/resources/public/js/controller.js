@@ -804,8 +804,8 @@ function RbsController($scope, template, model, date, route, $timeout) {
   };
 
   $scope.formatMomentDayMedium = function(date) {
-      return lang.translate( date.format('dddd'))+ date.format(' DD ')+date.format('MM')+
-          date.format(' YYYY');
+      return lang.translate( date.format('dddd'))+ date.format(' DD/')+date.format('MM/')+
+          date.format('YYYY');
   };
 
   $scope.formatHour = function(date) {
