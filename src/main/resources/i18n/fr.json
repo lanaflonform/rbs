@@ -364,24 +364,6 @@
   "rbs.push.notif.periodic-booking-deleted.body": "{0} a supprimé une demande de réservation périodique sur la ressource {1} du {2} au {3}",
   "rbs.push.notif.periodic-booking-updated.body": "{0} a mis à jour une demande de réservation périodique sur la ressource {1} du {2} au {3}",
   "rbs.push.notif.resource-available.body": "La ressource {0} est à nouveau disponible",
-  "rbs.push.notif.resource-unavailable.body": "La ressource {0} n'est plus disponible",
-  "Monday":"Lundi",
-  "Tuesday":"Mardi",
-  "Wednesday":"Mercredi",
-  "Thursday":"Jeudi ",
-  "Friday":"Vendredi",
-  "Saturday":"Samedi",
-  "Sunday":"dimanche",
-  "January":"Janvier",
-  "February":"Février",
-  "March":"Mars",
-  "April":"Avril",
-  "May":"Mai",
-  "June":"Juin",
-  "July":"Juillet",
-  "August":"Aout",
-  "September":"Septembre",
-  "October":"Octobre",
-  "November":"Novembre",
-  "December":"Décembre"
+  "rbs.push.notif.resource-unavailable.body": "La ressource {0} n'est plus disponible"
+
 }
