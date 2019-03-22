@@ -1,46 +1,4 @@
-//  cyan', 'green', 'orange', 'pink', 'purple', 'grey'
-model.colors = ["#4bafd5", "#46bfaf", "#FF8500", "#b930a2", "#763294"];
-model.STATE_CREATED = 1;
-model.STATE_VALIDATED = 2;
-model.STATE_REFUSED = 3;
-model.STATE_SUSPENDED = 4;
-model.STATE_PARTIAL = 9; // this state is used only in front-end for periodic bookings, it is not saved in database.
-model.LAST_DEFAULT_COLOR = "#4bafd5";
-model.DETACHED_STRUCTURE = {
-  id: 'DETACHED',
-  name: 'rbs.structure.detached'
-};
 
-
-
-model.timeConfig = { // 5min slots from 7h00 to 20h00, default 8h00
-  interval: 5, // in minutes
-  start_hour: 0,
-  end_hour: 23,
-  default_hour: 8
-};
-
-model.periods = {
-  periodicities: [1, 2, 3, 4], // weeks
-  days: [
-    1, // monday
-    2, // tuesday
-    3, // wednesday
-    4, // thursday
-    5, // friday
-    6, // saturday
-    0 // sunday
-  ],
-  occurrences: [] // loaded by function
-};
-
-model.periodsConfig = {
-  occurrences: {
-    start: 1,
-    end: 52,
-    interval: 1
-  }
-};
 
 function Booking(book) {
 	this.beginning = this.startMoment = moment.utc(book.start_date);

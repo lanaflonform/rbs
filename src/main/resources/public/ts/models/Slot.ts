@@ -1,0 +1,1 @@
+// TODO should i create a slotProfile model too?

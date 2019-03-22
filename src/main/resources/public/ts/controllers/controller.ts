@@ -1,20 +1,23 @@
-routes.define(function($routeProvider) {
-  $routeProvider
-    .when('/booking/:bookingId', {
-      action: 'viewBooking',
-    })
-    .when('/booking/:bookingId/:start', {
-      action: 'viewBooking',
-    });
-});
+import {$, _, Document, idiom as lang, moment, ng, notify, skin, template} from "entcore";
+import {Booking, Bookings, ExportBooking} from "../models/index";
 
-function RbsController($scope, template, model, date, route, $timeout) {
+export const rbsController = ng.controller('RbsController', [
+    "$location",
+    "$scope",
+    "$timeout",
+    "$compile",
+    "$sanitize",
+    "model",
+    "route",
+    function ($location, $scope, $timeout, $compile, $sanitize, model, route)  {
+
   route({
     viewBooking:  function(param) {
       if (param.start) {
         loadBooking(param.start, param.bookingId);
       } else {
-        new Booking().retrieve(
+        $scope.booking =  new Booking();
+          retrieve(
           param.bookingId,
           function(date) {
             loadBooking(date, param.bookingId);
@@ -2871,4 +2874,4 @@ function RbsController($scope, template, model, date, route, $timeout) {
         }
 
     }
-}
+}]);
