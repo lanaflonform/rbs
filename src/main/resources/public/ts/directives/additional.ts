@@ -1,4 +1,7 @@
-module.directive('timePickerRbs', function($compile){
+import {$, infraPrefix, ng, model,_, moment } from 'entcore';
+
+
+export const timePickerRbs = ng.directive('timePickerRbs', () =>{
 	return {
 		scope: {
 			ngModel: '=',
@@ -20,15 +23,15 @@ module.directive('timePickerRbs', function($compile){
 			};
 			$('body, lightbox').on('click', hideFunction);
 			$('body, lightbox').on('focusin', hideFunction);
-			loader.asyncLoad('/' + infraPrefix + '/public/js/bootstrap-timepicker.js', function(){
-				$element.timepicker({
-					showMeridian: false,
-					defaultTime: 'current',
-					minuteStep: model.timeConfig.interval,
-					minHour: model.timeConfig.start_hour,
-					maxHour: model.timeConfig.end_hour
-				});
-			});
+			// loader.asyncLoad('/' + infraPrefix + '/public/js/bootstrap-timepicker.js', function(){
+			// 	$element.timepicker({
+			// 		showMeridian: false,
+			// 		defaultTime: 'current',
+			// 		minuteStep: model.timeConfig.interval,
+			// 		minHour: model.timeConfig.start_hour,
+			// 		maxHour: model.timeConfig.end_hour
+			// 	});
+			// });
 
 			$scope.$watch('ngModel', function(newVal){
 				$scope.ngModel = newVal;

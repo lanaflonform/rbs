@@ -1,12 +1,12 @@
-export var timeConfig = { // 5min slots from 7h00 to 20h00, default 8h00
+export var TIME_CONFIG = { // 5min slots from 7h00 to 20h00, default 8h00
     interval: 5, // in minutes
     start_hour: 0,
     end_hour: 23,
     default_hour: 8
 };
 
-export var periods = {
-    periodicities: [1, 2, 3, 4], // weeks
+export var PERIODS = {
+    periodicity: [1, 2, 3, 4], // weeks
     days: [
         1, // monday
         2, // tuesday
@@ -19,7 +19,7 @@ export var periods = {
     occurrences: [] // loaded by function
 };
 
-export var periodsConfig = {
+export var PERIODS_CONFIG = {
     occurrences: {
         start: 1,
         end: 52,

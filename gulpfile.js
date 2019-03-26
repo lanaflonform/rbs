@@ -20,7 +20,7 @@ var bundle = gulp.src('./node_modules/entcore/bundle/*')
     .pipe(gulp.dest('./src/main/resources/public/dist/entcore'));
 
 return merge(html, bundle);
-})
+});
 
 gulp.task('webpack', ['copy-files'], () => {
     return gulp.src('./src/main/resources/public')

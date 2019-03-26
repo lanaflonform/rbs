@@ -1,4 +1,5 @@
-console.log('RBS behaviours loaded');
+import { Behaviours, model, _ } from 'entcore';
+import {Booking, Resource} from "./model/index";
 
 var rbsBehaviours = {
 	resources: {
@@ -24,7 +25,7 @@ var rbsBehaviours = {
 Behaviours.register('rbs', {
 	behaviours: rbsBehaviours,
 	resourceRights: function(resource){
-		var rightsContainer = resource;
+		let rightsContainer = resource;
 		if(resource instanceof Resource && resource.type){
 			rightsContainer = resource.type;
 		}

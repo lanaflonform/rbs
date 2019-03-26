@@ -1,8 +1,8 @@
 import {Eventer, Mix, Selectable, Selection} from "entcore-toolkit";
-import {moment, _, notify} from "entcore";
+import {moment , _, notify} from "entcore";
 import http from "axios";
 import {STATE_CREATED, STATE_REFUSED, STATE_VALIDATED} from "./constantes/STATE";
-import {Resource, Slot} from './models/index';
+import {Resource, Slot, Slots, Utils} from './index';
 export class Booking implements Selectable {
     selected :boolean;
     id:number;
@@ -25,18 +25,19 @@ export class Booking implements Selectable {
     status: number | null;
     booking_reason:string;
 
-    periodicEndMoment: moment;
-    beginning: moment;
-    end: moment;
-    startMoment: moment;
-    endMoment: moment;
+    periodicEndMoment: Object;
+    beginning: Object;
+    end: Object;
+    startMoment: Object;
+    endMoment: Object;
     resource: Resource;
     slots : Slots;
-    constructor (id?) {
+    constructor (id?:number) {
         if(id) this.id = id;
         this.beginning = this.startMoment = this.start_date ? moment.utc(this.start_date).tz(moment.tz.guess()) :  moment();
         this.end = this.endMoment = this.end_date?  moment.utc(this.end_date).tz(moment.tz.guess()): moment();
         this.resource = new Resource();
+        this.slots = new Slots();
     }
 
     async save() {
@@ -57,10 +58,7 @@ export class Booking implements Selectable {
     };
     calendarUpdate () {
         if (this.beginning) {
-            this.slots = [{
-                start_date: this.beginning.unix(),
-                end_date: this.end.unix()
-            }];
+            this.slots = new Slots(new Slot(moment(this.beginning).unix(), moment(this.end).unix()));
         }
         if(this.id) {
             this.update()
@@ -145,7 +143,7 @@ export class Booking implements Selectable {
                 json['occurrences'] = this.occurrences;
             }
             else {
-                json['periodic_end_date'] = this.periodicEndMoment.utc().unix();
+                json['periodic_end_date'] = moment(this.periodicEndMoment).utc().unix();
             }
         }
 
@@ -157,15 +155,41 @@ export class Booking implements Selectable {
 }
 
 export class Bookings extends Selection<Booking> {
-    constructor() {
+    startPagingDate: object;
+    endPagingDate: object;
+    filters: filterBookings;
+    constructor( ) {
         super([]);
+        this.startPagingDate = moment().startOf('isoweek');
+        this.endPagingDate = moment(this.startPagingDate);
+        this.filters = new filterBookings();
     }
 
-    async sync(): Promise<void> {
+    initDates (startPagingDate?, endPagingDate?){
+        if(startPagingDate) this.startPagingDate = moment(startPagingDate).startOf('isoweek');
+        this.endPagingDate = endPagingDate? endPagingDate : moment(startPagingDate).add(7, 'day').startOf('day') ;
+    }
+
+    async sync() {
         {
             let projects = await http.get(``); // TODO List bookings
             this.all = Mix.castArrayAs(Booking, projects.data);
-
         }
+    }
+
+}
+
+export class filterBookings {
+    dates : boolean;
+    startMoment;
+    endMoment;
+    startDate: Date;
+    endDate: Date;
+    constructor (start?, end?) {
+        this.dates = true;
+        this.startMoment = moment(start).startOf('day');
+        this.endMoment = moment(end).add(Utils.getIncrenementISOMoment(), 2).startOf('day');
+        this.startDate = this.startMoment.toDate();
+        this.endDate = this.endMoment.toDate();
     }
 }

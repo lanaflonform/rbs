@@ -51,7 +51,7 @@ var saveAs = saveAs || (function(view) {
         };
         setTimeout(revoker, arbitrary_revoke_timeout);
       }
-      , dispatch = function(filesaver, event_types, event) {
+      , dispatch = function(filesaver, event_types, event?) {
         event_types = [].concat(event_types);
         var i = event_types.length;
         while (i--) {
@@ -179,10 +179,10 @@ var saveAs = saveAs || (function(view) {
 // while `this` is nsIContentFrameMessageManager
 // with an attribute `content` that corresponds to the window
 
-if (typeof module !== "undefined" && module.exports) {
-  module.exports.saveAs = saveAs;
-} else if ((typeof define !== "undefined" && define !== null) && (define.amd !== null)) {
-  define("FileSaver.js", function() {
-    return saveAs;
-  });
-}
+// if (typeof module !== "undefined" && module.exports) {
+//   module.exports.saveAs = saveAs;
+// } else if ((typeof define !== "undefined" && define !== null) && (define.amd !== null)) {
+//   define("FileSaver.js", function() {
+//     return saveAs;
+//   });
+// }
