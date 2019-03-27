@@ -11,13 +11,12 @@ import {
     ResourceTypes,
     Bookings,
     Utils,
-    Notification
-} from "../model/index";
+    Notification, Preference
+} from "../model";
 import {
     PERIODS,
-    STATE_CREATED, STATE_PARTIAL, STATE_REFUSED, STATE_SUSPENDED, STATE_VALIDATED,
-
-} from "../model/constantes/index";
+    STATE_CREATED, STATE_PARTIAL, STATE_REFUSED, STATE_SUSPENDED, STATE_VALIDATED
+} from "../model/constantes";
 
 
 export const rbsController = ng.controller('RbsController', [
@@ -28,9 +27,7 @@ export const rbsController = ng.controller('RbsController', [
     "$sanitize",
     "model",
     "route",
-    function ($location, $scope, $timeout, $compile, $sanitize, model, route)  {
-
-
+     ($location, $scope, $timeout, $compile, $sanitize, model, route) =>  {
         $scope.template = template;
         $scope.me = model.me;
         $scope.lang = lang;
@@ -46,19 +43,8 @@ export const rbsController = ng.controller('RbsController', [
             predicate: 'start_date',
             reverse: false,
         };
-        $scope.status = {
-            STATE_CREATED: STATE_CREATED,
-            STATE_VALIDATED: STATE_VALIDATED,
-            STATE_REFUSED: STATE_REFUSED,
-            STATE_SUSPENDED: STATE_SUSPENDED,
-            STATE_PARTIAL: STATE_PARTIAL,
-        };
-        $scope.today = moment().startOf('day');
-        $scope.tomorrow = moment().add('day', 1).startOf('day');
-
+        $scope.preference = new Preference();
         $scope.booking = new Booking;
-
-
         $scope.resourceTypes = new ResourceTypes();
         $scope.bookings = new Bookings();
         $scope.periods = PERIODS;
@@ -89,19 +75,14 @@ export const rbsController = ng.controller('RbsController', [
 
         route({
             main: async function() {
+                await $scope.preference.sync();
+                await $scope.resourceTypes.sync();
+                await $scope.structures.sync($scope.resourceTypes,$scope.preference);
 
-                template.open('main', 'main-view');
-                template.open('top-menu', 'top-menu');
-                template.open('editBookingErrors', 'edit-booking-errors');
-                template.open('itemTooltip', 'tooltip-template');
 
-                if ($scope.display.list === true) {
-                    template.open('bookings', 'main-list');
-                } else {
-                    template.open('bookings', 'main-calendar');
-                    $scope.placingButton(0);
-                }
-                $scope.structures.sync();
+
+                $scope.initView();
+                $scope.displayBookings();
                 $scope.initialize();
             },
             viewBooking: async function(param) {
@@ -115,6 +96,26 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.showCalendar(true);
             }
         });
+        $scope.initView =() => {
+            template.open('main', 'main-view');
+            template.open('top-menu', 'top-menu');
+            template.open('editBookingErrors', 'edit-booking-errors');
+            template.open('itemTooltip', 'tooltip-template');
+        };
+        $scope.initConstants =()=>{
+            $scope.display.create = Utils.canCreateBooking($scope.resourceTypes);
+
+        };
+        $scope.displayBookings=()=>{
+            if ($scope.display.list === true) {
+                template.open('bookings', 'main-list');
+            } else {
+                template.open('bookings', 'main-calendar');
+                $scope.placingButton(0);
+            }
+         };
+
+
         $scope.initialize = function() {
             model.calendar.on('date-change', function() {
                 let start = moment(model.calendar.firstDay);
@@ -133,18 +134,6 @@ export const rbsController = ng.controller('RbsController', [
                 model.bookings.endPagingDate = end;
 
                 //fixme rrah ? updateCalendarSchedule(model.calendar.firstDay);
-            });
-
-            $scope.resourceTypes.on('sync', function() {
-                // check create booking rights
-                $scope.display.create = Utils.canCreateBooking($scope.resourceTypes);
-
-                // Do not restore if routed
-                if ($scope.display.routed === true) {
-                    return;
-                }
-                $scope.initResources();
-                $scope.$apply();
             });
 
             //when date picker of calendar directive is used
@@ -182,7 +171,7 @@ export const rbsController = ng.controller('RbsController', [
 
         $scope.hasAnyBookingRight = function(booking){
             return booking.resource.myRights.process || booking.resource.myRights.manage || booking.owner === model.me.userId;
-        }
+        };
 
         // Initialization
         $scope.initResources = function() {
@@ -213,70 +202,8 @@ export const rbsController = ng.controller('RbsController', [
         };
 
 
-        $scope.getSharedResources = function (state) {
-            $scope.sharedStructure = model.DETACHED_STRUCTURE;
-            var structureState = state.find(function(struct) { return struct.id === $scope.sharedStructure.id });
-            $scope.sharedStructure.expanded = structureState ? structureState.expanded : false;
-            $scope.sharedStructure.selected = structureState ? structureState.selected : false;
-            $scope.sharedStructure.types = [];
-            $scope.resourceTypes.all.forEach(function (resource) {
-                var find = _.findWhere( $scope.structures,{id: resource.school_id });
-                if(!find) {
-                    $scope.sharedStructure.types.push(resource);
-                }
-            });
-        };
-        // $scope.initStructures = function() {
-        //             for (var i = 0; i < $scope.structures.length; i++) {
-        //                 var structureState = state.find(function (struct) {
-        //                     return struct.id === $scope.structures[i].id
-        //                 });
-        //                 let structureWithTypes = new Structure();
-        //                 structureWithTypes['id'] = $scope.structures[i].id;
-        //                 structureWithTypes['expanded'] = structureState ? structureState.expanded : false;
-        //                 structureWithTypes['selected'] = structureState ? structureState.selected : false;
-        //                 structureWithTypes['name'] = $scope.structures[i].name;
-        //                 $scope.resourceTypes.forEach(function (resourceType) {
-        //                     resourceType.resources.all.forEach(function (resource) {
-        //                         resource.notified = $scope.notificationsComponent.list.some(function (res) {
-        //                             return res.resource_id == resource.id
-        //                         });
-        //                     });
-        //                     $scope.checkNotificationsResourceType(resourceType);
-        //                     let typeState = structureState
-        //                         ? structureState.types.find(function (type) {
-        //                             return type.id === resourceType.id
-        //                         })
-        //                         : undefined;
-        //
-        //                     if (typeState) {
-        //                         resourceType.expanded = typeState.expanded;
-        //
-        //                         resourceType.resources.all.forEach(function (resource) {
-        //                             var resState = typeState.resources.find(function (res) {
-        //                                 return res.id === resource.id
-        //                             });
-        //
-        //                             if (resState) {
-        //                                 resource.selected = resState.selected;
-        //                             }
-        //                         })
-        //                     }
-        //                     if (state.length == 0) {
-        //                         resourceType.resources.deselectAll();
-        //                     }
-        //
-        //                     if (resourceType.school_id === $scope.structures[i].id) {
-        //                         structureWithTypes.resourceTypes.push(resourceType);
-        //                     }
-        //                 });
-        //                 $scope.structuresWithTypes[i] = structureWithTypes;
-        //             }
-        //             $scope.structuresWithTypes = _.sortBy($scope.structuresWithTypes, 'name');
-        //             $scope.selectedStructure = $scope.structuresWithTypes[0];
-        //             model.bookings.applyFilters();
-        //             $scope.getSharedResources(state);
-        // };
+
+
 
         $scope.initStructuresManage = function(selected, currentResourceType) {
             var thisResourceType = {};

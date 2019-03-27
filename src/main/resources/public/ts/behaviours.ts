@@ -1,7 +1,7 @@
 import { Behaviours, model, _ } from 'entcore';
-import {Booking, Resource} from "./model/index";
+import {Booking, Resource} from "./model";
 
-var rbsBehaviours = {
+let rbsBehaviours = {
 	resources: {
 		contrib: {
 			right: 'net-atos-entng-rbs-controllers-BookingController|createBooking'
@@ -55,9 +55,9 @@ Behaviours.register('rbs', {
 		return resource;
 	},
 	workflow: function(){
-		var workflow = { };
-		var rbsWorkflow = rbsBehaviours.workflow;
-		for(var prop in rbsWorkflow){
+		let workflow = { };
+		let rbsWorkflow = rbsBehaviours.workflow;
+		for(let prop in rbsWorkflow){
 			if(model.me.hasWorkflow(rbsWorkflow[prop])){
 				workflow[prop] = true;
 			}

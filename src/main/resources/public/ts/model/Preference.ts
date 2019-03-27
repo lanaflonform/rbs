@@ -6,7 +6,6 @@ import { Mix } from "entcore-toolkit";
 export class Preference {
 
     constructor() {
-        this.sync();
     }
 
     async sync() {

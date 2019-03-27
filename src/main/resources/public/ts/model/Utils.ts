@@ -1,4 +1,4 @@
-import {model} from "entcore";
+import {model, moment} from "entcore";
 
 export class Utils {
     // Used to display types for moderators (moderators of a type can update a resource, but cannot create one)
@@ -29,4 +29,6 @@ export class Utils {
         }
         return false;
     };
+    static  today = moment().startOf('day');
+    static tomorrow = moment().add('day', 1).startOf('day');
 }

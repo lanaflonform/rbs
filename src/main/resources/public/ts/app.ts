@@ -1,6 +1,10 @@
-import { routes,  ng } from "entcore";
-import * as controllers from "./controllers/controller";
+import { model, notify, http, IModel, Model, Collection, BaseModel, moment, ui,routes, _, $, ng } from "entcore";
+import * as controllers from './controllers';
 import * as directives from "./directives";
+
+for (let controller in controllers) {
+    ng.controllers.push(controllers[controller]);
+}
 
 routes.define(function($routeProvider) {
     $routeProvider
@@ -15,13 +19,10 @@ routes.define(function($routeProvider) {
     });
 });
 
-for (let controller in controllers) {
-    ng.controllers.push(controllers[controller]);
-}
 
-for (let directive in directives) {
-    ng.directives.push(directives[directive]);
-}
+// for (let directive in directives) {
+//     ng.directives.push(directives[directive]);
+// }
 //
 // for (let filter in filters) {
 //     ng.filters.push(filters[filter]);
