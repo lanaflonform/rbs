@@ -28,7 +28,5 @@ export class Resources extends Selection<Resource> {
         let  {data} = await http.get('/rbs/resources');
         this.all = Mix.castArrayAs(Resource, data);
     }
-    groupByTypeId(){
-     return _.groupBy(this.all, 'type_id');
-    }
+
 }

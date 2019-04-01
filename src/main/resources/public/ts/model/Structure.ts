@@ -1,16 +1,16 @@
 import {_, model} from 'entcore';
 import {Mix, Selectable, Selection} from 'entcore-toolkit';
-import {Preference, ResourceTypes} from './index'
+import {Preference, Resources, ResourceTypes} from './index'
 import {DETACHED_STRUCTURE} from "./constantes/index";
 
 
 export class Structure implements Selectable{
     id: string;
     name: string;
-    expanded: boolean;
-    resourceTypes: ResourceTypes;
+    expanded: boolean = false;
+    resourceTypes: ResourceTypes = new ResourceTypes();
 
-    selected:boolean;
+    selected:boolean = false;
 
     constructor(id?, name?){
         if(id) this.id=id;
@@ -20,7 +20,7 @@ export class Structure implements Selectable{
         let state = _.findWhere(preference, {id : this.id});
         if(!state || state.length == 0) return;
         this.expanded = !!state.expanded ;
-        this.selected = !!state.selected;
+        this.selected = !!state.selected ;
         if(type ) this.resourceTypes.all.map((type)=> type.setPreference(state.type,resource));
         return state;
     }
@@ -32,21 +32,25 @@ export class Structures  extends Selection<Structure> {
         super([]);
     }
 
-    async sync(resourceTypes?: ResourceTypes, preference?:Preference) {
+    async sync(resourceTypes: ResourceTypes = new ResourceTypes(), preference:Preference = new Preference()) {
         this.all = this.getStructuresList(false);
-        if(!resourceTypes) await resourceTypes.sync(true);
-        if(!Preference) await preference.sync();
+        if(!resourceTypes){
+            let resources = new Resources();
+            await resources.sync();
+            await resourceTypes.sync(resources);
+        }
+        if(!preference) await preference.sync();
 
         let detachedType = this.mappedStructures(resourceTypes, preference);
-        this.mappedDetachedStructure(detachedType ,preference) ;
+        if(detachedType.all.length!==0  ) this.mappedDetachedStructure(detachedType ,preference) ;
+        this.updateSelected()
     }
-
     mappedStructures(resourceTypes, preference) {
         this.all.map((structure)=> {
             let resourceType = _.filter(resourceTypes.all,{school_id: structure.id });
             if(resourceType){
-               structure.resourceTypes.all= resourceType;
-                resourceTypes.all = _.without(resourceTypes.all, resourceType)
+                structure.resourceTypes.all= resourceType;
+                resourceTypes.all = _.difference(resourceTypes.all, resourceType)
             }
             structure.setPreference(preference, true, true);
         });
@@ -54,7 +58,7 @@ export class Structures  extends Selection<Structure> {
     }
     mappedDetachedStructure(resourceTypes,preference ){
         let structure = Mix.castAs(Structure, DETACHED_STRUCTURE);
-        structure.resourceTypes.all =
+        structure.resourceTypes.all = resourceTypes;
         structure.setPreference(preference, true, true);
         this.all.push(structure);
     }

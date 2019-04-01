@@ -42,20 +42,19 @@ export class ResourceTypes  extends Selection<ResourceType> {
     constructor () {
         super([]);
     }
-    async sync (withResource?:boolean) {
+    async sync (resources?:Resources) {
         try{
             let { data } = await http.get('/rbs/types'); // fixme rrah
             this.all = Mix.castArrayAs(ResourceType, data);
-            let resources = new Resources();
-            if(withResource) {
-                await resources.sync();
-                resources.groupByTypeId();
-                this.all.map((resourceType)=>{
-                    resourceType.resources = resources[resourceType.id];
-                })
+
+            if(!resources) {
+                let resources = new Resources();
             }
-
-
+            let groupedResources = _.groupBy(resources.all, 'type_id');
+            this.all.map((resourceType)=>{
+                resourceType.resources = new Resources();
+                resourceType.resources.all = groupedResources[resourceType.id];
+            })
         }catch (e) {
 
         }

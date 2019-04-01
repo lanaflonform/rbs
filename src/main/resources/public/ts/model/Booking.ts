@@ -1,8 +1,9 @@
 import {Eventer, Mix, Selectable, Selection} from "entcore-toolkit";
-import {moment , _, notify} from "entcore";
+import {moment, _, notify, bootstrap, model} from "entcore";
 import http from "axios";
-import {STATE_CREATED, STATE_REFUSED, STATE_VALIDATED} from "./constantes/STATE";
-import {Resource, Slot, Slots, Utils} from './index';
+import {STATE_CREATED, STATE_PARTIAL, STATE_REFUSED, STATE_VALIDATED} from "./constantes/STATE";
+import {Resource, Resources, Slot, Slots, Utils} from './index';
+import {BD_DATE_FORMAT} from "./constantes";
 export class Booking implements Selectable {
     selected :boolean;
     id:number;
@@ -25,6 +26,7 @@ export class Booking implements Selectable {
     status: number | null;
     booking_reason:string;
 
+    locked:boolean = true;
     periodicEndMoment: Object;
     beginning: Object;
     end: Object;
@@ -122,7 +124,7 @@ export class Booking implements Selectable {
         try {
             return await http.delete('/rbs/resource/' + this.resource.id + '/booking/' + this.id + "/false");
         }
-         catch (e){  notify.error(''); }
+        catch (e){  notify.error(''); }
     };
 
     isSlot () { return this.parent_booking_id !== null };
@@ -157,39 +159,51 @@ export class Booking implements Selectable {
 export class Bookings extends Selection<Booking> {
     startPagingDate: object;
     endPagingDate: object;
+    filtered:Array<Booking>;
     filters: filterBookings;
     constructor( ) {
         super([]);
-        this.startPagingDate = moment().startOf('isoweek');
-        this.endPagingDate = moment(this.startPagingDate);
+        this.initDates();
         this.filters = new filterBookings();
     }
 
-    initDates (startPagingDate?, endPagingDate?){
-        if(startPagingDate) this.startPagingDate = moment(startPagingDate).startOf('isoweek');
-        this.endPagingDate = endPagingDate? endPagingDate : moment(startPagingDate).add(7, 'day').startOf('day') ;
+    initDates (startPagingDate?, endPagingDate?, ){
+        this.startPagingDate = moment(startPagingDate).startOf('isoweek');
+        this.endPagingDate = endPagingDate? endPagingDate : moment(startPagingDate).add(1, Utils.getIncrementISOMoment()).startOf('day') ;
     }
 
-    async sync() {
-        {
-            let projects = await http.get(``); // TODO List bookings
-            this.all = Mix.castArrayAs(Booking, projects.data);
-        }
+    async sync(resources?:Resources) {
+        let url = `/rbs/bookings/all`;
+        if( this.startPagingDate && this.endPagingDate )
+            url += '/'+ moment(this.startPagingDate).format('YYYY-MM-DD') + '/' + moment(this.endPagingDate).format('YYYY-MM-DD');
+        let {data} = await http.get(url);
+        this.all = Mix.castArrayAs(Booking, data);
+        this.all.map((booking)=>{
+            booking.startMoment = moment(booking.start_date, BD_DATE_FORMAT);
+            booking.endMoment = moment(booking.end_date, BD_DATE_FORMAT);
+            if(resources) booking.resource = _.findWhere(resources.all,{id:booking.resource_id});
+        });
+        this.applyFilters();
+    }
+
+    async applyFilters() {
+        this.filtered = this.all;
+        this.filtered = _.filter(this.all, (booking) => {
+            return ((!this.filters.showParentBooking && booking.parent_booking_id === null) || this.filters.showParentBooking)
+                && ((this.filters.mine && booking.owner === model.me.userId) || !this.filters.mine)
+                && ((this.filters.unprocessed && (booking.status === STATE_CREATED || booking.status === STATE_PARTIAL)) || !this.filters.unprocessed);
+        });
     }
 
 }
 
 export class filterBookings {
-    dates : boolean;
-    startMoment;
-    endMoment;
-    startDate: Date;
-    endDate: Date;
-    constructor (start?, end?) {
-        this.dates = true;
-        this.startMoment = moment(start).startOf('day');
-        this.endMoment = moment(end).add(Utils.getIncrenementISOMoment(), 2).startOf('day');
-        this.startDate = this.startMoment.toDate();
-        this.endDate = this.endMoment.toDate();
+    showParentBooking: boolean;
+    mine: boolean;
+    unprocessed: boolean;
+    constructor () {
+        this.showParentBooking = false;
+        this.mine = false;
+        this.unprocessed = false;
     }
 }

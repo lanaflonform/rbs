@@ -26,3 +26,5 @@ export var PERIODS_CONFIG = {
         interval: 1
     }
 };
+
+export var BD_DATE_FORMAT = 'YYYY-MM-DDTHH:mm:SSS';

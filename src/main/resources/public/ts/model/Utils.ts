@@ -11,10 +11,10 @@ export class Utils {
         return type.myRights && type.myRights.manage;
     };
 
-    static getIncrenementISOMoment = () =>{
+    static getIncrementISOMoment = () =>{
         let increment = model.calendar.increment;
-       return increment == 'week' ? 'isoweek' : increment;
-    }
+       return increment == 'week' ? 'isoweek' : increment+'s';
+    };
     static canCreateBooking (resourceType) {
         if (
             undefined !==

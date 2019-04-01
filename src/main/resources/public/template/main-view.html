@@ -1,74 +1,30 @@
 <!-- Lightbox -->
 <div ng-if="display.showPanel">
-	<lightbox show="display.showPanel" on-close="closeBooking()">
-		<container template="lightbox"></container>
-	</lightbox>
+    <lightbox show="display.showPanel" on-close="closeBooking()">
+        <container template="lightbox"></container>
+    </lightbox>
 </div>
 
 <section class="cell three">
-	<nav class="vertical row resources-tree">
-		<ul>
-			<li ng-repeat="struct in structuresWithTypes | orderBy:'name'">
+    <nav class="vertical row resources-tree">
+        <ul>
+            <li ng-repeat="struct in structures.all| orderBy:'name'">
 
-				<a ng-if="struct.expanded !== true" class="structure" ng-click="expandStructure(struct)">
-					<i class="caretBlack"></i>[[struct.name]]
-				</a>
-
-				<a ng-if="struct.expanded === true" class="structure" ng-click="switchSelectStructure(struct)">
-					<i class="caretBlack expanded" ng-click="collapseStructure(struct)"></i> [[struct.name]]
-				</a>
-
-				<ul ng-if="struct.expanded === true" class="colored resourceType">
-					<li ng-repeat="resourceType in struct.types | orderBy: 'name'">
-						<div class ="row this-bell">
-							<a ng-if="resourceType.expanded !== true" ng-style="{'background-color': '[[resourceType.color]]', 'color': 'white'}" ng-click="expandResourceType(resourceType)">
-								<i class="caret"></i>[[resourceType.name]]
-							</a>
-
-							<a ng-if="resourceType.expanded === true" ng-style="{'background-color': '[[resourceType.color]]', 'color': 'white'}" ng-click="switchSelectResources(resourceType)">
-								<i class="caret expanded" ng-click="collapseResourceType(resourceType)"></i>[[resourceType.name]]
-							</a>
-							<i ng-if="resourceType.notified === 'all'" tooltip="rbs.unsubscribe" ng-click="switchNotifications(resourceType)"  class="notification-icon bell"></i>
-							<i ng-if="resourceType.notified === 'none'" tooltip="rbs.subscribe" ng-click="switchNotifications(resourceType)" class="notification-icon bell-slash"></i>
-							<i ng-if="resourceType.notified === 'some'" tooltip="rbs.subscribe" ng-click="switchNotifications(resourceType)" class="notification-icon bell-disabled"></i>
-						</div>
-						<ul ng-if="resourceType.expanded === true">
-							<li ng-repeat="resource in resourceType.resources.all">
-								<div ng-style="{'background-color': '[[resource.color]]'}">
-									<div class="row this-bell">
-										<a ng-click="switchSelect(resource)" ng-class="{ selected: resource.selected, notselected: !resource.selected }">
-											[[resource.name]]
-											<i ng-if="!resource.is_available" class="suspended-icon"></i>
-										</a>
-										<i ng-if="resource.notified" tooltip="rbs.unsubscribe" ng-click="switchNotification(resource, resourceType)" class="notification-icon bell"></i>
-										<i ng-if="!resource.notified" tooltip="rbs.subscribe" ng-click="switchNotification(resource, resourceType)" class="notification-icon bell-slash"></i>
-									</div>
-								</div>
-							</li>
-							<li ng-if="resourceType.resources.empty()">
-								<i18n>rbs.resources.empty</i18n>
-							</li>
-						</ul>
-					</li>
-					<li ng-if="struct.types.length == 0">
-						<i18n>rbs.resourcetype.empty</i18n>
-					</li>
-				</ul>
-			</li>
-
-            <li ng-if="sharedStructure.types.length !==0" class="no-padding">
-                <a ng-if="sharedStructure.expanded !== true" class="structure" ng-click="expandStructure(sharedStructure)">
-                    <i class="caretBlack"></i> [[lang.translate('shared.resources')]]
+                <a ng-if="struct.expanded !== true" class="structure" ng-click="expandStructure(struct)">
+                    <i class="caretBlack"></i>[[lang.translate(struct.name)]]
                 </a>
-                <a ng-if="sharedStructure.expanded === true" class="structure" ng-click="switchSelectStructure(sharedStructure)">
-                    <i class="caretBlack expanded" ng-click="collapseStructure(sharedStructure)"></i> [[lang.translate('shared.resources')]]
+
+                <a ng-if="struct.expanded === true" class="structure" ng-click="switchSelectStructure(struct)">
+                    <i class="caretBlack expanded" ng-click="collapseStructure(struct)"></i> [[lang.translate(struct.name)]]
                 </a>
-                <ul ng-if="sharedStructure.expanded === true" class="colored resourceType">
-                    <li ng-repeat="resourceType in sharedStructure.types | orderBy: 'name'">
+
+                <ul ng-if="struct.expanded === true" class="colored resourceType">
+                    <li ng-repeat="resourceType in struct.resourceTypes.all | orderBy: 'name'">
                         <div class ="row this-bell">
                             <a ng-if="resourceType.expanded !== true" ng-style="{'background-color': '[[resourceType.color]]', 'color': 'white'}" ng-click="expandResourceType(resourceType)">
                                 <i class="caret"></i>[[resourceType.name]]
                             </a>
+
                             <a ng-if="resourceType.expanded === true" ng-style="{'background-color': '[[resourceType.color]]', 'color': 'white'}" ng-click="switchSelectResources(resourceType)">
                                 <i class="caret expanded" ng-click="collapseResourceType(resourceType)"></i>[[resourceType.name]]
                             </a>
@@ -94,34 +50,36 @@
                             </li>
                         </ul>
                     </li>
-                    <li ng-if="sharedStructure.types.length == 0">
+                    <li ng-if="struct.types.length == 0">
                         <i18n>rbs.resourcetype.empty</i18n>
                     </li>
                 </ul>
             </li>
-		</ul>
-		<hr />
-	</nav>
+        </ul>
+        </li>
+        </ul>
+        <hr />
+    </nav>
 </section>
 
 <section class="cell nine">
-	<container template="bookings"></container>
+    <container template="bookings"></container>
 </section>
 
-<section class="toggle-buttons" ng-class="{ hide: bookings.selection().length === 0 }">
-	<div class="toggle">
-		<div class="row">
-			<behaviour name="process" resource="bookings.selection()" class="cell">
-				<button ng-if="canEditBookingSelection()" ng-click="editBooking()"><i18n>edit</i18n></button>
-				<button ng-if="! canEditBookingSelection()" disabled class="disabled"><i18n>edit</i18n></button>
-				<button ng-click="removeBookingSelection()"><i18n>remove</i18n></button>
-			</behaviour>
-			<behaviour name="process" resource="bookings.selectionResources()" class="cell">
-				<button ng-if="canProcessBookingSelection()" ng-click="validateBookingSelection()"><i18n>rbs.booking.validate</i18n></button>
-				<button ng-if="! canProcessBookingSelection()" disabled class="disabled"><i18n>rbs.booking.validate</i18n></button>
-				<button ng-if="canProcessBookingSelection()" ng-click="refuseBookingSelection()"><i18n>rbs.booking.refuse</i18n></button>
-				<button ng-if="! canProcessBookingSelection()" disabled class="disabled"><i18n>rbs.booking.refuse</i18n></button>
-			</behaviour>
-		</div>
-	</div>
+<section class="toggle-buttons" ng-class="{ hide: bookings.selectedElements.length === 0 }">
+    <div class="toggle">
+        <div class="row">
+            <behaviour name="process" resource="bookings.selection()" class="cell">
+                <button ng-if="canEditBookingSelection()" ng-click="editBooking()"><i18n>edit</i18n></button>
+                <button ng-if="! canEditBookingSelection()" disabled class="disabled"><i18n>edit</i18n></button>
+                <button ng-click="removeBookingSelection()"><i18n>remove</i18n></button>
+            </behaviour>
+            <behaviour name="process" resource="bookings.selectionResources()" class="cell">
+                <button ng-if="canProcessBookingSelection()" ng-click="validateBookingSelection()"><i18n>rbs.booking.validate</i18n></button>
+                <button ng-if="! canProcessBookingSelection()" disabled class="disabled"><i18n>rbs.booking.validate</i18n></button>
+                <button ng-if="canProcessBookingSelection()" ng-click="refuseBookingSelection()"><i18n>rbs.booking.refuse</i18n></button>
+                <button ng-if="! canProcessBookingSelection()" disabled class="disabled"><i18n>rbs.booking.refuse</i18n></button>
+            </behaviour>
+        </div>
+    </div>
 </section>
