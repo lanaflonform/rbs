@@ -1,6 +1,6 @@
-import { model, notify, http, IModel, Model, Collection, BaseModel, moment, ui,routes, _, $, ng } from "entcore";
+import { routes, ng } from "entcore";
 import * as controllers from './controllers';
-import * as directives from "./directives";
+
 
 for (let controller in controllers) {
     ng.controllers.push(controllers[controller]);

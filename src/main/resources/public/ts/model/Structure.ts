@@ -8,7 +8,7 @@ export class Structure implements Selectable{
     id: string;
     name: string;
     expanded: boolean = false;
-    resourceTypes: ResourceTypes = new ResourceTypes();
+    resourceTypes: ResourceTypes = new  ResourceTypes();
 
     selected:boolean = false;
 
@@ -17,11 +17,11 @@ export class Structure implements Selectable{
         if(name) this.name=name;
     }
     setPreference(preference,type?:boolean,resource?:boolean){
-        let state = _.findWhere(preference, {id : this.id});
+        let state = _.findWhere(preference.treeState, {id : this.id});
         if(!state || state.length == 0) return;
         this.expanded = !!state.expanded ;
         this.selected = !!state.selected ;
-        if(type ) this.resourceTypes.all.map((type)=> type.setPreference(state.type,resource));
+        if(type ) this.resourceTypes.all.map((type)=> type.setPreference(state.resourceTypes,resource));
         return state;
     }
 }

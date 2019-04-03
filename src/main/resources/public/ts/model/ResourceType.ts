@@ -1,9 +1,9 @@
-import {model, Rights, _} from 'entcore';
+import {model, Rights, _, Shareable, Model, Behaviours} from 'entcore';
 import { Selectable, Mix, Selection } from 'entcore-toolkit';
 import http from 'axios';
-import {Resources, Structure} from './'
+import {Resource, Resources, Structure} from './'
 
-export class ResourceType implements Selectable{
+export class ResourceType implements Selectable, Shareable{
     id: number;
 
     expanded: boolean;
@@ -21,18 +21,26 @@ export class ResourceType implements Selectable{
     created:string|Date;
     modified:string|Date;
 
-    myRights: Rights<ResourceType>;
+    rights: any;
     selected:boolean;
     shared;
     owner;
-    constructor () {
+    constructor (resourceType?) {
+        this.rights = new Rights(this);
+        this.rights.fromBehaviours();
+        if (resourceType) {
+            Mix.extend(this, resourceType);
+        }
     }
+    get myRights() {
+        return this.rights.myRights;
+    };
     setPreference(preferenceType, resources?:boolean){
         let state = _.findWhere(preferenceType, {id : this.id});
         if(!state || state.length == 0) return;
         this.expanded = !!state.expanded ;
         this.selected = !!state.selected;
-        if(resources) this.resources.all.map((resource)=>resource.setPreference(state.resources));
+        if(resources) this.resources.all.map((resource)=> resource.setPreference(state.resources));
         return state;
     }
 }
@@ -45,20 +53,20 @@ export class ResourceTypes  extends Selection<ResourceType> {
     async sync (resources?:Resources) {
         try{
             let { data } = await http.get('/rbs/types'); // fixme rrah
-            this.all = Mix.castArrayAs(ResourceType, data);
+
 
             if(!resources) {
                 let resources = new Resources();
             }
             let groupedResources = _.groupBy(resources.all, 'type_id');
-            this.all.map((resourceType)=>{
+            data.map((resourceType)=>{
+
                 resourceType.resources = new Resources();
                 resourceType.resources.all = groupedResources[resourceType.id];
+                this.all.push(Behaviours.applicationsBehaviours.rbs.resource(new ResourceType(resourceType)));
             })
         }catch (e) {
 
         }
     }
-
-
 }

@@ -1,19 +1,20 @@
 import { Mix, Selectable, Selection} from "entcore-toolkit";
-import {_} from 'entcore';
-import {Bookings} from "./index";
+import {_, Rights} from 'entcore';
+import {Bookings, ResourceType} from "./index";
 import http from "axios";
 
 export class Resource implements Selectable {
-    selected : boolean ;
     id:number;
     bookings: Bookings;
     type;
 
+    selected:boolean;
+
     constructor () {
 
     }
-    setPreference(preferenceRsource){
-        let state = _.findWhere(preferenceRsource, {id : this.id});
+    setPreference(preferenceResource){
+        let state = _.findWhere(preferenceResource, {id : this.id});
         if(!state || state.length == 0) return;
         this.selected = !!state.selected;
         return state;

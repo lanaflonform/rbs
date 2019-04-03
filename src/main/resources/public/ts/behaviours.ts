@@ -1,7 +1,8 @@
 import { Behaviours, model, _ } from 'entcore';
-import {Booking, Resource} from "./model";
-
-let rbsBehaviours = {
+import http from "axios";
+import {Resources, ResourceType} from "./model";
+console.log('i"m in behaviours');
+const rbsBehaviours = {
 	resources: {
 		contrib: {
 			right: 'net-atos-entng-rbs-controllers-BookingController|createBooking'
@@ -24,44 +25,52 @@ let rbsBehaviours = {
 
 Behaviours.register('rbs', {
 	behaviours: rbsBehaviours,
-	resourceRights: function(resource){
-		let rightsContainer = resource;
-		if(resource instanceof Resource && resource.type){
-			rightsContainer = resource.type;
-		}
-		if(resource instanceof Booking && resource.resource && resource.resource.type){
-			rightsContainer = resource.resource.type;
-		}
-		
-		if(!resource.myRights){
-			resource.myRights = {};
-		}
+    resource: function(resource){
+        console.log('resource'+resource);
+        if (resource) {
+            if (!resource.myRights) {
+                resource.myRights = {};
+            }
+            // ADML permission check
+            let isAdmlForResource = model.me.functions.ADMIN_LOCAL && _.find(model.me.functions.ADMIN_LOCAL.scope, function (structure_id) {
+                return structure_id === resource.school_id;
+            });
 
-		// ADML permission check
-		var isAdmlForResource = model.me.functions.ADMIN_LOCAL && _.find(model.me.functions.ADMIN_LOCAL.scope, function(structure_id) {
-			return structure_id === rightsContainer.school_id;
-		});
-
-		for(var behaviour in rbsBehaviours.resources) {
-			if(model.me.userId === resource.owner || model.me.userId === rightsContainer.owner || isAdmlForResource || model.me.hasRight(rightsContainer, rbsBehaviours.resources[behaviour])){
-				if(resource.myRights[behaviour] !== undefined){
-					resource.myRights[behaviour] = resource.myRights[behaviour] && rbsBehaviours.resources[behaviour];
-				}
-				else{
-					resource.myRights[behaviour] = rbsBehaviours.resources[behaviour];
-				}
-			}
-		}
+            for (var behaviour in rbsBehaviours.resources) {
+                if (model.me.userId === resource.owner || isAdmlForResource || model.me.hasRight(resource, rbsBehaviours.resources[behaviour])) {
+                    if (resource.myRights[behaviour] !== undefined) {
+                        resource.myRights[behaviour] = resource.myRights[behaviour] && rbsBehaviours.resources[behaviour];
+                    }
+                    else {
+                        resource.myRights[behaviour] = rbsBehaviours.resources[behaviour];
+                    }
+                }
+            }
+            console.log(resource);
+        }
 		return resource;
 	},
-	workflow: function(){
-		let workflow = { };
-		let rbsWorkflow = rbsBehaviours.workflow;
-		for(let prop in rbsWorkflow){
+    resourceRights: function(){
+        return [ 'contrib', 'process', 'manage', 'share'];
+    },
+    workflow: function(){
+		var workflow = {};
+		var rbsWorkflow = rbsBehaviours.workflow;
+		for(var prop in rbsWorkflow){
 			if(model.me.hasWorkflow(rbsWorkflow[prop])){
 				workflow[prop] = true;
 			}
 		}
 		return workflow;
-	}
+	},
+    loadResources: async function (callback) {
+        let { data } = await http.get('/rbs/types');
+        this.resources = data.map((resT) => {
+            return {
+                name: resT.name
+            };
+        });
+        return this.resources;
+    }
+
 });

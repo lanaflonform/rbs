@@ -5,7 +5,7 @@ import {_} from "entcore";
 
 
 export class Preference {
-
+    treeState : Array<object>;
     constructor() {
     }
 
@@ -19,24 +19,25 @@ export class Preference {
     }
 
     toJson(structures){
-        return  _.map(structures.all,(struct) =>{
-            return {
-                id: struct.id,
-                expanded: struct.expanded === true,
-                selected: struct.selected === true,
-                types: _.map(struct.resourceTypes.all, (type) => {
-                    return {
-                        id: type.id,
-                        expanded: type.expanded === true,
-                        resources: _.map(type.resources.all,(resource)=> {
-                            return {
-                                id: resource.id,
-                                selected: resource.selected === true,
-                            };
-                        })
-                    };
-                })
-            };
-        });
+        return {treeState: _.map(structures.all, (struct) => {
+                return {
+                    id: struct.id,
+                    expanded: struct.expanded,
+                    selected: struct.selected,
+                    resourceTypes: _.map(struct.resourceTypes.all, (type) => {
+                        return {
+                            id: type.id,
+                            expanded: type.expanded,
+                            resources: _.map(type.resources.all, (resource) => {
+                                return {
+                                    id: resource.id,
+                                    selected: resource.selected,
+                                };
+                            })
+                        };
+                    })
+                };
+            })
+        }
     }
 }

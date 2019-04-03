@@ -1,5 +1,5 @@
 import {Eventer, Mix, Selectable, Selection} from "entcore-toolkit";
-import {moment, _, notify, bootstrap, model} from "entcore";
+import {moment, _, notify, bootstrap, model, Rights} from "entcore";
 import http from "axios";
 import {STATE_CREATED, STATE_PARTIAL, STATE_REFUSED, STATE_VALIDATED} from "./constantes/STATE";
 import {Resource, Resources, Slot, Slots, Utils} from './index';
@@ -16,7 +16,7 @@ export class Booking implements Selectable {
     moderator_name: string;
     modified: string;
     occurrences: number | null;
-    owner: string;
+
     owner_name: string;
     parent_booking_id: number;
     periodicity: number |null;
@@ -34,6 +34,7 @@ export class Booking implements Selectable {
     endMoment: Object;
     resource: Resource;
     slots : Slots;
+
     constructor (id?:number) {
         if(id) this.id = id;
         this.beginning = this.startMoment = this.start_date ? moment.utc(this.start_date).tz(moment.tz.guess()) :  moment();
