@@ -21,20 +21,18 @@ export class ResourceType implements Selectable, Shareable{
     created:string|Date;
     modified:string|Date;
 
-    rights: any;
+    myRights: any;
     selected:boolean;
     shared;
     owner;
     constructor (resourceType?) {
-        this.rights = new Rights(this);
-        this.rights.fromBehaviours();
+        this.myRights = new Rights(this);
+        this.myRights.fromBehaviours();
         if (resourceType) {
             Mix.extend(this, resourceType);
         }
     }
-    get myRights() {
-        return this.rights.myRights;
-    };
+
     setPreference(preferenceType, resources?:boolean){
         let state = _.findWhere(preferenceType, {id : this.id});
         if(!state || state.length == 0) return;
@@ -43,6 +41,7 @@ export class ResourceType implements Selectable, Shareable{
         if(resources) this.resources.all.map((resource)=> resource.setPreference(state.resources));
         return state;
     }
+
 }
 
 export class ResourceTypes  extends Selection<ResourceType> {
@@ -52,9 +51,7 @@ export class ResourceTypes  extends Selection<ResourceType> {
     }
     async sync (resources?:Resources) {
         try{
-            let { data } = await http.get('/rbs/types'); // fixme rrah
-
-
+            let { data } = await http.get('/rbs/types');
             if(!resources) {
                 let resources = new Resources();
             }

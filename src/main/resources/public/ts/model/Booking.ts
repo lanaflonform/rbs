@@ -17,6 +17,7 @@ export class Booking implements Selectable {
     modified: string;
     occurrences: number | null;
 
+    owner:any;
     owner_name: string;
     parent_booking_id: number;
     periodicity: number |null;
@@ -28,6 +29,8 @@ export class Booking implements Selectable {
 
     locked:boolean = true;
     periodicEndMoment: Object;
+    isMine:boolean;
+    unProcessed:boolean;
     beginning: Object;
     end: Object;
     startMoment: Object;
@@ -182,12 +185,14 @@ export class Bookings extends Selection<Booking> {
         this.all.map((booking)=>{
             booking.startMoment = moment(booking.start_date, BD_DATE_FORMAT);
             booking.endMoment = moment(booking.end_date, BD_DATE_FORMAT);
+            booking.isMine = booking.owner === model.me.userId;
+            booking.unProcessed = booking.status === STATE_CREATED || booking.status === STATE_PARTIAL;
             if(resources) booking.resource = _.findWhere(resources.all,{id:booking.resource_id});
         });
         this.applyFilters();
     }
 
-    async applyFilters() {
+    applyFilters() {
         this.filtered = this.all;
         this.filtered = _.filter(this.all, (booking) => {
             return ((!this.filters.showParentBooking && booking.parent_booking_id === null) || this.filters.showParentBooking)

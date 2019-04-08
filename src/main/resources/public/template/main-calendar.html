@@ -1,17 +1,3 @@
-<filters>
-	<li ng-class="{ selected: bookings.filters.mine }">
-		<label>
-			<i class="mine" tooltip="rbs.selector.mine"></i>
-			<input type="checkbox" ng-model="mine.selected" ng-change="switchSelectMine()" />
-		</label>
-	</li>
-	<li ng-class="{ selected: bookings.filters.unprocessed }" workflow="rbs.validator">
-		<label>
-			<i class="pending-action" tooltip="rbs.selector.unprocessed"></i>
-			<input type="checkbox" ng-model="selectUnprocessed" ng-change="switchSelectUnprocessed()" />
-		</label>
-	</li>
-</filters>
 
 <div class="row" ng-if="display.create">
 	<calendar
@@ -24,7 +10,8 @@
 		on-create-open="newBookingCalendar(newItem)"
 		on-create-close="closeBooking()"
         show-next-previous-button="true"
-		items="bookings.filtered">
+		items="bookings.filtered"
+        add-filter="calendarFilters">
 	</calendar>
 </div>
 
@@ -38,6 +25,7 @@
 		on-create-open="newBookingCalendar(newItem)"
 		on-create-close="closeBooking()"
         show-next-previous-button="true"
-		items="bookings.filtered">
+		items="bookings.filtered"
+        add-filter="calendarFilters">
 	</calendar>
 </div>

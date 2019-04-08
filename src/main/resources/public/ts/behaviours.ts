@@ -1,7 +1,7 @@
 import { Behaviours, model, _ } from 'entcore';
 import http from "axios";
 import {Resources, ResourceType} from "./model";
-console.log('i"m in behaviours');
+
 const rbsBehaviours = {
 	resources: {
 		contrib: {
@@ -26,7 +26,7 @@ const rbsBehaviours = {
 Behaviours.register('rbs', {
 	behaviours: rbsBehaviours,
     resource: function(resource){
-        console.log('resource'+resource);
+
         if (resource) {
             if (!resource.myRights) {
                 resource.myRights = {};
@@ -46,7 +46,7 @@ Behaviours.register('rbs', {
                     }
                 }
             }
-            console.log(resource);
+
         }
 		return resource;
 	},
@@ -63,14 +63,6 @@ Behaviours.register('rbs', {
 		}
 		return workflow;
 	},
-    loadResources: async function (callback) {
-        let { data } = await http.get('/rbs/types');
-        this.resources = data.map((resT) => {
-            return {
-                name: resT.name
-            };
-        });
-        return this.resources;
-    }
+    loadResources: async function () {  }
 
 });

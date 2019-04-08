@@ -1,4 +1,16 @@
 body.rbs{
   @import 'components/index';
 
+  i.mine {
+    width: 7px !important;
+    display: inline-block;
+    margin-left: -5px;
+  }
+  i.pending-action{
+    width: 7px !important;
+    display: inline-block;
+    margin-left: -4px;
+    padding-left: 1px;
+  }
+
 }

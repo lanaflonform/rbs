@@ -56,7 +56,7 @@ export const rbsController = ng.controller('RbsController', [
         $scope.selectedBooking = new Bookings();
         $scope.editedBooking = new Bookings();
         $scope.selectedStructure = new Structure();
-
+        $scope.calendarFilters = [{icon:"mine",filter:"isMine"},{icon:"pending-action",filter:"unProcessed"}];
 
         route({
             main: async function() {
@@ -116,112 +116,6 @@ export const rbsController = ng.controller('RbsController', [
             return booking.resource.myRights.process || booking.resource.myRights.manage || booking.owner === model.me.userId;
         };
 
-        // Initialization
-        $scope.initResources = function() {
-            var remanentBookingId =
-                $scope.selectedBooking !== undefined
-                    ? $scope.selectedBooking.id
-                    : undefined;
-            var remanentBooking = undefined;
-            // Restore previous selections
-            model.recordedSelections.restore(
-                function(resourceType) {
-                    $scope.currentResourceType = resourceType;
-                },
-                function(resource) {
-                    resource.bookings.sync(function() {
-                        if (remanentBookingId !== undefined) {
-                            remanentBooking = resource.bookings.find(function(booking) {
-                                return booking.id === remanentBookingId;
-                            });
-                            if (remanentBooking !== undefined) {
-                                $scope.viewBooking(remanentBooking);
-                            }
-                        }
-                    });
-                }
-            );
-            model.recordedSelections.allResources = false;
-        };
-
-
-
-
-
-        // $scope.initStructuresManage = function(selected, currentResourceType) {
-        //     var thisResourceType = {};
-        //     for (var i = 0; i < $scope.structures.length; i++) {
-        //         var structureWithTypes = new Structure();
-        //         structureWithTypes.id = $scope.structures[i].id;
-        //         structureWithTypes.expanded = true;
-        //         structureWithTypes.selected = selected;
-        //         structureWithTypes.name = $scope.structures[i].name;
-        //         $scope.resourceTypes.forEach(function(resourceType) {
-        //             if (resourceType.school_id === $scope.structures[i].id) {
-        //                 structureWithTypes.resourceTypes.push(resourceType);
-        //             }
-        //             if (currentResourceType && resourceType.id === currentResourceType.id) {
-        //                 thisResourceType = resourceType;
-        //             }
-        //         });
-        //         $scope.structuresWithTypes[i] = structureWithTypes;
-        //     }
-        //     $scope.structuresWithTypes= _.sortBy( $scope.structuresWithTypes, 'name');
-        //     if (currentResourceType) {
-        //         $scope.selectResourceType(thisResourceType);
-        //     } else {
-        //         $scope.setSelectedStructureForCreation($scope.structuresWithTypes[0]);
-        //     }
-        //
-        // };
-
-
-        $scope.initResourcesRouted = function(bookingId, cb) {
-            var found = false;
-            var actions = 0;
-            var routedBooking = undefined;
-            var countTotalTypes = $scope.resourceTypes.length();
-            $scope.resourceTypes.forEach(function(resourceType) {
-                countTotalTypes--; // premier
-                var countTotalResources = resourceType.resources.length();
-                actions = actions + resourceType.resources.size();
-                resourceType.resources.forEach(function(resource) {
-                    countTotalResources--;
-                    resource.bookings.sync(function() {
-                        if (routedBooking !== undefined || found) {
-                            return;
-                        }
-                        routedBooking = resource.bookings.find(function(booking) {
-                            return booking.id == bookingId;
-                        });
-                        if (routedBooking !== undefined) {
-                            $scope.bookings.pushAll(routedBooking.resource.bookings.all);
-                            routedBooking.resource.type.expanded = true;
-                            routedBooking.resource.selected = true;
-                            $scope.viewBooking(routedBooking);
-                            $scope.display.routed = undefined;
-                            model.recordedSelections.firstResourceType = undefined;
-                            found = true;
-                        }
-                        if (
-                            countTotalTypes == 0 &&
-                            countTotalResources == 0 &&
-                            typeof cb === 'function'
-                        ) {
-                            if (!found) {
-                                // error
-                                console.log('Booking not found (id: ' + bookingId + ')');
-                                notify.error('rbs.route.booking.not.found');
-                                $scope.display.routed = undefined;
-                                $scope.initResources();
-                            }
-                            cb();
-                        }
-                    });
-                });
-            });
-        };
-
         // Navigation
         $scope.showList = function(refresh) {
             if (refresh === true) {
@@ -266,14 +160,14 @@ export const rbsController = ng.controller('RbsController', [
             template.open('resources', 'manage-resources');
         };
 
-        $scope.initMain = function() {
-            //fixme Why model.recordedSelections.firstResourceType = true;
-            model.recordedSelections.allResources = true;
-            $scope.currentResourceType = undefined;
-            $scope.resetSort();
-            model.refresh($scope.display.list);
-            template.open('main', 'main-view');
-        };
+        // $scope.initMain = function() {
+        //     //fixme Why model.recordedSelections.firstResourceType = true;
+        //     model.recordedSelections.allResources = true;
+        //     $scope.currentResourceType = undefined;
+        //     $scope.resetSort();
+        //     model.refresh($scope.display.list);
+        //     template.open('main', 'main-view');
+        // };
 
         // Main view interaction
         $scope.expandResourceType = function(resourceType) {

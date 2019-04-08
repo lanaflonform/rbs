@@ -46,15 +46,17 @@ export class Structures  extends Selection<Structure> {
         this.updateSelected()
     }
     mappedStructures(resourceTypes, preference) {
+        let resourceType;
+        let types = _.clone(resourceTypes) ;
         this.all.map((structure)=> {
-            let resourceType = _.filter(resourceTypes.all,{school_id: structure.id });
+            resourceType = _.filter(types.all,{school_id: structure.id });
             if(resourceType){
                 structure.resourceTypes.all= resourceType;
-                resourceTypes.all = _.difference(resourceTypes.all, resourceType)
+                types.all = _.difference(types.all, resourceType)
             }
             structure.setPreference(preference, true, true);
         });
-        return resourceTypes
+        return types
     }
     mappedDetachedStructure(resourceTypes,preference ){
         let structure = Mix.castAs(Structure, DETACHED_STRUCTURE);
