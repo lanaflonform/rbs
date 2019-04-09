@@ -5,8 +5,24 @@ import http from "axios";
 
 export class Resource implements Selectable {
     id:number;
-    bookings: Bookings;
-    type;
+    color: string;
+    description: string;
+    icon: null|any ;
+    is_available: boolean;
+    max_delay: null | number;
+    min_delay: null | number;
+    name: string;
+    periodic_booking: boolean;
+    validation: boolean;
+    visibility: null |boolean;
+
+    resourceType: ResourceType;
+    type_id: number;
+
+    created: string|Date;
+    modified: string|Date;
+    owner:any;
+    shared: any;
 
     selected:boolean;
 

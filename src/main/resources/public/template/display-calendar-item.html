@@ -1,24 +1,24 @@
 <div class="schedule-item-content" ng-style="(item.resource.color != null) && {'background-color': '[[item.resource.color]]'} || {'background-color': '[[item.color]]'}">
 
-	<i ng-if="item.isPending()" ng-click="viewBooking(item)" class="pending-status"></i>
-	<i ng-if="item.isValidated()" ng-click="viewBooking(item)" class="validated-status"></i>
-	<i ng-if="item.isRefused()" ng-click="viewBooking(item)" class="refused-status"></i>
-	<i ng-if="item.isSuspended()" ng-click="viewBooking(item)" class="suspended-status"></i>
+	<i ng-if="item.data.isPending()" ng-click="viewBooking(item.data)" class="pending-status"></i>
+	<i ng-if="item.data.isValidated()" ng-click="viewBooking(item.data)" class="validated-status"></i>
+	<i ng-if="item.data.isRefused()" ng-click="viewBooking(item.data)" class="refused-status"></i>
+	<i ng-if="item.data.isSuspended()" ng-click="viewBooking(item.data)" class="suspended-status"></i>
 
 
-	<i ng-if="item.isSlot()" ng-click="viewBooking(item)" class="periodic-status"></i>
+	<i ng-if="item.data.isOccurence()" ng-click="viewBooking(item.data)" class="periodic-status"></i>
 
 
 
-	<authorize name="process" resource="item" class="cell checkbox" ng-if="canDeleteBookingDateCheck(item.end_date)">
+	<authorize name="process" resource="item.data" class="cell checkbox" ng-if="canDeleteBookingDateCheck(item.end_date)">
 
-		<input type="checkbox" ng-model="item.selected" ng-if="item.owner === me.userId || item.isPending() || item.myRights.process !== undefined" />
+		<input type="checkbox" ng-model="item.selected" ng-if="item.owner === me.userId || item.data.isPending() || item.myRights.process !== undefined" />
 	</authorize>
 
-	<div class="cell twelve" ng-click="viewBooking(item)">
+	<div class="cell twelve" ng-click="viewBooking(item.data)">
 		[[item.resource.name]]
 	</div>
-	<div class="cell twelve" ng-click="viewBooking(item)">
+	<div class="cell twelve" ng-click="viewBooking(item.data)">
 		[[item.owner_name]]
 	</div>
 </div>

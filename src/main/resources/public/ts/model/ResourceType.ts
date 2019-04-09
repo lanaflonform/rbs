@@ -17,7 +17,7 @@ export class ResourceType implements Selectable, Shareable{
     structure: Structure;
     validation: boolean;
     visibility: boolean |null ;
-
+    moderators:object;
     created:string|Date;
     modified:string|Date;
 
@@ -27,8 +27,8 @@ export class ResourceType implements Selectable, Shareable{
     owner;
     constructor (resourceType?) {
         this.myRights = new Rights(this);
-        this.myRights.fromBehaviours();
         if (resourceType) {
+            this.myRights.fromBehaviours();
             Mix.extend(this, resourceType);
         }
     }
@@ -41,6 +41,10 @@ export class ResourceType implements Selectable, Shareable{
         if(resources) this.resources.all.map((resource)=> resource.setPreference(state.resources));
         return state;
     }
+    async getModerators() {
+        let {data} =await http.get('/rbs/type/' + this.id + '/moderators');
+        this.moderators = data;
+    };
 
 }
 
