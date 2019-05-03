@@ -28,6 +28,8 @@ export class Booking implements Selectable {
     status: number | null;
     booking_reason: string;
 
+    resourceType?: ResourceType;
+
     locked: boolean = true;
     periodicEndMoment: Object;
     isMine: boolean;

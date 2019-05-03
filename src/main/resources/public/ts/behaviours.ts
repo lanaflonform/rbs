@@ -25,12 +25,13 @@ const rbsBehaviours = {
 
 Behaviours.register('rbs', {
 	behaviours: rbsBehaviours,
-    resource: function(resource){
+    resource:async function(resource){
 
         if (resource) {
             if (!resource.myRights) {
                 resource.myRights = {};
             }
+
             // ADML permission check
             let isAdmlForResource = model.me.functions.ADMIN_LOCAL && _.find(model.me.functions.ADMIN_LOCAL.scope, function (structure_id) {
                 return structure_id === resource.school_id;

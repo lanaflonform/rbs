@@ -1,5 +1,5 @@
 import { Mix, Selectable, Selection} from "entcore-toolkit";
-import {_, Rights} from 'entcore';
+import {_, Behaviours, Rights} from 'entcore';
 import {Bookings, ResourceType} from "./index";
 import http from "axios";
 
@@ -24,9 +24,11 @@ export class Resource implements Selectable {
     owner:any;
     shared: any;
 
+    myRights: any;
     selected:boolean;
 
-    constructor () {
+
+    constructor (resource?) {
 
     }
     setPreference(preferenceResource){
@@ -35,6 +37,13 @@ export class Resource implements Selectable {
         this.selected = !!state.selected;
         return state;
     }
+    isBookable(periodic){
+        return this.is_available === true
+            && this.myRights !== undefined
+            && this.myRights.contrib !== undefined
+            && (!periodic || this.periodic_booking);
+    };
+
 }
 
 export class Resources extends Selection<Resource> {
@@ -44,6 +53,13 @@ export class Resources extends Selection<Resource> {
     async sync() {
         let  {data} = await http.get('/rbs/resources');
         this.all = Mix.castArrayAs(Resource, data);
+        await this.all.map((resource)=>{
+             Behaviours.applicationsBehaviours.rbs.resource(resource)
+        })
+    }
+
+    filterAvailable(periodic) {
+        return _.filter(this.all, (resource)=> resource.isBookable(periodic));
     }
 
 }

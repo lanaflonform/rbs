@@ -26,10 +26,10 @@ export class ResourceType implements Selectable, Shareable{
     shared;
     owner;
     constructor (resourceType?) {
-        this.myRights = new Rights(this);
         if (resourceType) {
-            this.myRights.fromBehaviours();
             Mix.extend(this, resourceType);
+            this.myRights = new Rights(this);
+            this.myRights.fromBehaviours();
         }
     }
 
@@ -60,11 +60,11 @@ export class ResourceTypes  extends Selection<ResourceType> {
                 let resources = new Resources();
             }
             let groupedResources = _.groupBy(resources.all, 'type_id');
-            data.map((resourceType)=>{
-
+            this.all = Mix.castArrayAs(ResourceType, data);
+            await this.all.map((resourceType)=>{
                 resourceType.resources = new Resources();
                 resourceType.resources.all = groupedResources[resourceType.id];
-                this.all.push(Behaviours.applicationsBehaviours.rbs.resource(new ResourceType(resourceType)));
+                Behaviours.applicationsBehaviours.rbs.resource(resourceType);
             })
         }catch (e) {
 

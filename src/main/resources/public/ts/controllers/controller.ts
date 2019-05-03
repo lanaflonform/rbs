@@ -152,8 +152,8 @@ export const rbsController = ng.controller('RbsController', [
         $scope.expandStructureSettings = function(structure) {
             structure.expanded = true;
             structure.selected = false;
-            structure.resou.forEach(function(type) {
-                type.selected = false;
+            structure.resourceTypes.all.forEach(function(resourceType) {
+                resourceType.selected = false;
             });
         };
 
@@ -191,9 +191,9 @@ export const rbsController = ng.controller('RbsController', [
 
         $scope.selectStructure = function(structure) {
             structure.selected = true;
-            structure.resourceTypes.all.forEach(function(type) {
-                type.expanded = true;
-                $scope.selectResources(type);
+            structure.resourceTypes.all.forEach(function(resourceType) {
+                resourceType.expanded = true;
+                $scope.selectResources(resourceType);
             });
         };
 
@@ -207,9 +207,9 @@ export const rbsController = ng.controller('RbsController', [
                 }
             }
             $scope.structure = structure ;
-            let type = $scope.filteredType(structure);
-            if (type.length > 0) {
-                $scope.selectResourceType(type[0]);
+            let resourceType = $scope.filteredType(structure);
+            if (resourceType.length > 0) {
+                $scope.selectResourceType(resourceType[0]);
             } else {
                 $scope.currentResourceType = undefined;
                 template.close('resources');
@@ -218,8 +218,8 @@ export const rbsController = ng.controller('RbsController', [
 
         $scope.selectStructureSettings = function(structure) {
             structure.selected = true;
-            structure.resourceTypes.all.forEach(function(type) {
-                type.selected = true;
+            structure.resourceTypes.all.forEach(function(resourceType) {
+                resourceType.selected = true;
             });
             structure.resourceTypes.updateSelection();
         };
@@ -233,8 +233,8 @@ export const rbsController = ng.controller('RbsController', [
         $scope.deselectStructure = function(structure) {
             structure.selected = false;
             structure.updateSelection();
-            structure.resourceTypes.forEach(function(type) {
-                $scope.deselectResources(type);
+            structure.resourceTypes.forEach(function(resourceType) {
+                $scope.deselectResources(resourceType);
             });
         };
 
@@ -593,7 +593,7 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.initPeriodic();
             }
 
-            $scope.structur = $scope.structures.all[0];
+            $scope.structure = _.clone($scope.structures.all[0]);
             $scope.autoSelectTypeAndResource();
 
             // dates
@@ -605,7 +605,7 @@ export const rbsController = ng.controller('RbsController', [
             $scope.editedBooking.startMoment.seconds(0);
             $scope.editedBooking.endMoment.seconds(0);
             // DEBUG
-            var DEBUG_editedBooking = $scope.editedBooking;
+            let DEBUG_editedBooking = $scope.editedBooking;
             // /DEBUG
             $scope.initBookingDates(
                 $scope.editedBooking.startMoment,
@@ -703,13 +703,13 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.editedBooking.endMoment
             );
 
-            $scope.editedBooking.type = $scope.editedBooking.resource.type;
+            $scope.editedBooking.resourceType = $scope.editedBooking.resource.resourceType;
             if (
-                $scope.editedBooking.type !== undefined &&
-                $scope.editedBooking.type.slotprofile !== undefined
+                $scope.editedBooking.resourceType !== undefined &&
+                $scope.editedBooking.resourceType.slotprofile !== undefined
             ) {
                 $scope.slotProfilesComponent.getSlots(
-                    $scope.editedBooking.type.slotprofile,
+                    $scope.editedBooking.resourceType.slotprofile,
                     function(data) {
                         if (data.slots.length > 0) {
                             $scope.slots = data;
@@ -731,7 +731,7 @@ export const rbsController = ng.controller('RbsController', [
                                 $scope.slotNotFound = true;
                             }
                         } else {
-                            $scope.editedBooking.type.slotprofile = undefined;
+                            $scope.editedBooking.resourceType.slotprofile = undefined;
                         }
                     }
                 );
@@ -763,7 +763,7 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.initPeriodic();
             }
             if (
-                $scope.editedBooking.type === undefined ||
+                $scope.editedBooking.resourceType === undefined ||
                 $scope.editedBooking.resource === undefined ||
                 !$scope.editedBooking.resource.isBookable(true)
             ) {
@@ -832,27 +832,27 @@ export const rbsController = ng.controller('RbsController', [
             $scope.booking.resource = undefined;
             $scope.selectedSlotStart = undefined;
             $scope.selectedSlotEnd = undefined;
-            if ($scope.structur.resou.length > 0) {
-                $scope.editedBooking.type = $scope.structur.resourceTypes[0];
+            if ($scope.structure.resourceTypes.all.length > 0) {
+                $scope.editedBooking.resourceType = $scope.structure.resourceTypes.all[0];
                 $scope.autoSelectResource();
             }
         };
 
         $scope.autoSelectResource = function() {
             $scope.editedBooking.resource =
-                $scope.editedBooking.type === undefined
+                $scope.editedBooking.resourceType === undefined
                     ? undefined
                     : _.first(
-                    $scope.editedBooking.type.resources.filterAvailable(
+                    $scope.editedBooking.resourceType.resources.filterAvailable(
                         $scope.editedBooking.is_periodic
                     )
                     );
             if (
-                $scope.editedBooking.type !== undefined &&
-                $scope.editedBooking.type.slotprofile !== undefined
+                $scope.editedBooking.resourceType !== undefined &&
+                $scope.editedBooking.resourceType.slotprofile !== undefined
             ) {
                 $scope.slotProfilesComponent.getSlots(
-                    $scope.editedBooking.type.slotprofile,
+                    $scope.editedBooking.resourceType.slotprofile,
                     function(data) {
                         if (data.slots.length > 0) {
                             $scope.slots = data;
@@ -878,12 +878,12 @@ export const rbsController = ng.controller('RbsController', [
                                 $scope.selectedSlotEnd.endHour.split(':')[1]
                             );
                         } else {
-                            $scope.editedBooking.type.slotprofile = undefined;
+                            $scope.editedBooking.resourceType.slotprofile = undefined;
                         }
                         $scope.$apply();
                     }
                 );
-            } else if ($scope.editedBooking.type !== undefined && $scope.saveTime) {
+            } else if ($scope.editedBooking.resourceType !== undefined && $scope.saveTime) {
                 $scope.booking.startTime.set('hour',
                     $scope.saveTime.startHour - $scope.getMomentFromDate($scope.booking.startDate, $scope.booking.startTime).format('Z').split(':')[0]);
                 $scope.booking.startTime.set('minute', 0);
@@ -1897,8 +1897,8 @@ export const rbsController = ng.controller('RbsController', [
             }
         };
         $scope.filteredType = function (structure) {
-            return _.filter(structure.resourceTypes, function(type){
-                return $scope.keepProcessableResourceTypes(type)});
+            return _.filter(structure.resourceTypes.all, function(resourceType){
+                return $scope.keepProcessableResourceTypes(resourceType)});
         };
         $scope.createResourceType = function() {
             $scope.display.processing = undefined;
@@ -1915,7 +1915,7 @@ export const rbsController = ng.controller('RbsController', [
             $scope.isCreation = true;
             $scope.display.processing = undefined;
             $scope.editedResource = new Resource();
-            $scope.editedResource.type = $scope.currentResourceType;
+            $scope.editedResource.resourceType = $scope.currentResourceType;
             $scope.editedResource.color = $scope.currentResourceType.color;
             $scope.editedResource.validation = $scope.currentResourceType.validation;
             $scope.editedResource.is_available = true;
@@ -2142,14 +2142,14 @@ export const rbsController = ng.controller('RbsController', [
         // display a warning when editing a resource and changing the resource type (not in creation mode).
         $scope.resourceTypeModified = function() {
             if (
-                $scope.currentResourceType != $scope.editedResource.type &&
+                $scope.currentResourceType != $scope.editedResource.resourceType &&
                 !$scope.isCreation
             ) {
                 notify.info('rbs.type.info.change');
             }
             // update color of color picker only in case of creation
             if ($scope.editedResource.id === undefined) {
-                $scope.editedResource.color = $scope.editedResource.type.color;
+                $scope.editedResource.color = $scope.editedResource.resourceType.color;
             }
         };
 
