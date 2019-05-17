@@ -70,4 +70,11 @@ export class ResourceTypes  extends Selection<ResourceType> {
 
         }
     }
+    initModerators () {
+        if (this.all[0].moderators === undefined) {
+            this.all.forEach(function(resourceType) {
+                resourceType.getModerators();
+            });
+        }
+    };
 }
