@@ -11,11 +11,17 @@ import {
     ResourceTypes,
     Bookings,
     Utils,
-    Notification, Preference, Resources, SlotProfiles
+    Notification,
+    Preference,
+    Resources,
+    SlotProfiles,
 } from "../model";
 import {
+    PERIODS,
+    LAST_DEFAULT_COLOR,
+    DETACHED_STRUCTURE,
     DISPLAY_BOOKING_MANAGE,
-    PERIODS, TIME_CONFIG
+    TIME_CONFIG,
 } from "../model/constantes";
 
 
@@ -52,7 +58,7 @@ export const rbsController = ng.controller('RbsController', [
         $scope.structures = new Structures();
         $scope.slotProfilesComponent = new SlotProfile();
         $scope.notificationsComponent = new Notification();
-
+        $scope.sharedStructure = DETACHED_STRUCTURE;
         route({
             main: async function() {
                 await Promise.all([
@@ -124,7 +130,10 @@ export const rbsController = ng.controller('RbsController', [
             if (processableResourceTypes && processableResourceTypes.length > 0) {
                 $scope.currentResourceType = processableResourceTypes[0];
             }
+            /*
+            function is delete in controller
             $scope.initStructuresManage(false);
+             */
             template.open('main', 'manage-view');
             template.open('resources', 'manage-resources');
         };
@@ -1876,17 +1885,17 @@ export const rbsController = ng.controller('RbsController', [
             }
         };
         $scope.filteredType = function (structure) {
-            return _.filter(structure.resourceTypes.all, function(resourceType){
+            return _.filter(structure.types, function(resourceType){
                 return $scope.keepProcessableResourceTypes(resourceType)});
         };
-        $scope.createResourceType = function() {
+        $scope.createResourceType = () => {
             $scope.display.processing = undefined;
             $scope.editedResourceType = new ResourceType();
             $scope.editedResourceType.validation = false;
-            $scope.editedResourceType.color = $scope.getNextColor();
+            $scope.editedResourceType.color = LAST_DEFAULT_COLOR;
             $scope.editedResourceType.structure = $scope.structur;
             $scope.editedResourceType.slotprofile = null;
-            $scope.updateSlotProfileField($scope.structur);
+            $scope.updateSlotProfileField($scope.structure);
             template.open('resources', 'edit-resource-type');
         };
 

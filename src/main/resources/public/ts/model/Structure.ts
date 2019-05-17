@@ -1,7 +1,7 @@
 import {_, model} from 'entcore';
 import {Mix, Selectable, Selection} from 'entcore-toolkit';
-import {Preference, Resources, ResourceTypes} from './index'
-import {DETACHED_STRUCTURE} from "./constantes/index";
+import {Preference, Resources, ResourceTypes} from './'
+import {DETACHED_STRUCTURE} from "./constantes/";
 
 
 export class Structure implements Selectable{
@@ -9,7 +9,6 @@ export class Structure implements Selectable{
     name: string;
     expanded: boolean = false;
     resourceTypes: ResourceTypes = new  ResourceTypes();
-
     selected:boolean = false;
 
     constructor(id?, name?){
@@ -27,7 +26,6 @@ export class Structure implements Selectable{
 }
 
 export class Structures  extends Selection<Structure> {
-
     constructor() {
         super([]);
     }
@@ -42,13 +40,13 @@ export class Structures  extends Selection<Structure> {
         if(!preference) await preference.sync();
 
         let detachedType = this.mappedStructures(resourceTypes, preference);
-        if(detachedType.all.length!==0  ) this.mappedDetachedStructure(detachedType ,preference) ;
-        this.updateSelected()
+        if(detachedType.all.length!==0  ) this.mappedDetachedStructure(detachedType ,preference);
+        this.updateSelected();
     }
     mappedStructures(resourceTypes, preference) {
         let resourceType;
-        let types = _.clone(resourceTypes) ;
-        this.all.map((structure)=> {
+        let types = _.clone(resourceTypes);
+        this.all.map(structure => {
             resourceType = _.filter(types.all,{school_id: structure.id });
             if(resourceType){
                 structure.resourceTypes.all= resourceType;
@@ -76,16 +74,15 @@ export class Structures  extends Selection<Structure> {
         if (withDetachedStruct) structures.push(Mix.castAs(Structure, DETACHED_STRUCTURE));
         return structures
     }
-    // $scope.getSharedResources = function (state) {
-    //     let sharedStructure = model.DETACHED_STRUCTURE;
-    //     var structureState = state.find(function(struct) { return struct.id === $scope.sharedStructure.id });
-    //     $scope.sharedStructure.expanded = structureState ? structureState.expanded : false;
-    //     $scope.sharedStructure.selected = structureState ? structureState.selected : false;
-    //     $scope.sharedStructure.types = [];
-    //     $scope.resourceTypes.all.forEach(function (resource) {
-    //         var find = _.findWhere( $scope.structures,{id: resource.school_id });
+    // getSharedResources(resourceTypes) {
+    //     let structureState = this.all.find(struct => struct.id === this.sharedStructure.id );
+    //     this.sharedStructure.expanded = structureState ? structureState.expanded : false;
+    //     this.sharedStructure.selected = structureState ? structureState.selected : false;
+    //     this.sharedStructure.types = [];
+    //     resourceTypes.all.forEach( resource => {
+    //         let find = _.findWhere( this ,{id: resource.school_id });
     //         if(!find) {
-    //             $scope.sharedStructure.types.push(resource);
+    //             this.sharedStructure.types.push(resource);
     //         }
     //     });
     // };

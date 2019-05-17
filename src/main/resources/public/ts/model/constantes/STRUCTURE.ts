@@ -1,2 +1,8 @@
 
-export var DETACHED_STRUCTURE = {id : 'DETACHED', name : 'rbs.structure.detached'};
+export const DETACHED_STRUCTURE = {
+    id : 'DETACHED',
+    name : 'rbs.structure.detached',
+    expanded: false,
+    selected: false,
+    types: [],
+};

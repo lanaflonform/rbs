@@ -15,15 +15,12 @@ export class Resource implements Selectable {
     periodic_booking: boolean;
     validation: boolean;
     visibility: null |boolean;
-
     resourceType: ResourceType;
     type_id: number;
-
     created: string|Date;
     modified: string|Date;
     owner:any;
     shared: any;
-
     myRights: any;
     selected:boolean;
 

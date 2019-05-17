@@ -5,7 +5,6 @@ import {Resource, Resources, Structure} from './'
 
 export class ResourceType implements Selectable, Shareable{
     id: number;
-
     expanded: boolean;
     extendcolor: boolean;
     color:string;
@@ -20,7 +19,6 @@ export class ResourceType implements Selectable, Shareable{
     moderators:object;
     created:string|Date;
     modified:string|Date;
-
     myRights: any;
     selected:boolean;
     shared;
@@ -66,10 +64,14 @@ export class ResourceTypes  extends Selection<ResourceType> {
                 resourceType.resources.all = groupedResources[resourceType.id];
                 Behaviours.applicationsBehaviours.rbs.resource(resourceType);
             })
-        }catch (e) {
+        } catch (e) {
 
         }
     }
+
+    deselectAllResources () {
+       this.all.forEach( resourceType => resourceType.resources.deselectAll());
+     }
     initModerators () {
         if (this.all[0].moderators === undefined) {
             this.all.forEach(function(resourceType) {
