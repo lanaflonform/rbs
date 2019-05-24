@@ -1,4 +1,4 @@
-import {model, Rights, _, Shareable, Model, Behaviours} from 'entcore';
+import {model, Rights, _, Shareable, Model, Behaviours, notify} from 'entcore';
 import { Selectable, Mix, Selection } from 'entcore-toolkit';
 import http from 'axios';
 import {Resource, Resources, Structure} from './'
@@ -31,6 +31,19 @@ export class ResourceType implements Selectable, Shareable{
         }
     }
 
+    async create() {
+        try {
+            let { data } = await http.post('/rbs/type', this.toJSON());
+            Mix.extend(this, data);
+        } catch (e) {
+            notify.error('');
+        }
+    }
+
+    toJSON(){
+        return this;
+    }
+
     setPreference(preferenceType, resources?:boolean){
         let state = _.findWhere(preferenceType, {id : this.id});
         if(!state || state.length == 0) return;
@@ -39,6 +52,7 @@ export class ResourceType implements Selectable, Shareable{
         if(resources) this.resources.all.map((resource)=> resource.setPreference(state.resources));
         return state;
     }
+
     async getModerators() {
         let {data} =await http.get('/rbs/type/' + this.id + '/moderators');
         this.moderators = data;
@@ -51,6 +65,7 @@ export class ResourceTypes  extends Selection<ResourceType> {
     constructor () {
         super([]);
     }
+
     async sync (resources?:Resources) {
         try{
             let { data } = await http.get('/rbs/types');

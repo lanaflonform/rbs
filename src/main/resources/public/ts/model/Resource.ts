@@ -40,7 +40,6 @@ export class Resource implements Selectable {
             && this.myRights.contrib !== undefined
             && (!periodic || this.periodic_booking);
     };
-
 }
 
 export class Resources extends Selection<Resource> {

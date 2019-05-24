@@ -60,6 +60,7 @@ export const rbsController = ng.controller('RbsController', [
         $scope.slotProfilesComponent = new SlotProfile();
         $scope.notificationsComponent = new Notification();
         $scope.sharedStructure = DETACHED_STRUCTURE;
+        $scope.structure = new Structure();
         route({
             main: async function() {
                 await Promise.all([
@@ -119,7 +120,7 @@ export const rbsController = ng.controller('RbsController', [
         };
 
 
-        $scope.showManage = function() {
+        $scope.showManage = () => {
             $scope.display.list = false;
             $scope.display.admin = true;
             $scope.resourceTypes.deselectAllResources();
@@ -128,6 +129,7 @@ export const rbsController = ng.controller('RbsController', [
                 .filter( resourceType => Utils.keepProcessableResourceTypes(resourceType));
             if (processableResourceTypes && processableResourceTypes.length > 0) {
                 $scope.currentResourceType = processableResourceTypes[0];
+                $scope.structure.selected = true;
             }
             /*
             function is delete in controller
@@ -160,7 +162,7 @@ export const rbsController = ng.controller('RbsController', [
 
         $scope.expandStructureSettings = function(structure) {
             structure.expanded = true;
-            structure.selected = false;
+            structure.selected = true;
             structure.resourceTypes.all.forEach(function(resourceType) {
                 resourceType.selected = false;
             });
@@ -183,8 +185,9 @@ export const rbsController = ng.controller('RbsController', [
             $scope.saveTreeState();
         };
 
-        $scope.collapseStructureSettings = function(structure) {
-            structure.expanded = undefined;
+        $scope.collapseStructureSettings = structure => {
+            structure.expanded = false;
+            structure.selected = false;
             $scope.deselectStructureSettings(structure);
         };
 
@@ -1857,9 +1860,12 @@ export const rbsController = ng.controller('RbsController', [
             if(!$scope.structure){
                 $scope.structure = $scope.sharedStructure;
             }
-            if (oldStructure != $scope.structure) {
-                oldStructure.resourceTypes.forEach( resourceType => resourceType.selected = false);
+            if (oldStructure){
+                if (oldStructure.id !== $scope.structure.id) {
+                    oldStructure.resourceTypes.forEach( resourceType => resourceType.selected = false);
+                }
             }
+
             if ($scope.editedResourceType) {
                 $scope.closeResourceType();
             }

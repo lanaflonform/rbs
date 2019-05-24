@@ -342,41 +342,6 @@
 //   }
 // };
 //
-// Resource.prototype.update = function(cb, cbe) {
-//   var resource = this;
-//   var originalTypeId = this.type_id;
-//   this.type_id = this.type.id;
-//
-//   http().putJson('/rbs/resource/' + this.id, this)
-//     .done(function(){
-//       if(typeof cb === 'function'){
-//         cb();
-//       }
-//     })
-//     .error(function(e){
-//       if(typeof cbe === 'function'){
-//         cbe(model.parseError(e, resource, 'update'));
-//       }
-//     });
-// };
-//
-// Resource.prototype.create = function(cb, cbe) {
-//   var resource = this;
-//   this.was_available = undefined;
-//
-//   http().postJson('/rbs/type/' + this.type.id + '/resource', this)
-//     .done(function(r){
-//       // Update collections
-//       if(typeof cb === 'function'){
-//         cb();
-//       }
-//     })
-//     .error(function(e){
-//       if(typeof cbe === 'function'){
-//         cbe(model.parseError(e, resource, 'create'));
-//       }
-//     });
-// };
 //
 // Resource.prototype.delete = function(cb, cbe) {
 //   var resource = this;
