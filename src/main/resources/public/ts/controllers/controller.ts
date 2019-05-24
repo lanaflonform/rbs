@@ -25,6 +25,7 @@ import {
 } from "../model/constantes";
 
 
+
 export const rbsController = ng.controller('RbsController', [
     "$location",
     "$scope",
@@ -119,14 +120,12 @@ export const rbsController = ng.controller('RbsController', [
 
 
         $scope.showManage = function() {
-            $scope.display.list = undefined;
+            $scope.display.list = false;
             $scope.display.admin = true;
             $scope.resourceTypes.deselectAllResources();
 
-            let processableResourceTypes = _.filter(
-                $scope.resourceTypes.all,
-                $scope.keepProcessableResourceTypes
-            );
+            let processableResourceTypes =  $scope.resourceTypes.all
+                .filter( resourceType => Utils.keepProcessableResourceTypes(resourceType));
             if (processableResourceTypes && processableResourceTypes.length > 0) {
                 $scope.currentResourceType = processableResourceTypes[0];
             }
@@ -199,24 +198,25 @@ export const rbsController = ng.controller('RbsController', [
             $scope.bookings.applyFilters();
         };
 
-        $scope.selectStructure = function(structure) {
+        $scope.selectStructure = structure => {
             structure.selected = true;
-            structure.resourceTypes.all.forEach(function(resourceType) {
+            structure.resourceTypes.all.forEach(resourceType => {
                 resourceType.expanded = true;
                 $scope.selectResources(resourceType);
             });
         };
 
-        $scope.setSelectedStructureForCreation = function(structure) {
+        $scope.setSelectedStructureForCreation = structure => {
             if ($scope.structure) {
-                let oldStructure = $scope.structure;
-                if (oldStructure != structure) {
-                    oldStructure.resourceTypes.forEach(function (resourceType) {
-                        resourceType.selected = undefined;
+                if ($scope.structure != structure) {
+                    $scope.structure.resourceTypes.forEach( resourceType => {
+                        resourceType.selected = false;
                     });
+                    $scope.structure.selected = false;
                 }
             }
             $scope.structure = structure ;
+            $scope.structure.selected = true;
             let resourceType = $scope.filteredType(structure);
             if (resourceType.length > 0) {
                 $scope.selectResourceType(resourceType[0]);
@@ -624,7 +624,7 @@ export const rbsController = ng.controller('RbsController', [
 
             $scope.resourceTypes.initModerators();
 
-            $scope.structur = $scope.structures.all[0];
+            $scope.structure = $scope.structures.all[0];
             $scope.autoSelectTypeAndResource();
 
             // dates
@@ -757,7 +757,7 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.booking.resource === undefined ||
                 !$scope.booking.resource.isBookable(true)
             ) {
-                $scope.structur = $scope.structures.all[0];
+                $scope.structure = $scope.structures.all[0];
                 $scope.autoSelectTypeAndResource();
                 // Warn user ?
             }
@@ -914,7 +914,7 @@ export const rbsController = ng.controller('RbsController', [
         };
 
         $scope.switchStructure = function(struct) {
-            $scope.structur = struct;
+            $scope.structure = struct;
             $scope.autoSelectTypeAndResource();
         };
 
@@ -1848,21 +1848,19 @@ export const rbsController = ng.controller('RbsController', [
         };
 
         // Management view interaction
-        $scope.selectResourceType = function(resourceType) {
+        $scope.selectResourceType = resourceType => {
             $scope.resourceTypes.deselectAllResources();
             $scope.display.selectAllRessources = undefined;
             $scope.currentResourceType = resourceType;
-            let oldStructure = $scope.structur;
-            $scope.structur =  $scope.structures.all.filter(function (struct) { return struct.id === resourceType.school_id}).pop() ;
-            if(!$scope.structur){
-                $scope.structur = $scope.sharedStructure;
+            let oldStructure = $scope.structure;
+            $scope.structure =  $scope.structures.all.filter( struct => struct.id === resourceType.school_id).pop() ;
+            if(!$scope.structure){
+                $scope.structure = $scope.sharedStructure;
             }
-            if (oldStructure != $scope.structur) {
-                oldStructure.resourceTypes.forEach(function(resourceType) {
-                    resourceType.selected = undefined;
-                });
+            if (oldStructure != $scope.structure) {
+                oldStructure.resourceTypes.forEach( resourceType => resourceType.selected = false);
             }
-            if ($scope.editedResourceType !== undefined) {
+            if ($scope.editedResourceType) {
                 $scope.closeResourceType();
             }
 
@@ -1884,16 +1882,21 @@ export const rbsController = ng.controller('RbsController', [
                 resource.expanded = true;
             }
         };
-        $scope.filteredType = function (structure) {
-            return _.filter(structure.types, function(resourceType){
-                return $scope.keepProcessableResourceTypes(resourceType)});
+
+        $scope.filteredType = structure => {
+            if (structure.resourceTypes.all && structure.resourceTypes.all.length !== 0 ){
+                return structure.resourceTypes.all
+                    .filter( resourceType => Utils.keepProcessableResourceTypes(resourceType));
+            }
+            return [];
         };
+
         $scope.createResourceType = () => {
             $scope.display.processing = undefined;
             $scope.editedResourceType = new ResourceType();
             $scope.editedResourceType.validation = false;
             $scope.editedResourceType.color = LAST_DEFAULT_COLOR;
-            $scope.editedResourceType.structure = $scope.structur;
+            $scope.editedResourceType.structure = $scope.structure;
             $scope.editedResourceType.slotprofile = null;
             $scope.updateSlotProfileField($scope.structure);
             template.open('resources', 'edit-resource-type');

@@ -4,5 +4,5 @@ export const DETACHED_STRUCTURE = {
     name : 'rbs.structure.detached',
     expanded: false,
     selected: false,
-    types: [],
+    resourceTypes: [],
 };
