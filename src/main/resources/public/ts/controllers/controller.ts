@@ -85,7 +85,7 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.initialize();
             }
         });
-        $scope.initView =() => {
+        $scope.initView = () => {
             template.open('main', 'main-view');
             template.open('top-menu', 'top-menu');
             template.open('editBookingErrors', 'edit-booking-errors');
@@ -124,13 +124,16 @@ export const rbsController = ng.controller('RbsController', [
             $scope.display.list = false;
             $scope.display.admin = true;
             $scope.resourceTypes.deselectAllResources();
-
             let processableResourceTypes =  $scope.resourceTypes.all
                 .filter( resourceType => Utils.keepProcessableResourceTypes(resourceType));
             if (processableResourceTypes && processableResourceTypes.length > 0) {
                 $scope.currentResourceType = processableResourceTypes[0];
+            }
+            if($scope.structures.all !==0 ){
+                $scope.structure = $scope.structures.all[0];
                 $scope.structure.selected = true;
             }
+
             /*
             function is delete in controller
             $scope.initStructuresManage(false);
@@ -1942,26 +1945,19 @@ export const rbsController = ng.controller('RbsController', [
             $scope.display.showPanel = true;
         };
 
-        $scope.saveResourceType = function() {
+        $scope.saveResourceType = async () => {
             $scope.display.processing = true;
             $scope.currentErrors = [];
             $scope.isManage = true;
-            $scope.editedResourceType.save(
-                function() {
-                    $scope.display.processing = undefined;
-                    $scope.currentResourceType = $scope.editedResourceType;
-                    $scope.closeResourceType();
-                    $scope.refreshRessourceType();
-                },
-                function(e) {
-                    $scope.currentErrors.push(e);
-                    $scope.display.processing = undefined;
-                    $scope.$apply();
-                }
-            );
+            await $scope.editedResourceType.save($scope.structure.id);
+            $scope.display.processing = false;
+            $scope.currentResourceType = $scope.editedResourceType;
+            $scope.closeResourceType();
+            await $scope.resourceTypes.sync($scope.resources);
+            $scope.$apply();
         };
 
-        $scope.saveResource = function() {
+        $scope.saveResource = async () => {
             $scope.display.processing = true;
             $scope.isManage = true;
             if ($scope.editedResource.is_available === 'true') {
@@ -1969,7 +1965,6 @@ export const rbsController = ng.controller('RbsController', [
             } else if ($scope.editedResource.is_available === 'false') {
                 $scope.editedResource.is_available = false;
             }
-
             $scope.currentErrors = [];
             $scope.editedResource.save(
                 function() {

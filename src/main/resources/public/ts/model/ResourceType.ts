@@ -31,12 +31,22 @@ export class ResourceType implements Selectable, Shareable{
         }
     }
 
-    async create() {
+    save(structureId) {
+      if(this.id) {
+        //this.update();
+      }
+      else {
+        this.create(structureId);
+      }
+    };
+
+    async create(structureId) {
         try {
+            this.school_id = structureId;
             let { data } = await http.post('/rbs/type', this.toJSON());
-            Mix.extend(this, data);
+            this.id =  data.id;
         } catch (e) {
-            notify.error('');
+            notify.error('Function create type failed');
         }
     }
 
