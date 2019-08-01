@@ -524,7 +524,7 @@ export const rbsController = ng.controller('RbsController', [
                 ' ' +
                 lang.translate('rbs.booking.details.header.at') +
                 ' ' +
-                time.format('HH[h]mm')
+                moment(time).format('HH[h]mm')
             );
         };
 
@@ -623,10 +623,15 @@ export const rbsController = ng.controller('RbsController', [
             );
 
         };
-        $scope.newBookingCalendar = function() {
+        $scope.newBookingCalendar = function(timeSlot) {
             $scope.display.processing = undefined;
             $scope.booking = new Booking();
             $scope.booking.display = DISPLAY_BOOKING_MANAGE;
+            if (timeSlot) {
+                const { beginning, end } = timeSlot;
+                $scope.booking.startTime = beginning.toDate();
+                $scope.booking.endTime = end.toDate();
+            }
 
             $scope.resourceTypes.initModerators();
 
@@ -635,7 +640,7 @@ export const rbsController = ng.controller('RbsController', [
 
             // dates
             if (model.calendar.newItem !== undefined) {
-                $scope.booking.startMoment = $scope.calendar.newItem.beginning;
+                $scope.booking.startMoment = model.calendar.newItem.beginning;
                 $scope.booking.startMoment.minutes(0);
                 $scope.booking.endMoment = model.calendar.newItem.end;
                 $scope.booking.endMoment.minutes(0);
@@ -835,6 +840,10 @@ export const rbsController = ng.controller('RbsController', [
         };
 
         $scope.autoSelectResource = async function() {
+            $scope.initBookingDates(
+                $scope.booking.startMoment,
+                $scope.booking.endMoment
+            );
             $scope.booking.resource =
                 $scope.booking.resourceType === undefined
                     ? undefined
@@ -885,6 +894,7 @@ export const rbsController = ng.controller('RbsController', [
                     $scope.saveTime.endHour - $scope.getMomentFromDate($scope.booking.startDate, $scope.booking.startTime).format('Z').split(':')[0]);
                 $scope.booking.endTime.set('minute', 0);
             }
+            $scope.$apply();
         };
         $scope.getMomentFromDate = function (date,time) {
             return  moment([
@@ -1237,16 +1247,21 @@ export const rbsController = ng.controller('RbsController', [
 
         $scope.checkSaveBooking = function() {
             let hasErrors = false;
+            let today = moment().startOf('day');
+            $scope.initBookingDates(
+                $scope.booking.startMoment,
+                $scope.booking.endMoment
+            );
             if (
-                $scope.booking.startDate.getFullYear() < $scope.today.year() ||
-                ($scope.booking.startDate.getFullYear() == $scope.today.year() &&
-                    $scope.booking.startDate.getMonth() < $scope.today.month()) ||
-                ($scope.booking.startDate.getFullYear() == $scope.today.year() &&
-                    $scope.booking.startDate.getMonth() == $scope.today.month() &&
-                    $scope.booking.startDate.getDate() < $scope.today.date()) ||
-                ($scope.booking.startDate.getFullYear() == $scope.today.year() &&
-                    $scope.booking.startDate.getMonth() == $scope.today.month() &&
-                    $scope.booking.startDate.getDate() == $scope.today.date() &&
+                $scope.booking.startDate.getFullYear() < today.year() ||
+                ($scope.booking.startDate.getFullYear() == today.year() &&
+                    $scope.booking.startDate.getMonth() < today.month()) ||
+                ($scope.booking.startDate.getFullYear() == today.year() &&
+                    $scope.booking.startDate.getMonth() == today.month() &&
+                    $scope.booking.startDate.getDate() < today.date()) ||
+                ($scope.booking.startDate.getFullYear() == today.year() &&
+                    $scope.booking.startDate.getMonth() == today.month() &&
+                    $scope.booking.startDate.getDate() == today.date() &&
                     $scope.booking.startTime.hour() < moment().hour())
             ) {
                 $scope.currentErrors.push({
