@@ -104,7 +104,6 @@ export const rbsController = ng.controller('RbsController', [
             }
         };
 
-
         $scope.initialize = function() {
             $scope.initView();
             $scope.displayBookings();
@@ -1399,7 +1398,7 @@ export const rbsController = ng.controller('RbsController', [
                                         (start.year() == $scope.today.year() && start.month() == $scope.today.month() && start.date() > $scope.today.date()) ||
                                         (start.year() == $scope.today.year() && start.month() == $scope.today.month() && start.date() == $scope.today.date() && start.hour() >= moment().hour())
                                     ) {
-                                        bookingPeriodicToSave.slots.all.push(new Slot( $scope.booking).toJson());
+                                        bookingPeriodicToSave.slots.all.push(new slot($scope.booking).toJson());
                                     } else {
                                         bookingPeriodicToSave.slots.all.push(new slot.slotJson(start.add(1,'d'), end.add(1,'d')));
                                     }

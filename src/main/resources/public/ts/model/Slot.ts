@@ -10,19 +10,21 @@ export class Slot implements Selectable{
     end_date;
     selected:boolean;
     constructor (booking?: Booking,start?:string, end?:string) {
-      if(start)  this.start_date= start;
-        if(end) this.end_date= end;
-      if(booking)  this.start_date;
+        if(booking.startDate)  this.start_date = booking.startDate;
+        if(booking.endDate) this.end_date = booking.endDate;
+        // if(booking)  this.start_date;
     }
 
     toJson (){
-        return this;
+        return this.slotJson(this.start_date, this.end_date);
     }
     slotJson(start, end) {
         return {
-            start_date : (moment.utc(start._i).add('hours',- moment(this.startMoment._i).format('Z').split(':')[0])).unix(),
-            end_date :  (moment.utc(end._i).add('hours',- moment(this.startMoment._i).format('Z').split(':')[0])).unix(),
-            iana :  moment.tz.guess()
+            // start_date : (moment.utc(this.start_date._i).add('hours',- moment(this.startMoment._i).format('Z').split(':')[0])).unix(),
+            // end_date :  (moment.utc(this.end_date._i).add('hours',- moment(this.startMoment._i).format('Z').split(':')[0])).unix(),
+            start_date : this.start_date,
+            end_date : this.end_date,
+            // iana :  moment.tz.guess()
         }
     }
 }

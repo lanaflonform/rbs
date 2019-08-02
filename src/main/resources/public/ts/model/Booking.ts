@@ -12,6 +12,7 @@ export class Booking implements Selectable {
     days: string | null;
     periodDays;
     end_date: string;
+    endDate: string;
     is_periodic: boolean;
     moderator_id: string;
     moderator_name: string;
@@ -25,6 +26,7 @@ export class Booking implements Selectable {
     refusal_reason: string | null;
     resource_id: number;
     start_date: string;
+    startDate: string
     status: number | null;
     booking_reason: string;
 
@@ -73,7 +75,8 @@ export class Booking implements Selectable {
 
     calendarUpdate() {
         if (this.beginning) {
-            this.slots = new Slots(new Slot(moment(this.beginning).unix(), moment(this.end).unix()));
+            // this.slots = new Slots(new Slot(moment(this.beginning).unix(), moment(this.end).unix()));
+            this.slots = new Slots(new Slot());
         }
         if (this.id) {
             this.update()
@@ -99,7 +102,7 @@ export class Booking implements Selectable {
         try {
             let url = '/rbs/resource/' + this.resource.id + '/booking';
             url += this.is_periodic ? '/periodic' : '';
-            let {data} = await http.put(url, this.toJSON());
+            let {data} = await http.post(url, this.toJSON());
             Mix.extend(data, this);
         } catch (e) {
             notify.error('');

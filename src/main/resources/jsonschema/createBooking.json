@@ -28,8 +28,7 @@
         },
         "required": [
           "start_date",
-          "end_date",
-          "iana"
+          "end_date"
         ]
       },
       "minItems": 1
