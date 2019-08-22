@@ -816,15 +816,17 @@ export const rbsController = ng.controller('RbsController', [
             }
 
             // dates management
-            $scope.booking.startDate = startMoment.toDate();
-            $scope.booking.startDate.setFullYear(startMoment.years());
-            $scope.booking.startDate.setMonth(startMoment.months());
-            $scope.booking.startDate.setDate(startMoment.date());
-            $scope.booking.endDate = endMoment.toDate();
-            $scope.booking.endDate.setFullYear(endMoment.years());
-            $scope.booking.endDate.setMonth(endMoment.months());
-            $scope.booking.endDate.setDate(endMoment.date());
-            $scope.booking.periodicEndDate = endMoment.toDate();
+            if ($scope.booking.startDate == undefined) {
+                $scope.booking.startDate = startMoment.toDate();
+                $scope.booking.startDate.setFullYear(startMoment.years());
+                $scope.booking.startDate.setMonth(startMoment.months());
+                $scope.booking.startDate.setDate(startMoment.date());
+                $scope.booking.endDate = endMoment.toDate();
+                $scope.booking.endDate.setFullYear(endMoment.years());
+                $scope.booking.endDate.setMonth(endMoment.months());
+                $scope.booking.endDate.setDate(endMoment.date());
+                $scope.booking.periodicEndDate = endMoment.toDate();
+            }
         };
 
         $scope.autoSelectTypeAndResource = function() {
@@ -1188,13 +1190,8 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.display.processing = true;
 
                 // dates management
-                $scope.booking.startMoment = moment([
-                    $scope.booking.startDate.getFullYear(),
-                    $scope.booking.startDate.getMonth(),
-                    $scope.booking.startDate.getDate(),
-                    $scope.booking.startTime.hour(),
-                    $scope.booking.startTime.minute()
-                ]);
+                $scope.booking.startMoment = ($scope.booking.startDate)
+                    .setHours($scope.booking.startTime.hour(), $scope.booking.startTime.minute());
                 if ($scope.booking.is_periodic === true) {
                     $scope.booking.endMoment = moment([
                         $scope.booking.endDate.getFullYear(),
@@ -1216,13 +1213,8 @@ export const rbsController = ng.controller('RbsController', [
                     $scope.resolvePeriodicMoments();
                 } else {
                     // non periodic
-                    $scope.booking.endMoment = moment([
-                        $scope.booking.endDate.getFullYear(),
-                        $scope.booking.endDate.getMonth(),
-                        $scope.booking.endDate.getDate(),
-                        $scope.booking.endTime.hour(),
-                        $scope.booking.endTime.minute()
-                    ]);
+                    $scope.booking.endMoment = ($scope.booking.endDate)
+                        .setHours($scope.booking.endTime.hour(), $scope.booking.endTime.minute());
                 }
                 $scope.booking.slots = [new Slot($scope.booking).toJson()];
                 $scope.booking.save(

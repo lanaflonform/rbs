@@ -65,7 +65,7 @@ export class Booking implements Selectable {
             let {data} = await http.get('/rbs/booking/' + this.id);
             Mix.extend(this, data);
         } catch (e) {
-            notify.error('');
+            notify.error('rbs.errors.title.sync.booking');
         }
     };
 
@@ -75,8 +75,7 @@ export class Booking implements Selectable {
 
     calendarUpdate() {
         if (this.beginning) {
-            // this.slots = new Slots(new Slot(moment(this.beginning).unix(), moment(this.end).unix()));
-            this.slots = new Slots(new Slot());
+            this.slots = new Slots(new Slot(moment(this.beginning).unix(), moment(this.end).unix()));
         }
         if (this.id) {
             this.update()
@@ -94,7 +93,7 @@ export class Booking implements Selectable {
             this.status = STATE_CREATED;
             return data;
         } catch (e) {
-            notify.error('');
+            notify.error('rbs.errors.title.update.booking');
         }
     };
 
@@ -102,10 +101,16 @@ export class Booking implements Selectable {
         try {
             let url = '/rbs/resource/' + this.resource.id + '/booking';
             url += this.is_periodic ? '/periodic' : '';
-            let {data} = await http.post(url, this.toJSON());
-            Mix.extend(data, this);
+            if (this.is_periodic) {
+                let {data} = await http.post(url, this.toJSON());
+                Mix.extend(data, this);
+            }
+            else {
+                let data = await http.post(url, this.toJSON());
+                return data;
+            }
         } catch (e) {
-            notify.error('');
+            notify.error('rbs.errors.title.create.booking');
         }
     }
 
@@ -140,7 +145,7 @@ export class Booking implements Selectable {
             return await http.delete('/rbs/resource/' + this.resource.id + '/booking/' + this.id + "/false");
         }
         catch (e) {
-            notify.error('');
+            notify.error('rbs.errors.title.delete.booking');
         }
     };
 
@@ -167,7 +172,7 @@ export class Booking implements Selectable {
         if (this.is_periodic === true) {
 
             json['periodicity'] = this.periodicity;
-            json['iana'] = moment.tz.guess();
+            json['iana'] = Intl.DateTimeFormat().resolvedOptions().timeZone;
             json['days'] = _.pluck(_.sortBy(this.periodDays, function (day) {
                 return day.number;
             }), 'value');

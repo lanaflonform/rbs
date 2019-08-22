@@ -9,10 +9,9 @@ export class Slot implements Selectable{
     start_date;
     end_date;
     selected:boolean;
-    constructor (booking?: Booking,start?:string, end?:string) {
-        if(booking.startDate)  this.start_date = booking.startDate;
-        if(booking.endDate) this.end_date = booking.endDate;
-        // if(booking)  this.start_date;
+    constructor (booking?: Booking, start?:string, end?:string) {
+        if(booking.startDate)  this.start_date = booking.startMoment;
+        if(booking.endDate) this.end_date = booking.endMoment;
     }
 
     toJson (){
@@ -20,11 +19,9 @@ export class Slot implements Selectable{
     }
     slotJson(start, end) {
         return {
-            // start_date : (moment.utc(this.start_date._i).add('hours',- moment(this.startMoment._i).format('Z').split(':')[0])).unix(),
-            // end_date :  (moment.utc(this.end_date._i).add('hours',- moment(this.startMoment._i).format('Z').split(':')[0])).unix(),
-            start_date : this.start_date,
-            end_date : this.end_date,
-            // iana :  moment.tz.guess()
+            start_date : (moment.utc(start).add('hours',- moment(this.startMoment).format('Z').split(':')[0])).unix(),
+            end_date : (moment.utc(end).add('hours',- moment(this.startMoment).format('Z').split(':')[0])).unix(),
+            iana : Intl.DateTimeFormat().resolvedOptions().timeZone
         }
     }
 }
