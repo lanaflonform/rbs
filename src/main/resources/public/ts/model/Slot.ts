@@ -19,8 +19,8 @@ export class Slot implements Selectable{
     }
     slotJson(start, end) {
         return {
-            start_date : (moment.utc(start).add('hours',- moment(this.startMoment).format('Z').split(':')[0])).unix(),
-            end_date : (moment.utc(end).add('hours',- moment(this.startMoment).format('Z').split(':')[0])).unix(),
+            start_date : (moment.utc(start).add('hours',+ moment(this.startMoment).format('Z').split(':')[0])).unix(),
+            end_date : (moment.utc(end).add('hours',+ moment(this.startMoment).format('Z').split(':')[0])).unix(),
             iana : Intl.DateTimeFormat().resolvedOptions().timeZone
         }
     }

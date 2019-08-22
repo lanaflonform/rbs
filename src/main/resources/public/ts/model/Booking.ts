@@ -60,7 +60,7 @@ export class Booking implements Selectable {
         }
     }
 
-    async sync() { //TODO (delete this ) old name 'retrieve'
+    async sync() {
         try {
             let {data} = await http.get('/rbs/booking/' + this.id);
             Mix.extend(this, data);
@@ -71,7 +71,7 @@ export class Booking implements Selectable {
 
     mapResources(resourceTypes: ResourceTypes) {
         this.resource.resourceType = _.findWhere(resourceTypes.all , {id : this.resource.type_id})
-    }
+    };
 
     calendarUpdate() {
         if (this.beginning) {
@@ -223,6 +223,15 @@ export class Bookings extends Selection<Booking> {
         });
         this.applyFilters();
     }
+
+    async syncList() {
+        try {
+            let {data} = await http.get('/rbs/booking');
+            Mix.extend(this, data);
+        } catch (e) {
+            notify.error('rbs.errors.title.sync.list.booking');
+        }
+    };
 
     applyFilters() {
         this.filtered = this.all;

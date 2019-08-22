@@ -1,4 +1,4 @@
-import {$, _, idiom as lang, moment, ng, notify, template} from "entcore";
+import {_, idiom as lang, moment, ng, notify, template} from "entcore";
 import {
     Booking,
     Resource,
@@ -118,6 +118,30 @@ export const rbsController = ng.controller('RbsController', [
             return booking.resource.myRights.process || booking.resource.myRights.manage || booking.owner === model.me.userId;
         };
 
+        // Navigation
+        $scope.showCalendar = function(refresh) {
+            if (refresh === true) {
+                $scope.initMain();
+            }
+            $scope.display.admin = false;
+            $scope.display.list = false;
+            $scope.bookings.filters.booking = undefined;
+            $scope.bookings.applyFilters();
+            template.open('bookings', 'main-calendar');
+        };
+
+        $scope.showList = async function(refresh) {
+            if (refresh === true) {
+                $scope.initMain();
+            }
+            $scope.display.admin = false;
+            $scope.display.list = true;
+            $scope.bookings.filters.booking = true;
+            await $scope.bookings.sync();
+            $scope.bookings.applyFilters();
+            template.open('bookings', 'main-list');
+            $scope.$apply();
+        };
 
         $scope.showManage = () => {
             $scope.display.list = false;
@@ -141,14 +165,11 @@ export const rbsController = ng.controller('RbsController', [
             template.open('resources', 'manage-resources');
         };
 
-        // $scope.initMain = function() {
-        //     //fixme Why model.recordedSelections.firstResourceType = true;
-        //     model.recordedSelections.allResources = true;
-        //     $scope.currentResourceType = undefined;
-        //     $scope.resetSort();
-        //     model.refresh($scope.display.list);
-        //     template.open('main', 'main-view');
-        // };
+        $scope.initMain = function() {
+            $scope.currentResourceType = undefined;
+            $scope.resetSort();
+            template.open('main', 'main-view');
+        };
 
         // Main view interaction
         $scope.expandResourceType = function(resourceType) {
@@ -587,7 +608,7 @@ export const rbsController = ng.controller('RbsController', [
         };
 
         $scope.canDeleteBookingDateCheck = function(dateToCheck) {
-            var itemDate = moment(dateToCheck);
+            let itemDate = moment(dateToCheck);
             return moment().diff(itemDate) <= 0;
         };
 
@@ -819,11 +840,11 @@ export const rbsController = ng.controller('RbsController', [
             if ($scope.booking.startDate == undefined) {
                 $scope.booking.startDate = startMoment.toDate();
                 $scope.booking.startDate.setFullYear(startMoment.years());
-                $scope.booking.startDate.setMonth(startMoment.months());
+                $scope.booking.startDate.setMonth(startMoment.month());
                 $scope.booking.startDate.setDate(startMoment.date());
                 $scope.booking.endDate = endMoment.toDate();
                 $scope.booking.endDate.setFullYear(endMoment.years());
-                $scope.booking.endDate.setMonth(endMoment.months());
+                $scope.booking.endDate.setMonth(endMoment.month());
                 $scope.booking.endDate.setDate(endMoment.date());
                 $scope.booking.periodicEndDate = endMoment.toDate();
             }
@@ -1220,7 +1241,6 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.booking.save(
                     function() {
                         $scope.display.processing = undefined;
-                        $scope.closeBooking();
                         $scope.refreshBookings($scope.display.list);
                     },
                     function(e) {
@@ -1230,6 +1250,7 @@ export const rbsController = ng.controller('RbsController', [
                         $scope.$apply();
                     }
                 );
+                $scope.closeBooking();
             } catch (e) {
                 $scope.display.processing = undefined;
                 $scope.currentErrors.push({ error: 'rbs.error.technical' });
