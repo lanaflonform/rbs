@@ -1,9 +1,15 @@
-import { routes, ng } from "entcore";
+import { routes, ng, moment } from "entcore";
 import * as controllers from './controllers';
+import * as directives from './directives';
 
+moment.defineLocale(moment.locale(), { week: {dow: 1}});
 
 for (let controller in controllers) {
     ng.controllers.push(controllers[controller]);
+}
+
+for (let directive in directives) {
+    ng.directives.push(directives[directive]);
 }
 
 routes.define(function($routeProvider) {
@@ -18,12 +24,3 @@ routes.define(function($routeProvider) {
         action: 'main'
     });
 });
-
-
-// for (let directive in directives) {
-//     ng.directives.push(directives[directive]);
-// }
-//
-// for (let filter in filters) {
-//     ng.filters.push(filters[filter]);
-// }
