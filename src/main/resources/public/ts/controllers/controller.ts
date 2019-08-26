@@ -648,9 +648,9 @@ export const rbsController = ng.controller('RbsController', [
             $scope.booking = new Booking();
             $scope.booking.display = DISPLAY_BOOKING_MANAGE;
             if (timeSlot) {
-                const { beginning, end } = timeSlot;
-                $scope.booking.startTime = beginning.toDate();
-                $scope.booking.endTime = end.toDate();
+                const { start, end } = timeSlot;
+                $scope.booking.startTime = start;
+                $scope.booking.endTime = end;
             }
 
             $scope.resourceTypes.initModerators();
@@ -660,12 +660,12 @@ export const rbsController = ng.controller('RbsController', [
 
             // dates
             if (model.calendar.newItem !== undefined) {
-                $scope.booking.startMoment = model.calendar.newItem.beginning;
+                $scope.booking.startMoment = model.calendar.newItem.start;
                 $scope.booking.startMoment.minutes(0);
                 $scope.booking.endMoment = model.calendar.newItem.end;
                 $scope.booking.endMoment.minutes(0);
                 $scope.saveTime = {
-                    startHour : model.calendar.newItem.beginning._d.getHours(),
+                    startHour : model.calendar.newItem.start._d.getHours(),
                     endHour : model.calendar.newItem.end._d.getHours()
                 }
             } else {
@@ -725,9 +725,9 @@ export const rbsController = ng.controller('RbsController', [
                 }
                 $scope.booking._slots= _.sortBy($scope.booking._slots,'id') ;
                 $scope.booking.startMoment= $scope.booking._slots[0].startMoment;
-                $scope.booking.startMoment.date($scope.booking.beginning.date());
-                $scope.booking.startMoment.month($scope.booking.beginning.month());
-                $scope.booking.startMoment.year($scope.booking.beginning.year());
+                $scope.booking.startMoment.date($scope.booking.start.date());
+                $scope.booking.startMoment.month($scope.booking.start.month());
+                $scope.booking.startMoment.year($scope.booking.start.year());
                 $scope.booking.endMoment = $scope.booking._slots[0].endMoment;
             }
             $scope.initBookingDates(
@@ -1212,15 +1212,10 @@ export const rbsController = ng.controller('RbsController', [
 
                 // dates management
                 $scope.booking.startMoment = ($scope.booking.startDate)
-                    .setHours($scope.booking.startTime.hour(), $scope.booking.startTime.minute());
+                    .setHours($scope.booking.startTime.hour(), $scope.booking.startTime.minute()).format("HH:mm");
                 if ($scope.booking.is_periodic === true) {
-                    $scope.booking.endMoment = moment([
-                        $scope.booking.endDate.getFullYear(),
-                        $scope.booking.endDate.getMonth(),
-                        $scope.booking.endDate.getDate(),
-                        $scope.booking.endTime.hour(),
-                        $scope.booking.endTime.minute()
-                    ]);
+                    $scope.booking.endMoment = ($scope.booking.endDate)
+                        .setHours($scope.booking.endTime.hour(), $scope.booking.endTime.minute()).format("HH:mm");
                     if ($scope.booking.byOccurrences !== true) {
                         $scope.booking.occurrences = undefined;
                         $scope.booking.periodicEndMoment = moment([
@@ -1544,14 +1539,14 @@ export const rbsController = ng.controller('RbsController', [
             );
             //Periodic less than a day
             //if($scope.showDaySelection) {
-            if (selectedDays[$scope.booking.startMoment.day()] === undefined) {
+            if (selectedDays[moment($scope.booking.startMoment).day()] === undefined) {
                 // search the next following day (higher number)
-                for (let i = $scope.booking.startMoment.day(); i < 7; i++) {
+                for (let i = moment($scope.booking.startMoment).day(); i < 7; i++) {
                     if (selectedDays[i] !== undefined) {
-                        $scope.booking.startMoment = $scope.booking.startMoment.day(
+                        $scope.booking.startMoment = moment($scope.booking.startMoment).day(
                             i
                         );
-                        $scope.booking.endMoment = $scope.booking.endMoment.day(
+                        $scope.booking.endMoment = moment($scope.booking.endMoment).day(
                             i
                         );
                         return;
@@ -1560,10 +1555,10 @@ export const rbsController = ng.controller('RbsController', [
                 // search the next following day (lower number)
                 for (let i = 0; i < $scope.booking.startMoment.day(); i++) {
                     if (selectedDays[i] !== undefined) {
-                        $scope.booking.startMoment = $scope.booking.startMoment.day(
+                        $scope.booking.startMoment = moment($scope.booking.startMoment).day(
                             i + 7
                         ); // +7 for days in next week, not current
-                        $scope.booking.endMoment = $scope.booking.endMoment.day(
+                        $scope.booking.endMoment = moment($scope.booking.endMoment).day(
                             i + 7
                         );
                         return;

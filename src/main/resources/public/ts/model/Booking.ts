@@ -1,5 +1,5 @@
-import {Eventer, Mix, Selectable, Selection} from "entcore-toolkit";
-import {moment, _, notify, bootstrap, model, Rights} from "entcore";
+import {Mix, Selectable, Selection} from "entcore-toolkit";
+import {moment, _, notify, model} from "entcore";
 import http from "axios";
 import {STATE_CREATED, STATE_PARTIAL, STATE_REFUSED, STATE_VALIDATED} from "./constantes/STATE";
 import {Resource, Resources, ResourceType, ResourceTypes, Slot, Slots, Utils} from './index';
@@ -14,8 +14,6 @@ export class Booking implements Selectable {
     end_date: string;
     endDate: string;
     is_periodic: boolean;
-    moderator_id: string;
-    moderator_name: string;
     modified: string;
     occurrences: number | null;
 
@@ -26,7 +24,7 @@ export class Booking implements Selectable {
     refusal_reason: string | null;
     resource_id: number;
     start_date: string;
-    startDate: string
+    startDate: string;
     status: number | null;
     booking_reason: string;
 
@@ -36,7 +34,7 @@ export class Booking implements Selectable {
     periodicEndMoment: Object;
     isMine: boolean;
     unProcessed: boolean;
-    beginning: Object;
+    start: Object;
     end: Object;
     startMoment: Object;
     endMoment: Object;
@@ -45,7 +43,7 @@ export class Booking implements Selectable {
 
     constructor(id?: number) {
         if (id) this.id = id;
-        this.beginning = this.startMoment = this.start_date ? moment.utc(this.start_date).tz(moment.tz.guess()) : moment();
+        this.start = this.startMoment = this.start_date ? moment.utc(this.start_date).tz(moment.tz.guess()) : moment();
         this.end = this.endMoment = this.end_date ? moment.utc(this.end_date).tz(moment.tz.guess()) : moment();
         this.resource = new Resource();
         this.slots = new Slots();
@@ -74,8 +72,8 @@ export class Booking implements Selectable {
     };
 
     calendarUpdate() {
-        if (this.beginning) {
-            this.slots = new Slots(new Slot(moment(this.beginning).unix(), moment(this.end).unix()));
+        if (this.start) {
+            this.slots = new Slots(new Slot(moment(this.start).unix(), moment(this.end).unix()));
         }
         if (this.id) {
             this.update()
@@ -101,14 +99,8 @@ export class Booking implements Selectable {
         try {
             let url = '/rbs/resource/' + this.resource.id + '/booking';
             url += this.is_periodic ? '/periodic' : '';
-            if (this.is_periodic) {
-                let {data} = await http.post(url, this.toJSON());
-                Mix.extend(data, this);
-            }
-            else {
-                let data = await http.post(url, this.toJSON());
-                return data;
-            }
+            let {data} = await http.post(url, this.toJSON());
+            Mix.extend(this, data);
         } catch (e) {
             notify.error('rbs.errors.title.create.booking');
         }

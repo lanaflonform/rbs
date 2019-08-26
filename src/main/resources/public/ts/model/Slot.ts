@@ -1,4 +1,4 @@
-import { model, moment } from 'entcore';
+import { moment } from 'entcore';
 import { Selectable, Mix, Selection } from 'entcore-toolkit';
 import http from "axios";
 import {Booking} from "./Booking";
