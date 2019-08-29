@@ -141,6 +141,10 @@ export class Booking implements Selectable {
         }
     };
 
+    isSlot() {
+        return this.parent_booking_id !== null;
+    }
+
     isOccurence() {
         return this.parent_booking_id !== null
     };
@@ -155,6 +159,14 @@ export class Booking implements Selectable {
 
     isRefused() {
         return this.status === STATE_REFUSED
+    };
+
+    isNotPeriodicRoot() {
+        return this.is_periodic !== true;
+    };
+
+    isBooking() {
+        return this.parent_booking_id === null;
     };
 
     toJSON() {

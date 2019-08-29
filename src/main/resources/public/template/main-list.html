@@ -36,7 +36,7 @@
 <table class="list-view colored">
 	<thead>
 		<tr>
-			<th class="one" colspan="2"><input type="checkbox" ng-model="display.selectAllBookings" ng-change="switchSelectAllBookings()" /></th>
+			<th class="one" colspan="2"><input type="checkbox" ng-model="display.selectAllBookings" ng-click="displayToggle(bookings)" ng-change="switchSelectAllBookings(bookings)" /></th>
 			<th class="one" colspan="2" ng-click="switchSortBy('is_periodic')" ng-class="{'order-by-reversed': (sort.predicate === 'is_periodic' && sort.reverse === false),
 				'order-by': (sort.predicate === 'is_periodic' && sort.reverse === true)}">
 				<i class="periodic-status" tooltip="rbs.booking.headers.periodic"></i>
@@ -69,7 +69,7 @@
 				<input type="checkbox" ng-model="booking.selected" ng-if="canDeleteBookingDateCheck(booking.end_date) && hasAnyBookingRight(booking)" ng-change="switchSelectAllSlots(booking)"/>
 			</td>
 			<td ng-if="booking.is_periodic === false">
-				<input type="checkbox" ng-model="booking.selected" ng-change="switchSelectAllSlots(booking)"/>
+				<input type="checkbox" ng-model="booking.selected" ng-change="displayToggle(booking)"/>
 			</td>
 			<td class="[[booking.color]]" ng-click="viewBooking(booking)">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
 			<td>

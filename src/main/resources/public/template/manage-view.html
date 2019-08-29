@@ -23,8 +23,8 @@
 								<input
 										type="checkbox"
 										ng-model="resourceType.selected"
-										ng-click="currentResourceType.resources.deselectAll(); $event.stopPropagation()"
-										ng-show="!currentResourceType || currentResourceType.resources.selected.length === 0"
+										ng-click="resources.deselectAll(); $event.stopPropagation()"
+										ng-show="!currentResourceType || resources.selected.length === 0"
 										ng-if="resourceType.school_id === selectedStructure.id"/>
 							</resource-right>
 
@@ -50,8 +50,8 @@
                                 <input
                                         type="checkbox"
                                         ng-model="resourceType.selected"
-                                        ng-click="currentResourceType.resources.deselectAll(); $event.stopPropagation()"
-                                        ng-show="!currentResourceType || currentResourceType.resources.selected.length === 0"
+                                        ng-click="resources.deselectAll(); $event.stopPropagation()"
+                                        ng-show="!currentResourceType || resources.selected.length === 0"
                                         ng-if="selectedStructure.id === sharedStructure.id"/>
                             </resource-right>
 
@@ -84,25 +84,25 @@
 	</lightbox>
 </div>
 
-<section class="toggle-buttons" ng-class="{ hide: (currentResourceType === undefined || currentResourceType.resources.selected.length === 0) }">
+<section class="toggle-buttons" ng-class="{ hide: (resources.selected.length === 0) }">
 	<div class="toggle">
 		<div class="row">
 			<behaviour name="process" resource="currentResourceType" class="cell">
-				<button ng-if="currentResourceType.resources.selected.length === 1"
+				<button ng-if="resources.selected.length === 1"
 						ng-click="editSelectedResource()">
 					<i18n>rbs.manage.resource.edit</i18n>
 				</button>
-				<button ng-if="currentResourceType.resources.selected.length > 1"
+				<button ng-if="resources.selected.length > 1"
 						disabled class="disabled">
 					<i18n>rbs.manage.resource.edits</i18n>
 				</button>
 			</behaviour>
 			<behaviour name="manage" resource="currentResourceType" class="cell">
-				<button ng-if="currentResourceType.resources.selected.length === 1"
+				<button ng-if="resources.selected.length === 1"
 						ng-click="deleteResourcesSelection()">
 					<i18n>rbs.manage.resource.remove</i18n>
 				</button>
-				<button ng-if="currentResourceType.resources.selected.length > 1"
+				<button ng-if="resources.selected.length > 1"
 						ng-click="deleteResourcesSelection()">
 					<i18n>rbs.manage.resource.removes</i18n>
 				</button>
@@ -137,7 +137,7 @@
 	</div>
 </lightbox>
 
-<section class="toggle-buttons" ng-class="{ hide: resourceTypes.selected.length === 0 }">
+<section class="toggle-buttons" ng-show="checkSelectedElements(bookings).length > 0">
 	<div class="toggle">
 		<div class="row">
 			<behaviour name="manage" resource="resourceTypes.selected">
