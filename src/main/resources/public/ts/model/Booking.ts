@@ -230,7 +230,7 @@ export class Bookings extends Selection<Booking> {
 
     async syncList() {
         try {
-            let {data} = await http.get('/rbs/booking');
+            let {data} = await http.get('/rbs/bookings/all');
             Mix.extend(this, data);
         } catch (e) {
             notify.error('rbs.errors.title.sync.list.booking');

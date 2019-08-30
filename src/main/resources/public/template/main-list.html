@@ -63,7 +63,7 @@
 			</th>
 		</tr>
 	</thead>
-	<tbody ng-repeat="booking in bookings.filtered | orderBy:sort.predicate:sort.reverse">
+	<tbody ng-repeat="booking in bookings">
 		<tr>
 			<td ng-if="booking.is_periodic" >
 				<input type="checkbox" ng-model="booking.selected" ng-if="canDeleteBookingDateCheck(booking.end_date) && hasAnyBookingRight(booking)" ng-change="switchSelectAllSlots(booking)"/>
