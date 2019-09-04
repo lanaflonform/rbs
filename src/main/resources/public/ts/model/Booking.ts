@@ -212,9 +212,9 @@ export class Bookings extends Selection<Booking> {
         this.endPagingDate = endPagingDate ? endPagingDate : moment(startPagingDate).add(1, Utils.getIncrementISOMoment()).startOf('day');
     }
 
-    async sync(resources?: Resources) {
+    async sync(resources?: Resources, ignoreDate?: boolean) {
         let url = `/rbs/bookings/all`;
-        if (this.startPagingDate && this.endPagingDate)
+        if (this.startPagingDate && this.endPagingDate && !ignoreDate)
             url += '/' + moment(this.startPagingDate).format('YYYY-MM-DD') + '/' + moment(this.endPagingDate).format('YYYY-MM-DD');
         let {data} = await http.get(url);
         this.all = Mix.castArrayAs(Booking, data);
@@ -228,19 +228,31 @@ export class Bookings extends Selection<Booking> {
         this.applyFilters();
     }
 
-    async syncList() {
-        try {
-            let {data} = await http.get('/rbs/bookings/all');
-            Mix.extend(this, data);
-        } catch (e) {
-            notify.error('rbs.errors.title.sync.list.booking');
-        }
-    };
+    // async syncList() {
+    //     try {
+    //         let {data} = await http.get('/rbs/bookings/all');
+    //         this.all = Mix.castArrayAs(Booking, data);
+    //     } catch (e) {
+    //         notify.error('rbs.errors.title.sync.list.booking');
+    //     }
+    // };
 
     applyFilters() {
         this.filtered = this.all;
         this.filtered = _.filter(this.all, (booking) => {
-            return ((!this.filters.showParentBooking && booking.parent_booking_id === null) || this.filters.showParentBooking);
+            if (this.filters.mine) {
+                return (((!this.filters.showParentBooking && booking.parent_booking_id === null) || this.filters.showParentBooking)
+                    && booking.isMine)
+            }
+            else if (this.filters.unprocessed) {
+                return (((!this.filters.showParentBooking && booking.parent_booking_id === null) || this.filters.showParentBooking)
+                    && booking.unProcessed)
+            }
+            else {
+                return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
+                    || this.filters.showParentBooking)
+                    && booking.resource.selected);
+            }
         });
     }
 
@@ -249,6 +261,8 @@ export class Bookings extends Selection<Booking> {
 export class filterBookings {
     showParentBooking: boolean;
     calendar: object;
+    mine: any;
+    unprocessed: any;
 
     constructor() {
         this.showParentBooking = false;

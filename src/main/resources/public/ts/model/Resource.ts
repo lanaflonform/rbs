@@ -1,6 +1,6 @@
-import { Mix, Selectable, Selection} from "entcore-toolkit";
-import {_, Behaviours, Rights} from 'entcore';
-import {Bookings, ResourceType} from "./index";
+import { Mix, Selectable, Selection } from "entcore-toolkit";
+import { _, Behaviours } from 'entcore';
+import { ResourceType } from "./index";
 import http from "axios";
 
 export class Resource implements Selectable {
@@ -28,12 +28,14 @@ export class Resource implements Selectable {
     constructor (resource?) {
 
     }
+
     setPreference(preferenceResource){
         let state = _.findWhere(preferenceResource, {id : this.id});
         if(!state || state.length == 0) return;
         this.selected = !!state.selected;
         return state;
     }
+
     isBookable(periodic){
         return this.is_available === true
             && this.myRights !== undefined

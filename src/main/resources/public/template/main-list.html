@@ -8,7 +8,7 @@
 	<li ng-class="{ selected: bookings.filters.unprocessed }" workflow="rbs.validator">
 		<label>
 			<i class="pending-action" tooltip="rbs.selector.unprocessed"></i>
-			<input type="checkbox" ng-model="selectUnprocessed" ng-change="switchSelectUnprocessed()" />
+			<input type="checkbox" ng-model="unProcessed.selected" ng-change="switchSelectUnprocessed()" />
 		</label>
 	</li>
 	<li class="changeWeekButton">
@@ -63,7 +63,7 @@
 			</th>
 		</tr>
 	</thead>
-	<tbody ng-repeat="booking in bookings">
+	<tbody ng-repeat="booking in bookings.filtered">
 		<tr>
 			<td ng-if="booking.is_periodic" >
 				<input type="checkbox" ng-model="booking.selected" ng-if="canDeleteBookingDateCheck(booking.end_date) && hasAnyBookingRight(booking)" ng-change="switchSelectAllSlots(booking)"/>

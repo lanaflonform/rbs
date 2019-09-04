@@ -115,7 +115,7 @@ export const rbsController = ng.controller('RbsController', [
         };
 
         $scope.hasAnyBookingRight = function(booking){
-            return booking.resource.myRights.process || booking.resource.myRights.manage || booking.owner === model.me.userId;
+            return booking.owner === model.me.userId || booking.resource.myRights.process || booking.resource.myRights.manage;
         };
 
         // Navigation
@@ -137,7 +137,7 @@ export const rbsController = ng.controller('RbsController', [
             $scope.display.admin = false;
             $scope.display.list = true;
             $scope.bookings.filters.booking = true;
-            await $scope.bookings.syncList();
+            await $scope.bookings.sync($scope.resources, true);
             $scope.bookings.applyFilters();
             template.open('bookings', 'main-list');
             $scope.$apply();
@@ -236,12 +236,10 @@ export const rbsController = ng.controller('RbsController', [
         };
 
         $scope.selectResources = function(resourceType) {
-            resourceType.resources.all.forEach(function(resource) {
-                if (resource.selected !== true) {
-                    resource.selected = true;
-                }
-            });
-            $scope.lastSelectedResource = resourceType.resources.all[0];
+            if (resourceType.selected == false) {
+                resourceType.selected = true;
+            }
+            $scope.saveTreeState();
             $scope.bookings.applyFilters();
         };
 
@@ -281,8 +279,10 @@ export const rbsController = ng.controller('RbsController', [
             structure.resourceTypes.updateSelection();
         };
 
-        $scope.deselectResources = function(resourceType) {
-            resourceType.resources.deselectAll();
+        $scope.deselectResources = function(resource) {
+            if (resource.selected == true) {
+                resource.selected = false;
+            }
             $scope.lastSelectedResource = undefined;
             $scope.bookings.applyFilters();
         };
@@ -314,21 +314,15 @@ export const rbsController = ng.controller('RbsController', [
             });
         };
 
-        $scope.switchSelectResources = function(resourceTypes, resourceType) {
-            if (
-                resourceTypes.resources.arr.forEach((resourceType) => {
-                    return resourceType.selected = true;
+        $scope.switchSelectResources = function(resourceType) {
+            resourceType.resources.all.forEach((resourceType) => {
+                if (resourceType.selected == true) {
+                    $scope.deselectResources(resourceType);
+                } else {
+                    $scope.selectResources(resourceType);
                 }
-                // resourceType.resources.every(function(resource) {
-                //     return resource.selected;
-                // })
-            )) {
-                $scope.deselectResources(resourceType);
-            } else {
-                $scope.selectResources(resourceType);
-            }
-
             $scope.saveTreeState();
+            })
         };
 
         $scope.switchSelectStructure = function(structure) {
@@ -350,7 +344,7 @@ export const rbsController = ng.controller('RbsController', [
             $scope.saveTreeState();
         };
 
-        $scope.switchSelect = function(resource, bookings) {
+        $scope.switchSelect = function(resource) {
             if (resource.selected !== true) {
                 resource.selected = true;
                 if (resource.is_available !== true) {
@@ -533,7 +527,7 @@ export const rbsController = ng.controller('RbsController', [
                     $scope.bookings.filters.startDate
                 );
                 $scope.bookings.filters.endMoment = moment(
-                    $scope.bookings.filters.endDate
+                    moment($scope.bookings.filters.endDate).add('month', 2).startOf('day')
                 );
                 $scope.bookings.filters.dates = true;
             } else {
