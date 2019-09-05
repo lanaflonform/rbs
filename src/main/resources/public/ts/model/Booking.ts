@@ -200,6 +200,7 @@ export class Bookings extends Selection<Booking> {
     endPagingDate: object;
     filtered: Array<Booking>;
     filters: filterBookings;
+    resources: Resources;
 
     constructor() {
         super([]);
@@ -240,21 +241,72 @@ export class Bookings extends Selection<Booking> {
     applyFilters() {
         this.filtered = this.all;
         this.filtered = _.filter(this.all, (booking) => {
-            if (this.filters.mine) {
-                return (((!this.filters.showParentBooking && booking.parent_booking_id === null) || this.filters.showParentBooking)
+            if (this.filters.dates !== undefined) {
+                if (this.filters.dates === true) {
+                    if (this.filters.mine) {
+                        return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
+                            || this.filters.showParentBooking)
+                            && booking.resource.selected)
+                            && (
+                                (booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endMoment)
+                                    && booking.endMoment.isAfter(this.filters.startMoment))
+                                // ||
+                                // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
+                                //     && (_.last(booking._slots)).endMoment.isAfter(this.filters.startMoment))
+                                    && booking.isMine);
+                    }
+                    else if (this.filters.unprocessed) {
+                        return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
+                            || this.filters.showParentBooking)
+                            && booking.resource.selected)
+                            && (
+                                (booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endMoment)
+                                    && booking.endMoment.isAfter(this.filters.startMoment))
+                                // ||
+                                // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
+                                //     && (_.last(booking._slots)).endMoment.isAfter(this.filters.startMoment))
+                                && booking.unProcessed);
+                    }
+                    else {
+                        return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
+                            || this.filters.showParentBooking)
+                            && booking.resource.selected)
+                            && (
+                                (booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endMoment)
+                                    && booking.endMoment.isAfter(this.filters.startMoment))
+                                // ||
+                                // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
+                                //     && (_.last(booking._slots)).endMoment.isAfter(this.filters.startMoment))
+                            );
+                    }
+                }
+            }  else if (this.filters.mine) {
+                return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
+                    || this.filters.showParentBooking)
                     && booking.isMine)
             }
             else if (this.filters.unprocessed) {
-                return (((!this.filters.showParentBooking && booking.parent_booking_id === null) || this.filters.showParentBooking)
+                return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
+                    || this.filters.showParentBooking)
                     && booking.unProcessed)
-            }
-            else {
+            } else {
                 return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
                     || this.filters.showParentBooking)
                     && booking.resource.selected);
             }
         });
-    }
+    };
+
+    refreshBookings(isDisplayList) {
+        // Record selections
+        // model.recordedSelections.record();
+        // Clear bookings
+        if (isDisplayList === true) {
+            this.sync(this.resources, true);
+        } else {
+            this.sync();
+        }
+    };
 
 }
 
@@ -263,6 +315,9 @@ export class filterBookings {
     calendar: object;
     mine: any;
     unprocessed: any;
+    dates: any;
+    startMoment: any;
+    endMoment: any;
 
     constructor() {
         this.showParentBooking = false;

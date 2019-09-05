@@ -1,7 +1,7 @@
-import {model, Rights, _, Shareable, Model, Behaviours, notify} from 'entcore';
+import { Rights, _, Shareable, Behaviours, notify} from 'entcore';
 import { Selectable, Mix, Selection } from 'entcore-toolkit';
 import http from 'axios';
-import {Resource, Resources, Structure} from './'
+import { Resources, Structure} from './'
 
 export class ResourceType implements Selectable, Shareable{
     id: number;
@@ -92,11 +92,12 @@ export class ResourceTypes  extends Selection<ResourceType> {
         } catch (e) {
 
         }
-    }
+    };
 
     deselectAllResources () {
        this.all.forEach( resourceType => resourceType.resources.deselectAll());
-     }
+    };
+
     initModerators () {
         if (this.all[0].moderators === undefined) {
             this.all.forEach(function(resourceType) {

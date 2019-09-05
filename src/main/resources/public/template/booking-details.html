@@ -53,7 +53,7 @@
 			<h2 ng-click="booking.displaySection = 2;">
 				<i18n>rbs.booking.title.resource</i18n>
 				<span class="right-magnet" ng-if="booking.displaySection !== 2">
-					[[composeTitle(booking.resource.type.name, booking.resource.name)]]
+					[[composeTitle(booking.resource.resourceType.name, booking.resource.name)]]
 				</span>
 			</h2>
 
@@ -66,7 +66,7 @@
 					<div class="row details">
 						<div class="six cell">
 							<label class="row"><i18n>rbs.booking.details.type.label</i18n></label>
-							<p>[[booking.resource.type.name]]</p>
+							<p>[[booking.resource.resourceType.name]]</p>
 						</div>
 						<div class="six cell">
 							<label class="row"><i18n>rbs.booking.details.resource.label</i18n></label>

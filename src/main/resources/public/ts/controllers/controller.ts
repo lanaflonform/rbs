@@ -14,7 +14,7 @@ import {
     Notification,
     Preference,
     Resources,
-    SlotProfiles,
+    SlotProfiles, filterBookings,
 } from "../model";
 import {
     PERIODS,
@@ -184,6 +184,9 @@ export const rbsController = ng.controller('RbsController', [
         };
 
         let updateCalendarList = function(start, end) {
+            $scope.bookings.filters.startDate = start;
+            $scope.bookings.filters.endDate = end;
+            $scope.safeApply();
             $scope.bookings.all.forEach((booking) => {
                 $scope.booking.startMoment.date(start.date())
                 $scope.booking.endMoment.date(end.date())
@@ -523,18 +526,15 @@ export const rbsController = ng.controller('RbsController', [
 
         $scope.switchFilterListByDates = function(filter) {
             if ($scope.bookings.filters.dates !== true || filter === true) {
-                $scope.bookings.filters.startMoment = moment(
-                    $scope.bookings.filters.startDate
-                );
-                $scope.bookings.filters.endMoment = moment(
-                    moment($scope.bookings.filters.endDate).add('month', 2).startOf('day')
-                );
+                $scope.bookings.filters.startMoment =
+                    moment($scope.bookings.filters.startDate);
+                $scope.bookings.filters.endMoment =
+                    moment($scope.bookings.filters.endDate).add('month', 2).startOf('day');
                 $scope.bookings.filters.dates = true;
             } else {
                 $scope.bookings.filters.dates = undefined;
             }
             $scope.bookings.applyFilters();
-            // $scope.bookings.trigger('change');
         };
 
         // General
@@ -673,7 +673,7 @@ export const rbsController = ng.controller('RbsController', [
             template.open('lightbox', 'edit-booking');
             $scope.display.showPanel = true;
         };
-        $scope.initBookingToCreate = (periodic) =>{
+        $scope.initBookingToCreate = (periodic) => {
             $scope.booking = new Booking();
             $scope.booking.is_periodic = false; // false by default
             if (periodic === 'periodic') {
@@ -1286,7 +1286,7 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.booking.save(
                     function() {
                         $scope.display.processing = undefined;
-                        $scope.refreshBookings($scope.display.list);
+                        $scope.bookings.refreshBookings($scope.display.list);
                     },
                     function(e) {
                         notify.error(e.error);
@@ -1731,30 +1731,30 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.processBookings = $scope.selectBooking( $scope.booking);
             }
             try {
-                await $scope.booking.delete();
-                // let actions = $scope.processBookings.length;
-                // _.each($scope.processBookings, function(booking) {
-                //     booking.delete(
-                //         function() {
-                //             actions--;
-                //             if (actions === 0) {
-                //                 $scope.display.processing = undefined;
-                //                 $scope.bookings.deselectAll();
-                //                 $scope.closeBooking();
-                //                 $scope.refreshBookings($scope.display.list);
-                //             }
-                //         },
-                //         function(e) {
-                //             $scope.currentErrors.push(e);
-                //             actions--;
-                //             if (actions === 0) {
-                //                 $scope.display.processing = undefined;
-                //                 $scope.showActionErrors();
-                //                 $scope.refreshBookings($scope.display.list);
-                //             }
-                //         }
-                //     );
-                // });
+                // await $scope.booking.delete();
+                let actions = $scope.processBookings.length;
+                _.each($scope.processBookings, function(booking) {
+                    booking.delete(
+                        function() {
+                            actions--;
+                            if (actions === 0) {
+                                $scope.display.processing = undefined;
+                                $scope.bookings.deselectAll();
+                                $scope.closeBooking();
+                                $scope.refreshBookings($scope.display.list);
+                            }
+                        },
+                        function(e) {
+                            $scope.currentErrors.push(e);
+                            actions--;
+                            if (actions === 0) {
+                                $scope.display.processing = undefined;
+                                $scope.showActionErrors();
+                                $scope.refreshBookings($scope.display.list);
+                            }
+                        }
+                    );
+                });
             } catch (e) {
                 $scope.display.processing = undefined;
                 $scope.currentErrors.push({ error: 'rbs.error.technical' });
@@ -2435,12 +2435,29 @@ export const rbsController = ng.controller('RbsController', [
                 resourceType.notified = 'some';
             }
         };
+
         $scope.selectBooking = function (currentBooking) {
             if (currentBooking.is_periodic === true) {
                 return $scope.booking._slots;
             } else {
                 return [$scope.booking];
             }
+        };
 
-        }
+        $scope.safeApply = (): Promise<any> => {
+            return new Promise((resolve, reject) => {
+                let phase = $scope.$root.$$phase;
+                if (phase === '$apply' || phase === '$digest') {
+                    if (resolve && (typeof (resolve) === 'function')) {
+                        resolve();
+                    }
+                } else {
+                    if (resolve && (typeof (resolve) === 'function')) {
+                        $scope.$apply(resolve);
+                    } else {
+                        $scope.$apply()();
+                    }
+                }
+            });
+        };
     }]);
