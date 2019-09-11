@@ -26,6 +26,7 @@ export class Booking implements Selectable {
     start_date: string;
     startDate: string;
     status: number | null;
+    color: string;
     booking_reason: string;
 
     resourceType?: ResourceType;
@@ -88,7 +89,7 @@ export class Booking implements Selectable {
             let url = '/rbs/resource/' + this.resource.id + '/booking/' + this.id;
             url += this.is_periodic ? '/periodic' : '';
             let {data} = await http.put(url, this.toJSON());
-            this.status = STATE_CREATED;
+            this.status = 1;
             return data;
         } catch (e) {
             notify.error('rbs.errors.title.update.booking');
@@ -107,7 +108,7 @@ export class Booking implements Selectable {
     }
 
     validate() {
-        this.status = STATE_VALIDATED;
+        this.status = 1;
         this.process({
             status: this.status
         });
@@ -115,7 +116,7 @@ export class Booking implements Selectable {
 
 
     refuse() {
-        this.status = STATE_REFUSED;
+        this.status = 3;
         this.process({
             status: this.status,
             refusal_reason: this.refusal_reason
@@ -142,23 +143,23 @@ export class Booking implements Selectable {
     };
 
     isSlot() {
-        return this.parent_booking_id !== null;
-    }
+        return this.parent_booking_id !== null
+    };
 
     isOccurence() {
         return this.parent_booking_id !== null
     };
 
     isPending() {
-        return this.status === STATE_CREATED
+        return this.status === 1
     };
 
     isValidated() {
-        return this.status === STATE_VALIDATED
+        return this.status === 2
     };
 
     isRefused() {
-        return this.status === STATE_REFUSED
+        return this.status === 3
     };
 
     isNotPeriodicRoot() {
@@ -229,58 +230,46 @@ export class Bookings extends Selection<Booking> {
         this.applyFilters();
     }
 
-    // async syncList() {
-    //     try {
-    //         let {data} = await http.get('/rbs/bookings/all');
-    //         this.all = Mix.castArrayAs(Booking, data);
-    //     } catch (e) {
-    //         notify.error('rbs.errors.title.sync.list.booking');
-    //     }
-    // };
 
     applyFilters() {
         this.filtered = this.all;
         this.filtered = _.filter(this.all, (booking) => {
-            if (this.filters.dates !== undefined) {
-                if (this.filters.dates === true) {
-                    if (this.filters.mine) {
-                        return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
-                            || this.filters.showParentBooking)
-                            && booking.resource.selected)
-                            && (
-                                (booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endMoment)
-                                    && booking.endMoment.isAfter(this.filters.startMoment))
-                                // ||
-                                // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
-                                //     && (_.last(booking._slots)).endMoment.isAfter(this.filters.startMoment))
+                if (this.filters.dates !== undefined) {
+                    if (this.filters.dates === true) {
+                        if (this.filters.mine) {
+                            return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
+                                || this.filters.showParentBooking)
+                                && booking.resource.selected)
+                                && (
+                                    (booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endMoment)
+                                        && booking.endMoment.isAfter(this.filters.startMoment))
+                                    // ||
+                                    // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
+                                    //     && (_.last(booking._slots)).endMoment.isAfter(this.filters.startMoment))
                                     && booking.isMine);
+                        }
+                        else if (this.filters.unprocessed) {
+                            return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
+                                || this.filters.showParentBooking)
+                                && booking.resource.selected)
+                                && (
+                                    (booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endMoment)
+                                        && booking.endMoment.isAfter(this.filters.startMoment))
+                                    // ||
+                                    // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
+                                    //     && (_.last(booking._slots)).endMoment.isAfter(this.filters.startMoment))
+                                    && booking.unProcessed);
+                        }
+                        else {
+                            return (((!this.filters.showParentBooking && booking.parent_booking_id === null) || this.filters.showParentBooking) && booking.resource.selected) &&
+                                ((booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endMoment) && booking.endMoment.isAfter(this.filters.startMoment))
+                                    // ||
+                                    // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
+                                    //     && (_.last(booking._slots)).endMoment.isAfter(this.filters.startMoment))
+                                );
+                        }
                     }
-                    else if (this.filters.unprocessed) {
-                        return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
-                            || this.filters.showParentBooking)
-                            && booking.resource.selected)
-                            && (
-                                (booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endMoment)
-                                    && booking.endMoment.isAfter(this.filters.startMoment))
-                                // ||
-                                // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
-                                //     && (_.last(booking._slots)).endMoment.isAfter(this.filters.startMoment))
-                                && booking.unProcessed);
-                    }
-                    else {
-                        return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
-                            || this.filters.showParentBooking)
-                            && booking.resource.selected)
-                            && (
-                                (booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endMoment)
-                                    && booking.endMoment.isAfter(this.filters.startMoment))
-                                // ||
-                                // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
-                                //     && (_.last(booking._slots)).endMoment.isAfter(this.filters.startMoment))
-                            );
-                    }
-                }
-            }  else if (this.filters.mine) {
+                } else if (this.filters.mine) {
                 return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
                     || this.filters.showParentBooking)
                     && booking.isMine)
@@ -289,10 +278,9 @@ export class Bookings extends Selection<Booking> {
                 return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
                     || this.filters.showParentBooking)
                     && booking.unProcessed)
-            } else {
-                return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
-                    || this.filters.showParentBooking)
-                    && booking.resource.selected);
+            }
+            else {
+                return booking.resource.selected;
             }
         });
     };
@@ -313,6 +301,7 @@ export class Bookings extends Selection<Booking> {
 export class filterBookings {
     showParentBooking: boolean;
     calendar: object;
+    booking: any;
     mine: any;
     unprocessed: any;
     dates: any;

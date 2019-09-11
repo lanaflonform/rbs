@@ -1,6 +1,4 @@
 import { Behaviours, model, _ } from 'entcore';
-import http from "axios";
-import {Resources, ResourceType} from "./model";
 
 const rbsBehaviours = {
 	resources: {
