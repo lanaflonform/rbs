@@ -1,4 +1,4 @@
-import { Rights, _, Shareable, Behaviours, notify} from 'entcore';
+import {Rights, _, Shareable, Behaviours, notify} from 'entcore';
 import { Selectable, Mix, Selection } from 'entcore-toolkit';
 import http from 'axios';
 import { Resources, Structure} from './'
@@ -6,7 +6,6 @@ import { Resources, Structure} from './'
 export class ResourceType implements Selectable, Shareable{
     id: number;
     expanded: boolean;
-    extendcolor: boolean;
     color:string;
     name: string;
     notified: string;

@@ -146,20 +146,16 @@ export class Booking implements Selectable {
         return this.parent_booking_id !== null
     };
 
-    isOccurence() {
-        return this.parent_booking_id !== null
-    };
-
     isPending() {
-        return this.status === 1
+        return this.status === 1;
     };
 
     isValidated() {
-        return this.status === 2
+        return this.status === 2;
     };
 
     isRefused() {
-        return this.status === 3
+        return this.status === 3;
     };
 
     isNotPeriodicRoot() {
@@ -214,7 +210,7 @@ export class Bookings extends Selection<Booking> {
         this.endPagingDate = endPagingDate ? endPagingDate : moment(startPagingDate).add(1, Utils.getIncrementISOMoment()).startOf('day');
     }
 
-    async sync(resources?: Resources, ignoreDate?: boolean) {
+    async sync(ignoreDate?: boolean, resources?: Resources) {
         let url = `/rbs/bookings/all`;
         if (this.startPagingDate && this.endPagingDate && !ignoreDate)
             url += '/' + moment(this.startPagingDate).format('YYYY-MM-DD') + '/' + moment(this.endPagingDate).format('YYYY-MM-DD');
@@ -229,7 +225,6 @@ export class Bookings extends Selection<Booking> {
         });
         this.applyFilters();
     }
-
 
     applyFilters() {
         this.filtered = this.all;
@@ -286,13 +281,10 @@ export class Bookings extends Selection<Booking> {
     };
 
     refreshBookings(isDisplayList) {
-        // Record selections
-        // model.recordedSelections.record();
-        // Clear bookings
         if (isDisplayList === true) {
-            this.sync(this.resources, true);
+            this.sync(true);
         } else {
-            this.sync();
+            return this.sync();
         }
     };
 

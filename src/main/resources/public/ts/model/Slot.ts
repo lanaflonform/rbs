@@ -27,15 +27,16 @@ export class Slot implements Selectable{
 }
 
 export class Slots  extends Selection<Slot> {
+    id: number;
 
     constructor (slot?) {
         super([]);
         if(slot) this.all = Mix.castArrayAs(Slot, [slot] );
     }
 
-    async sync () {
-        let { data } = await http.get('');
-        this.all = Mix.castArrayAs(Slot, data );
+    async sync (id: number) {
+        let { data } = await http.get(`/rbs/bookings/full/slots/${id}`);
+        this.all = Mix.castArrayAs(Slot, data);
     }
 }
 

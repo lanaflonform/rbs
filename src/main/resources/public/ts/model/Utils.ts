@@ -31,7 +31,7 @@ export class Utils {
         return false;
     };
     static  today = moment().startOf('day');
-    static tomorrow = moment().add('day', 1).startOf('day');
+    static tomorrow = moment().add(1, 'day').startOf('day');
 
     static bitMaskToDays = (bitMask?) =>{
         let periodDays = [];
