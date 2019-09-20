@@ -1,4 +1,4 @@
-import { moment } from 'entcore';
+import {_, moment} from 'entcore';
 import { Selectable, Mix, Selection } from 'entcore-toolkit';
 import http from "axios";
 import {Booking} from "./Booking";
@@ -9,7 +9,7 @@ export class Slot implements Selectable{
     start_date;
     end_date;
     selected:boolean;
-    constructor (booking?: Booking, start?:string, end?:string) {
+    constructor (booking?: Booking) {
         if(booking.startDate)  this.start_date = booking.startMoment;
         if(booking.endDate) this.end_date = booking.endMoment;
     }
@@ -19,8 +19,8 @@ export class Slot implements Selectable{
     }
     slotJson(start, end) {
         return {
-            start_date : (moment.utc(start).add('hours',+ moment(this.startMoment).format('Z').split(':')[0])).unix(),
-            end_date : (moment.utc(end).add('hours',+ moment(this.startMoment).format('Z').split(':')[0])).unix(),
+            start_date : (moment.utc(start).add(moment(this.startMoment).format('Z').split(':')[0],'hours' )).unix(),
+            end_date : (moment.utc(end).add(moment(this.startMoment).format('Z').split(':')[0], 'hours')).unix(),
             iana : Intl.DateTimeFormat().resolvedOptions().timeZone
         }
     }

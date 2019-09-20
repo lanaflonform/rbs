@@ -1,8 +1,7 @@
 import {Mix, Selectable, Selection} from "entcore-toolkit";
-import {moment, _, notify, model} from "entcore";
+import {moment, _ ,  notify, model} from "entcore";
 import http from "axios";
-import {STATE_CREATED, STATE_PARTIAL, STATE_REFUSED, STATE_VALIDATED} from "./constantes/STATE";
-import {Resource, Resources, ResourceType, ResourceTypes, Slot, Slots, Utils} from './index';
+import {Resource, Resources, ResourceType, ResourceTypes, Slots, Utils} from './index';
 import {BD_DATE_FORMAT} from "./constantes";
 
 export class Booking implements Selectable {
@@ -74,7 +73,7 @@ export class Booking implements Selectable {
 
     calendarUpdate() {
         if (this.start) {
-            this.slots = new Slots(new Slot(moment(this.start).unix(), moment(this.end).unix()));
+            this.slots = new Slots();
         }
         if (this.id) {
             this.update()
@@ -198,6 +197,7 @@ export class Bookings extends Selection<Booking> {
     filtered: Array<Booking>;
     filters: filterBookings;
     resources: Resources;
+    slots: Array<Booking>;
 
     constructor() {
         super([]);
@@ -210,7 +210,7 @@ export class Bookings extends Selection<Booking> {
         this.endPagingDate = endPagingDate ? endPagingDate : moment(startPagingDate).add(1, Utils.getIncrementISOMoment()).startOf('day');
     }
 
-    async sync(ignoreDate?: boolean, resources?: Resources) {
+    async sync(ignoreDate: boolean, resources?: Resources) {
         let url = `/rbs/bookings/all`;
         if (this.startPagingDate && this.endPagingDate && !ignoreDate)
             url += '/' + moment(this.startPagingDate).format('YYYY-MM-DD') + '/' + moment(this.endPagingDate).format('YYYY-MM-DD');
@@ -220,59 +220,58 @@ export class Bookings extends Selection<Booking> {
             booking.startMoment = moment(booking.start_date, BD_DATE_FORMAT);
             booking.endMoment = moment(booking.end_date, BD_DATE_FORMAT);
             booking.isMine = booking.owner === model.me.userId;
-            booking.unProcessed = booking.status === STATE_CREATED || booking.status === STATE_PARTIAL;
+            booking.unProcessed = booking.status === 1 || booking.status === 9;
             if (resources) booking.resource = _.findWhere(resources.all, {id: booking.resource_id});
         });
         this.applyFilters();
     }
 
-    applyFilters() {
+    applyFilters(isDisplayList?) {
         this.filtered = this.all;
         this.filtered = _.filter(this.all, (booking) => {
-                if (this.filters.dates !== undefined) {
-                    if (this.filters.dates === true) {
+                if (this.filters.dates && this.filters.dates === true) {
                         if (this.filters.mine) {
-                            return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
-                                || this.filters.showParentBooking)
+                            return (booking.isBooking()
                                 && booking.resource.selected)
                                 && (
                                     (booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endMoment)
                                         && booking.endMoment.isAfter(this.filters.startMoment))
                                     // ||
                                     // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
-                                    //     && (_.last(booking._slots)).endMoment.isAfter(this.filters.startMoment))
-                                    && booking.isMine);
+                                    //     && (_.last(booking.slots)).endMoment.isAfter(this.filters.startMoment))
+                                     && booking.isMine);
                         }
                         else if (this.filters.unprocessed) {
-                            return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
-                                || this.filters.showParentBooking)
+                            return (booking.isBooking()
                                 && booking.resource.selected)
                                 && (
                                     (booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endMoment)
                                         && booking.endMoment.isAfter(this.filters.startMoment))
                                     // ||
                                     // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
-                                    //     && (_.last(booking._slots)).endMoment.isAfter(this.filters.startMoment))
-                                    && booking.unProcessed);
+                                    //     && (_.last(booking.slots)).endMoment.isAfter(this.filters.startMoment))
+                                     && booking.unProcessed);
                         }
                         else {
-                            return (((!this.filters.showParentBooking && booking.parent_booking_id === null) || this.filters.showParentBooking) && booking.resource.selected) &&
-                                ((booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endMoment) && booking.endMoment.isAfter(this.filters.startMoment))
+                            return (booking.isBooking()
+                                && booking.resource.selected) &&
+                                ((booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endMoment)
+                                        && booking.endMoment.isAfter(this.filters.startMoment))
                                     // ||
                                     // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
-                                    //     && (_.last(booking._slots)).endMoment.isAfter(this.filters.startMoment))
+                                    //     && (_.last(booking.slots)).endMoment.isAfter(this.filters.startMoment))
                                 );
                         }
-                    }
                 } else if (this.filters.mine) {
-                return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
-                    || this.filters.showParentBooking)
+                return (booking.isBooking()
                     && booking.isMine)
             }
             else if (this.filters.unprocessed) {
-                return (((!this.filters.showParentBooking && booking.parent_booking_id === null)
-                    || this.filters.showParentBooking)
+                return (booking.isBooking()
                     && booking.unProcessed)
+            }
+            else if(isDisplayList) {
+                return booking.isBooking() && booking.resource.selected;
             }
             else {
                 return booking.resource.selected;
@@ -280,12 +279,19 @@ export class Bookings extends Selection<Booking> {
         });
     };
 
-    refreshBookings(isDisplayList) {
-        if (isDisplayList === true) {
-            this.sync(true);
-        } else {
-            return this.sync();
-        }
+    showSlots(booking) {
+        this.all.filter(item => {
+            if (item.parent_booking_id === booking.id) {
+                booking.slots.all.push(item)
+            }
+        })
+    };
+
+    hideSlots(booking) {
+        booking.slots.all = [];
+        _.each(this.slots, function(slot){
+            slot.selected = undefined;
+        });
     };
 
 }

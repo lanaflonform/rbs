@@ -87,23 +87,23 @@
 
 			<h2 ng-click="booking.displaySection = 3;">
 				<i18n>rbs.booking.title.periodic</i18n>
-				<span class="right-magnet" ng-if="countRefusedSlots(booking._slots) <= 1">
-					[[countRefusedSlots(booking._slots)]]&nbsp;<i18n>rbs.booking.details.header.refused.one</i18n>
+				<span class="right-magnet" ng-if="countRefusedSlots(booking) <= 1">
+					[[countRefusedSlots(booking.slots)]]&nbsp;<i18n>rbs.booking.details.header.refused.one</i18n>
 				</span>
-				<span class="right-magnet" ng-if="countRefusedSlots(booking._slots) > 1">
-					[[countRefusedSlots(booking._slots)]]&nbsp;<i18n>rbs.booking.details.header.refused.many</i18n>
+				<span class="right-magnet" ng-if="countRefusedSlots(booking) > 1">
+					[[countRefusedSlots(booking.slots)]]&nbsp;<i18n>rbs.booking.details.header.refused.many</i18n>
 				</span>
-				<span class="right-magnet" ng-if="countValidatedSlots(booking._slots) <= 1">
-					[[countValidatedSlots(booking._slots)]]&nbsp;<i18n>rbs.booking.details.header.validated.one</i18n>&nbsp;-&nbsp;
+				<span class="right-magnet" ng-if="countValidatedSlots(booking) <= 1">
+					[[countValidatedSlots(booking.slots)]]&nbsp;<i18n>rbs.booking.details.header.validated.one</i18n>&nbsp;-&nbsp;
 				</span>
-				<span class="right-magnet" ng-if="countValidatedSlots(booking._slots) > 1">
-					[[countValidatedSlots(booking._slots)]]&nbsp;<i18n>rbs.booking.details.header.validated.many</i18n>&nbsp;-&nbsp;
+				<span class="right-magnet" ng-if="countValidatedSlots(booking) > 1">
+					[[countValidatedSlots(booking.slots)]]&nbsp;<i18n>rbs.booking.details.header.validated.many</i18n>&nbsp;-&nbsp;
 				</span>
-				<span class="right-magnet" ng-if="booking._slots.length <= 1">
-					[[booking._slots.length]]&nbsp;<i18n>rbs.booking.details.header.slots.one</i18n>&nbsp;-&nbsp;
+				<span class="right-magnet" ng-if="booking.slots.length <= 1">
+					[[booking.slots.length]]&nbsp;<i18n>rbs.booking.details.header.slots.one</i18n>&nbsp;-&nbsp;
 				</span>
-				<span class="right-magnet" ng-if="booking._slots.length > 1">
-					[[booking._slots.length]]&nbsp;<i18n>rbs.booking.details.header.slots.many</i18n>&nbsp;-&nbsp;
+				<span class="right-magnet" ng-if="booking.slots.length > 1">
+					[[booking.slots.length]]&nbsp;<i18n>rbs.booking.details.header.slots.many</i18n>&nbsp;-&nbsp;
 				</span>
 			</h2>
 
@@ -124,31 +124,31 @@
 								<th><i18n>rbs.booking.headers.status</i18n></th>
 							</tr>
 						</thead>
-						<tbody ng-repeat="slot in booking._slots | orderBy: 'startMoment'">
+						<tbody ng-repeat="booking in booking.slots.all | orderBy: 'startMoment'">
 							<tr>
-                                <td ng-if="slot == currentBookingSelected">[[$index + 1]] <em style="color:red">*</em></td>
-                                <td ng-if="slot != currentBookingSelected">[[$index + 1]]</td>
-								<td ng-if="slot.isRefused()"><a ng-click="switchExpandSlot(slot)">[[formatMoment(slot.startMoment)]]</a></td>
-								<td ng-if="! slot.isRefused()">[[formatMoment(slot.startMoment)]]</td>
+                                <td ng-if="booking == currentBookingSelected">[[$index + 1]] <em style="color:red">*</em></td>
+                                <td ng-if="booking != currentBookingSelected">[[$index + 1]]</td>
+								<td ng-if="booking.isRefused()"><a ng-click="switchExpandSlot(booking)">[[formatMoment(booking.startMoment)]]</a></td>
+								<td ng-if="!booking.isRefused()">[[formatMoment(booking.startMoment)]]</td>
 
-								<td ng-if="slot.isRefused()"><a ng-click="switchExpandSlot(slot)">[[formatMoment(slot.endMoment)]]</a></td>
-								<td ng-if="! slot.isRefused()">[[formatMoment(slot.endMoment)]]</td>
+								<td ng-if="booking.isRefused()"><a ng-click="switchExpandSlot(booking)">[[formatMoment(booking.endMoment)]]</a></td>
+								<td ng-if="!booking.isRefused()">[[formatMoment(booking.endMoment)]]</td>
 
-								<td ng-if="slot.isPending() || slot.isSuspended()"></td>
-								<td ng-if="slot.isValidated()">[[slot.moderator_name]]</td>
-								<td ng-if="slot.isRefused()"><a ng-click="switchExpandSlot(slot)">[[slot.moderator_name]]</a></td>
+								<td ng-if="booking.isPending() || booking.isSuspended()"></td>
+								<td ng-if="booking.isValidated()">[[booking.moderator_name]]</td>
+								<td ng-if="booking.isRefused()"><a ng-click="switchExpandSlot(booking)">[[booking.moderator_name]]</a></td>
 
-								<td ng-if="slot.isPending()"><i18n>rbs.booking.status.created</i18n></td>
-								<td ng-if="slot.isSuspended()"><i18n>rbs.booking.status.suspended</i18n></td>
-								<td ng-if="slot.isValidated()"><i18n>rbs.booking.status.validated</i18n></td>
-								<td ng-if="slot.isRefused()"><a ng-click="switchExpandSlot(slot)"><i18n>rbs.booking.status.refused</i18n></a></td>
+								<td ng-if="booking.isPending()"><i18n>rbs.booking.status.created</i18n></td>
+								<td ng-if="booking.isSuspended()"><i18n>rbs.booking.status.suspended</i18n></td>
+								<td ng-if="booking.isValidated()"><i18n>rbs.booking.status.validated</i18n></td>
+								<td ng-if="booking.isRefused()"><a ng-click="switchExpandSlot(booking)"><i18n>rbs.booking.status.refused</i18n></a></td>
 							</tr>
-							<tr ng-if="slot.expanded === true" class="minor">
+							<tr ng-if="booking.expanded === true" class="minor">
 								<td></td>
 								<td colspan="4">
 									<div class="row form-element">
-										<p class="twelve cell" ng-if="slot.refusal_reason && slot.refusal_reason !== ''" bind-html="slot.refusal_reason"></p>
-										<p class="twelve cell placeholder" ng-if="! (slot.refusal_reason && slot.refusal_reason !== '')"><i18n>rbs.booking.details.refused.reason.empty</i18n></p>
+										<p class="twelve cell" ng-if="booking.refusal_reason && booking.refusal_reason !== ''" bind-html="slot.refusal_reason"></p>
+										<p class="twelve cell placeholder" ng-if="! (booking.refusal_reason && booking.refusal_reason !== '')"><i18n>rbs.booking.details.refused.reason.empty</i18n></p>
 									</div>
 								</td>
 							</tr>

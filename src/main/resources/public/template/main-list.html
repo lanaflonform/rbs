@@ -89,20 +89,20 @@
 			</td>
 			<td ng-click="viewBooking(booking)"></td>
 		</tr>
-		<tr ng-repeat="slot in booking.slots">
+		<tr ng-repeat="booking in booking.slots.all">
 			<td class="invisible"></td>
-			<td><input type="checkbox" ng-if="canDeleteBookingDateCheck(slot.endMoment) && hasAnyBookingRight(booking)" ng-model="slot.selected" /></td>
+			<td><input type="checkbox" ng-if="canDeleteBookingDateCheck(booking.endMoment) && hasAnyBookingRight(booking)" ng-model="booking.selected" /></td>
 			<td class="[[booking.color]]"></td>
 			<td></td>
 			<td ng-click="viewBooking(slot)">[[booking.owner_name]]</td>
 			<td ng-click="viewBooking(slot)">[[booking.resource.name]]</td>
-			<td ng-click="viewBooking(slot)">[[formatMoment(slot.startMoment)]]</td>
-			<td ng-click="viewBooking(slot)">[[formatMoment(slot.endMoment)]]</td>
+			<td ng-click="viewBooking(slot)">[[formatMoment(booking.startMoment)]]</td>
+			<td ng-click="viewBooking(slot)">[[formatMoment(booking.endMoment)]]</td>
 			<td ng-click="viewBooking(slot)">
-				<i ng-if="slot.isPending() === true" class="pending-icon"></i>
-				<i ng-if="slot.isValidated() === true" class="validated-icon"></i>
-				<i ng-if="slot.isRefused() === true" class="refused-icon"></i>
-				<i ng-if="slot.isSuspended() === true" class="suspended-icon"></i>
+				<i ng-if="booking.isPending() === true" class="pending-icon"></i>
+				<i ng-if="booking.isValidated() === true" class="validated-icon"></i>
+				<i ng-if="booking.isRefused() === true" class="refused-icon"></i>
+				<i ng-if="booking.isSuspended() === true" class="suspended-icon"></i>
 			</td>
 			<td></td>
 		</tr>

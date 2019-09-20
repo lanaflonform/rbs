@@ -70,7 +70,7 @@ export const rbsController = ng.controller('RbsController', [
                 await $scope.resourceTypes.sync($scope.resources);
                 await Promise.all([
                     $scope.structures.sync($scope.resourceTypes,$scope.preference),
-                    $scope.bookings.sync($scope.resources)
+                    $scope.bookings.sync(false, $scope.resources)
                 ]);
                 $scope.initialize();
             },
@@ -113,7 +113,7 @@ export const rbsController = ng.controller('RbsController', [
             $scope.initConstants();
             model.calendar.on('date-change', async () => {
                 $scope.bookings.initDates(model.calendar.firstDay);
-                await $scope.bookings.sync($scope.resources);
+                await $scope.bookings.sync(false, $scope.resources);
                 $scope.$apply();
             })
         };
@@ -145,7 +145,7 @@ export const rbsController = ng.controller('RbsController', [
             await $scope.bookings.sync(true, $scope.resources);
             $scope.bookings.filters.startMoment = moment($scope.bookings.filters.startDate);
             $scope.bookings.filters.endMoment =
-                moment($scope.bookings.filters.endDate).add('month', 2).startOf('day');
+                moment($scope.bookings.filters.endDate).add(2, 'month').startOf('day');
             $scope.bookings.applyFilters();
             template.open('bookings', 'main-list');
             $scope.$apply();
@@ -194,12 +194,9 @@ export const rbsController = ng.controller('RbsController', [
         let updateCalendarList = async function(start, end) {
             $scope.bookings.filters.startMoment = start;
             $scope.bookings.filters.endMoment = end;
-            // $scope.bookings.all.forEach((booking) => {
-            //     booking.startMoment.date(start.date())
-            //     booking.endMoment.date(end.date())
-            // });
-            await $scope.bookings.sync($scope.resources);
+            await $scope.bookings.sync(false, $scope.resources);
             $scope.bookings.applyFilters();
+            $scope.$apply();
         };
 
         // Main view interaction
@@ -402,12 +399,6 @@ export const rbsController = ng.controller('RbsController', [
                 //call back-end to obtain all periodic slots
                 if (booking.occurrences !== booking.slots.length) {
                     await $scope.slots.sync(booking.parent_booking_id);
-                    // $scope.bookings.loadSlots(booking, function() {
-                        if (booking.status === 3) {
-                            booking.expanded = true;
-                        }
-                        $scope.showBookingDetail(booking.booking, 3);
-                    // });
                 } else {
                     if (booking.status === 3) {
                         booking.expanded = true;
@@ -454,12 +445,12 @@ export const rbsController = ng.controller('RbsController', [
 
         $scope.expandPeriodicBooking = function(booking) {
             booking.expanded = true;
-            $scope.showSlots();
+            $scope.bookings.showSlots(booking);
         };
 
         $scope.collapsePeriodicBooking = function(booking) {
             booking.expanded = undefined;
-            $scope.hideSlots();
+            $scope.bookings.hideSlots(booking);
         };
 
         $scope.switchSelectAllBookings = function(bookings) {
@@ -482,16 +473,12 @@ export const rbsController = ng.controller('RbsController', [
             });
         };
 
-        $scope.showSlots = function() {
-            $scope.bookings.slots = $scope.slots;
-        };
-
-        $scope.hideSlots = function() {
-            $scope.bookings.slots = [];
-            _.each($scope.bookings.slots, function(slot){
-            slot.selected = undefined;
-        });
-    };
+    //     $scope.hideSlot = function() {
+    //         $scope.bookings.slots = [];
+    //         _.each($scope.bookings.slots, function(slot){
+    //         slot.selected = undefined;
+    //     });
+    // };
 
         $scope.displayToggle = function(booking) {
             if (!_.contains($scope.bookings.selectedElements, booking)) {
@@ -548,8 +535,11 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.bookings.filters.dates = true;
             } else {
                 $scope.bookings.filters.dates = undefined;
+                $scope.bookings.filters.startMoment = $scope.bookings.filters.startDate;
+                $scope.bookings.filters.endMoment = $scope.bookings.filters.endDate;
             }
-            $scope.bookings.applyFilters();
+            $scope.bookings.applyFilters($scope.display.list);
+            $scope.$apply();
         };
 
         // General
@@ -789,12 +779,12 @@ export const rbsController = ng.controller('RbsController', [
                 } else {
                     $scope.booking.byOccurrences = false;
                 }
-                $scope.booking._slots= _.sortBy($scope.booking._slots,'id') ;
-                $scope.booking.startMoment= $scope.booking._slots[0].startMoment;
+                $scope.booking.slots = _.sortBy($scope.booking.slots,'id') ;
+                $scope.booking.startMoment= $scope.booking.slots.all[0].startMoment;
                 $scope.booking.startMoment.date($scope.booking.start.date());
                 $scope.booking.startMoment.month($scope.booking.start.month());
                 $scope.booking.startMoment.year($scope.booking.start.year());
-                $scope.booking.endMoment = $scope.booking._slots[0].endMoment;
+                $scope.booking.endMoment = $scope.booking.slots.all[0].endMoment;
             }
             $scope.initBookingDates(
                 $scope.booking.startMoment,
@@ -881,9 +871,9 @@ export const rbsController = ng.controller('RbsController', [
             } else {
                 $scope.booking.startTime = minTime;
                 if (startMoment.isAfter(maxTime)) {
-                    startMoment.add('day', 1);
-                    endMoment.add('day', 1);
-                    maxTime.add('day', 1);
+                    startMoment.add(1, 'day');
+                    endMoment.add(1, 'day');
+                    maxTime.add(1, 'day');
                 }
             }
             if (endMoment.isBefore(maxTime)) {
@@ -1299,18 +1289,8 @@ export const rbsController = ng.controller('RbsController', [
                         .setHours($scope.booking.endTime.hour(), $scope.booking.endTime.minute());
                 }
                 $scope.booking.slots = [new Slot($scope.booking).toJson()];
-                $scope.booking.save(
-                    function() {
-                        $scope.display.processing = undefined;
-                    },
-                    function(e) {
-                        notify.error(e.error);
-                        $scope.display.processing = undefined;
-                        $scope.currentErrors.push(e);
-                        $scope.$apply();
-                    }
-                );
-                await $scope.bookings.refreshBookings($scope.display.list);
+                await $scope.booking.save();
+                await $scope.bookings.sync(false, $scope.resources);
                 $scope.$apply();
                 $scope.closeBooking();
             } catch (e) {
@@ -1493,7 +1473,9 @@ export const rbsController = ng.controller('RbsController', [
                                 await bookingPeriodicToSave.save();
                                 $scope.display.processing = undefined;
                                 $scope.closeBooking();
-                                $scope.refreshBookings($scope.display.list);
+                                // await $scope.bookings.refreshBookings($scope.display.list, true, $scope.resources);
+                                await $scope.bookings.sync(true, $scope.resources);
+                                $scope.$apply();
 
                             } else {
                                 $scope.booking.slots.push(new Slot($scope.booking).toJson());
@@ -1559,10 +1541,12 @@ export const rbsController = ng.controller('RbsController', [
                 });
                 if (!$scope.multipleDaysPeriodic) {
                     $scope.booking.save(
-                        function() {
+                        async function() {
                             $scope.display.processing = undefined;
+                            // await $scope.bookings.refreshBookings($scope.display.list, true, $scope.resources);
+                            await $scope.bookings.sync(true, $scope.resources);
+                            $scope.$apply();
                             $scope.closeBooking();
-                            $scope.refreshBookings($scope.display.list);
                         },
                         function(e) {
                             notify.error(e.error);
@@ -1650,6 +1634,7 @@ export const rbsController = ng.controller('RbsController', [
             }
 
             let totalSelectionAsynchroneCall = 0;
+            let slots = booking.slots;
             _.each($scope.bookings.selectedElements, function(booking) {
                 if (!$scope.isViewBooking) {
                     $scope.currentBookingSelected = booking;
@@ -1691,29 +1676,28 @@ export const rbsController = ng.controller('RbsController', [
                     if (!$scope.isViewBooking) {
                         $scope.currentBookingSelected = booking;
                     }
-                    if (
-                        booking.isSlot() && booking.occurrences !== booking._slots.length
-                    ) {
+                    if (booking.isSlot() && booking.occurrences !== booking._slots.length) {
                         //call back-end to obtain all periodic slots
                         await $scope.slots.sync(booking.parent_booking_id);
+
                         // $scope.bookings.loadSlots(booking, function() {
-                            booking.booking.selected = true;
-                            booking.booking.selectAllSlots();
-                            totalSelectionAsynchroneCall--;
-                            if (totalSelectionAsynchroneCall === 0) {
-                                $scope.isViewBooking = false;
-                                if (
-                                    $scope.currentBookingSelected.isSlot() &&
-                                    $scope.currentBookingSelected.booking._slots.length !== 1
-                                ) {
-                                    $scope.showDeletePeriodicBookingMessage();
-                                } else if (
-                                    $scope.currentBookingSelected.isSlot() &&
-                                    $scope.currentBookingSelected.booking._slots.length === 1
-                                ) {
-                                    $scope.showConfirmDeleteMessage();
-                                }
-                            }
+                        //     booking.booking.selected = true;
+                        //     booking.booking.selectAllSlots();
+                        //     totalSelectionAsynchroneCall--;
+                        //     if (totalSelectionAsynchroneCall === 0) {
+                        //         $scope.isViewBooking = false;
+                        //         if (
+                        //             $scope.currentBookingSelected.isSlot() &&
+                        //             $scope.currentBookingSelected.booking._slots.length !== 1
+                        //         ) {
+                        //             $scope.showDeletePeriodicBookingMessage();
+                        //         } else if (
+                        //             $scope.currentBookingSelected.isSlot() &&
+                        //             $scope.currentBookingSelected.booking._slots.length === 1
+                        //         ) {
+                        //             $scope.showConfirmDeleteMessage();
+                        //         }
+                        //     }
                         // });
                     }
                 });
@@ -1751,8 +1735,10 @@ export const rbsController = ng.controller('RbsController', [
                 await $scope.booking.delete();
                 $scope.display.processing = undefined;
                 $scope.bookings.deselectAll();
+                await $scope.bookings.sync(true, $scope.resources);
+                $scope.$apply();
                 $scope.closeBooking();
-                $scope.refreshBookings($scope.display.list);
+
                 // let actions = $scope.processBookings.length;
                 // _.each($scope.processBookings, function(booking) {
                 //     booking.delete(
@@ -1762,7 +1748,7 @@ export const rbsController = ng.controller('RbsController', [
                 //                 $scope.display.processing = undefined;
                 //                 $scope.bookings.deselectAll();
                 //                 $scope.closeBooking();
-                //                 $scope.refreshBookings($scope.display.list);
+                //                 $scope.refreshBookings($scope.display.list, $scope.resources);
                 //             }
                 //         },
                 //         function(e) {
@@ -1771,11 +1757,12 @@ export const rbsController = ng.controller('RbsController', [
                 //             if (actions === 0) {
                 //                 $scope.display.processing = undefined;
                 //                 $scope.showActionErrors();
-                //                 $scope.refreshBookings($scope.display.list);
+                //                 $scope.refreshBookings($scope.display.list, $scope.resources);
                 //             }
                 //         }
                 //     );
                 // });
+
             } catch (e) {
                 $scope.currentErrors.push({ error: 'rbs.error.technical' });
             }
@@ -1786,17 +1773,20 @@ export const rbsController = ng.controller('RbsController', [
             $scope.currentErrors = [];
             try {
                 $scope.currentBookingSelected.delete(
-                    function() {
+                    async function() {
                         $scope.display.processing = undefined;
                         $scope.bookings.deselectAll();
+                        await $scope.bookings.sync(true, $scope.resources);
+                        $scope.$apply();
                         $scope.closeBooking();
-                        $scope.refreshBookings($scope.display.list);
+
                     },
-                    function(e) {
+                    async function(e) {
                         $scope.currentErrors.push(e);
                         $scope.display.processing = undefined;
                         $scope.showActionErrors();
-                        $scope.refreshBookings($scope.display.list);
+                        await $scope.bookings.sync(true, $scope.resources);
+                        $scope.$apply();
                     }
                 );
             } catch (e) {
@@ -1814,13 +1804,15 @@ export const rbsController = ng.controller('RbsController', [
                         $scope.display.processing = undefined;
                         $scope.bookings.deselectAll();
                         $scope.closeBooking();
-                        $scope.refreshBookings($scope.display.list);
+                        // $scope.refreshBookings($scope.display.list, $scope.resources);
+                        $scope.bookings.sync(false, $scope.resources);
                     },
                     function(e) {
                         $scope.currentErrors.push(e);
                         $scope.display.processing = undefined;
                         $scope.showActionErrors();
-                        $scope.refreshBookings($scope.display.list);
+                        // $scope.refreshBookings($scope.display.list, $scope.resources);
+                        $scope.bookings.sync(false, $scope.resources);
                     }
                 );
             } catch (e) {
@@ -1903,7 +1895,8 @@ export const rbsController = ng.controller('RbsController', [
                                 $scope.display.processing = undefined;
                                 $scope.bookings.deselectAll();
                                 $scope.closeBooking();
-                                $scope.refreshBookings($scope.display.list);
+                                // $scope.refreshBookings($scope.display.list, $scope.resources);
+                                $scope.bookings.sync(false, $scope.resources);
                             }
                         },
                         function(e) {
@@ -1912,7 +1905,8 @@ export const rbsController = ng.controller('RbsController', [
                             if (actions === 0) {
                                 $scope.display.processing = undefined;
                                 $scope.showActionErrors();
-                                $scope.refreshBookings($scope.display.list);
+                                // $scope.refreshBookings($scope.display.list, $scope.resources);
+                                $scope.bookings.sync(false, $scope.resources);
                             }
                         }
                     );
@@ -1938,7 +1932,8 @@ export const rbsController = ng.controller('RbsController', [
                                 $scope.bookings.deselectAll();
                                 $scope.bookings.refuseReason = undefined;
                                 $scope.closeBooking();
-                                $scope.refreshBookings($scope.display.list);
+                                // $scope.refreshBookings($scope.display.list, $scope.resources);
+                                $scope.bookings.sync(false, $scope.resources);
                             }
                         },
                         function(e) {
@@ -1947,7 +1942,8 @@ export const rbsController = ng.controller('RbsController', [
                             if (actions === 0) {
                                 $scope.display.processing = undefined;
                                 $scope.showActionErrors();
-                                $scope.refreshBookings($scope.display.list);
+                                // $scope.refreshBookings($scope.display.list, $scope.resources);
+                                $scope.bookings.sync(true, $scope.resources);
                             }
                         }
                     );
