@@ -1,7 +1,8 @@
 import { Mix, Selectable, Selection } from "entcore-toolkit";
-import { _, Behaviours } from 'entcore';
-import { ResourceType } from "./index";
+import {_, Behaviours, model, moment, notify} from 'entcore';
+import {Booking, ResourceType} from "./index";
 import http from "axios";
+import {BD_DATE_FORMAT} from "./constantes";
 
 export class Resource implements Selectable {
     id:number;
@@ -16,6 +17,7 @@ export class Resource implements Selectable {
     validation: boolean;
     visibility: null |boolean;
     resourceType: ResourceType;
+    type: any;
     type_id: number;
     created: string|Date;
     modified: string|Date;
@@ -23,11 +25,42 @@ export class Resource implements Selectable {
     shared: any;
     myRights: any;
     selected:boolean;
-
+    school_id: string;
 
     constructor (resource?) {
 
     }
+
+    toJSON(){
+        return {
+            id: this.id,
+            name: this.name,
+            color: this.color,
+            validation: this.validation,
+            is_available: this.is_available,
+            periodic_booking: this.periodic_booking,
+            description: this.description
+        };
+    }
+
+    save() {
+        if(this.id) {
+            //this.update();
+        }
+        else {
+            this.create();
+        }
+    };
+
+    async create() {
+        try {
+            let { data } = await http.post('/rbs/type/' + this.type.id + '/resource', this.toJSON());
+            this.id =  data.id;
+        } catch (e) {
+            notify.error('Function create resource failed');
+        }
+    }
+
 
     setPreference(preferenceResource){
         let state = _.findWhere(preferenceResource, {id : this.id});
@@ -45,14 +78,16 @@ export class Resource implements Selectable {
 }
 
 export class Resources extends Selection<Resource> {
+
     constructor() {
         super([]);
     }
+
     async sync() {
-        let  {data} = await http.get('/rbs/resources');
+        let {data} = await http.get('/rbs/resources');
         this.all = Mix.castArrayAs(Resource, data);
-        await this.all.map((resource)=>{
-             Behaviours.applicationsBehaviours.rbs.resource(resource)
+        this.all.map((resource) => {
+            Behaviours.applicationsBehaviours.rbs.resource(resource)
         })
     }
 

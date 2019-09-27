@@ -1,7 +1,7 @@
-import {Rights, _, Shareable, Behaviours, notify} from 'entcore';
+import { Rights, _, Shareable, Behaviours, notify } from 'entcore';
 import { Selectable, Mix, Selection } from 'entcore-toolkit';
 import http from 'axios';
-import { Resources, Structure} from './'
+import { Resources, Structure } from './';
 
 export class ResourceType implements Selectable, Shareable{
     id: number;
@@ -22,12 +22,23 @@ export class ResourceType implements Selectable, Shareable{
     selected:boolean;
     shared;
     owner;
+
     constructor (resourceType?) {
         if (resourceType) {
             Mix.extend(this, resourceType);
             this.myRights = new Rights(this);
             this.myRights.fromBehaviours();
         }
+    }
+
+    toJSON() {
+        return {
+            id: this.id,
+            name: this.name,
+            color: this.color,
+            validation: this.validation,
+            school_id: this.school_id
+        };
     }
 
     save(structureId) {
@@ -42,15 +53,12 @@ export class ResourceType implements Selectable, Shareable{
     async create(structureId) {
         try {
             this.school_id = structureId;
-            let { data } = await http.post('/rbs/type', this.toJSON());
+            let url = '/rbs/type';
+            let { data } = await http.post(url, this.toJSON());
             this.id =  data.id;
         } catch (e) {
             notify.error('Function create type failed');
         }
-    }
-
-    toJSON(){
-        return this;
     }
 
     setPreference(preferenceType, resources?:boolean){
@@ -58,7 +66,7 @@ export class ResourceType implements Selectable, Shareable{
         if(!state || state.length == 0) return;
         this.expanded = !!state.expanded ;
         this.selected = !!state.selected;
-        if(resources) this.resources.all.map((resource)=> resource.setPreference(state.resources));
+        if(resources && this.resources.all !== undefined) this.resources.all.map((resource) => resource.setPreference(state.resources));
         return state;
     }
 
@@ -76,7 +84,7 @@ export class ResourceTypes  extends Selection<ResourceType> {
     }
 
     async sync (resources?:Resources) {
-        try{
+        try {
             let { data } = await http.get('/rbs/types');
             if(!resources) {
                 let resources = new Resources();
@@ -89,12 +97,16 @@ export class ResourceTypes  extends Selection<ResourceType> {
                 Behaviours.applicationsBehaviours.rbs.resource(resourceType);
             })
         } catch (e) {
-
+            notify.error('Function sync resource type failed');
         }
     };
 
     deselectAllResources () {
-       this.all.forEach( resourceType => resourceType.resources.deselectAll());
+       this.all.forEach(resourceType => {
+           if(resourceType.resources.all !== undefined) {
+               resourceType.resources.deselectAll();
+           }
+       });
     };
 
     initModerators () {
