@@ -1284,6 +1284,7 @@ export const rbsController = ng.controller('RbsController', [
                 }
                 $scope.booking.slots = [new Slot($scope.booking).toJson()];
                 await $scope.booking.save();
+                $scope.display.processing = undefined;
                 await $scope.bookings.sync(false, $scope.resources);
                 $scope.$apply();
                 $scope.closeBooking();
@@ -1980,12 +1981,26 @@ export const rbsController = ng.controller('RbsController', [
             }
         };
 
-        $scope.filteredType = structure => {
+        $scope.filteredType = (structure) => {
             if (structure.resourceTypes.all && structure.resourceTypes.all.length !== 0 ){
                 return structure.resourceTypes.all
                     .filter( resourceType => Utils.keepProcessableResourceTypes(resourceType));
             }
             return [];
+        };
+
+        let refreshType = (resourceType) => {
+             _.each($scope.structures.all, function(struct) {
+                    if(struct.id === resourceType.school_id)
+                        struct.resourceTypes.all.push(resourceType);
+                });
+        };
+
+        let refreshResource = (resource) => {
+            _.each($scope.currentResourceType.resources.all, function(currResource) {
+                if(currResource.id === resource.type_id)
+                    currResource.currentResourceType.resources.all.push(resource);
+            });
         };
 
         $scope.createResourceType = () => {
@@ -2040,6 +2055,7 @@ export const rbsController = ng.controller('RbsController', [
             await $scope.editedResourceType.save($scope.structure.id);
             $scope.$apply();
             await $scope.resourceTypes.sync($scope.resources);
+            refreshType($scope.editedResourceType);
             $scope.display.processing = undefined;
             $scope.closeResourceType();
         };
@@ -2054,8 +2070,9 @@ export const rbsController = ng.controller('RbsController', [
             }
             $scope.currentErrors = [];
             await $scope.editedResource.save();
-            await $scope.resources.sync();
             $scope.$apply();
+            await $scope.resources.sync();
+            refreshResource($scope.editedResource)
             $scope.display.processing = undefined;
             $scope.closeResource();
         };
