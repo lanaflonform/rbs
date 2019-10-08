@@ -1991,16 +1991,16 @@ export const rbsController = ng.controller('RbsController', [
 
         let refreshType = (resourceType) => {
              _.each($scope.structures.all, function(struct) {
-                    if(struct.id === resourceType.school_id)
+                    if (struct.id === resourceType.school_id)
                         struct.resourceTypes.all.push(resourceType);
                 });
         };
 
-        let refreshResource = (resource) => {
-            _.each($scope.currentResourceType.resources.all, function(currResource) {
-                if(currResource.id === resource.type_id)
-                    currResource.currentResourceType.resources.all.push(resource);
-            });
+        let refreshResource = (currentResourceType, resource) => {
+            if (currentResourceType.resources && !currentResourceType.resources.all) {
+                currentResourceType.resources.all = [];
+            }
+            currentResourceType.resources.all.push(resource);
         };
 
         $scope.createResourceType = () => {
@@ -2072,7 +2072,7 @@ export const rbsController = ng.controller('RbsController', [
             await $scope.editedResource.save();
             $scope.$apply();
             await $scope.resources.sync();
-            refreshResource($scope.editedResource)
+            refreshResource($scope.currentResourceType, $scope.editedResource);
             $scope.display.processing = undefined;
             $scope.closeResource();
         };
