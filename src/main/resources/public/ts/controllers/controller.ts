@@ -916,18 +916,10 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.booking.startMoment,
                 $scope.booking.endMoment
             );
-            $scope.booking.resource =
-                $scope.booking.resourceType === undefined
-                    ? undefined
-                    : _.first(
-                    $scope.booking.resourceType.resources.filterAvailable(
-                        $scope.booking.is_periodic
-                    )
-                    );
-            if (
-                $scope.booking.resourceType !== undefined &&
-                $scope.booking.resourceType.slotprofile !== undefined
-            ) {
+            $scope.booking.resource = $scope.booking.resourceType === undefined ? undefined
+                    : _.first($scope.booking.resourceType.resources.filterAvailable($scope.booking.is_periodic));
+
+            if ($scope.booking.resourceType !== undefined && $scope.booking.resourceType.slotprofile !== undefined) {
                 await $scope.slotProfilesComponent.getSlots($scope.booking.resourceType.slotprofile);
 
                 if ( $scope.slotProfilesComponent.slots.length > 0) {
@@ -1286,12 +1278,12 @@ export const rbsController = ng.controller('RbsController', [
                 await $scope.booking.save();
                 $scope.display.processing = undefined;
                 await $scope.bookings.sync(false, $scope.resources);
-                $scope.$apply();
                 $scope.closeBooking();
             } catch (e) {
                 $scope.display.processing = undefined;
                 $scope.currentErrors.push({ error: 'rbs.error.technical' });
             }
+            $scope.$apply();
         };
 
         $scope.checkSaveBooking = function() {
@@ -2163,9 +2155,9 @@ export const rbsController = ng.controller('RbsController', [
             return (
                 (model.me.workflow[workflowRights[0]] !== undefined &&
                     model.me.workflow[workflowRights[0]][workflowRights[1]] === true) ||
-                $scope.resourceTypes.find(function(resourceType) {
+                $scope.resourceTypes.all.find(function(resourceType) {
                     return (
-                        resourceType.resources.find(function(resource) {
+                        resourceType.resources.all.find(function(resource) {
                             return (
                                 resource.myRights !== undefined &&
                                 resource.myRights[ressourceRight] !== undefined
