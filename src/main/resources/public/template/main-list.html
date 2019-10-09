@@ -23,11 +23,11 @@
 		<div class="dates" ng-if="bookings.filters.dates === true">
 			<div class="cell" ng-class="{disabled: bookings.filters.dates !== true}">
 				<date-picker-icon ng-model="bookings.filters.startDate" ng-change="switchFilterListByDates(true)" class="cell"></date-picker-icon>
-				<div class="cell"><i18n>rbs.filters.date.from</i18n>&nbsp;[[formatMomentDayMedium(bookings.filters.startMoment)]]</div>
+				<div class="cell"><i18n>rbs.filters.date.from</i18n>&nbsp;[[formatMomentDayMedium(bookings.filters.startDate)]]</div>
 			</div>
 			<div class="cell" ng-class="{disabled: bookings.filters.dates !== true}">
 				<date-picker-icon ng-model="bookings.filters.endDate" ng-change="switchFilterListByDates(true)" class="cell"></date-picker-icon>
-				<div class="cell"><i18n>rbs.filters.date.to</i18n>&nbsp;[[formatMomentDayMedium(bookings.filters.endMoment)]]</div>
+				<div class="cell"><i18n>rbs.filters.date.to</i18n>&nbsp;[[formatMomentDayMedium(bookings.filters.endDate)]]</div>
 			</div>
 		</div>
 	</li>

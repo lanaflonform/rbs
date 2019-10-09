@@ -144,8 +144,7 @@ export const rbsController = ng.controller('RbsController', [
             $scope.display.list = true;
             $scope.bookings.filters.booking = true;
             await $scope.bookings.sync(true, $scope.resources);
-            $scope.bookings.filters.startMoment = moment($scope.bookings.filters.startDate);
-            $scope.bookings.filters.endMoment =
+            $scope.bookings.filters.endDate =
                 moment($scope.bookings.filters.endDate).add(2, 'month').startOf('day');
             $scope.bookings.applyFilters();
             template.open('bookings', 'main-list');
@@ -181,21 +180,21 @@ export const rbsController = ng.controller('RbsController', [
         };
 
         $scope.nextWeekBookingButton = function() {
-            let nextStart = moment($scope.bookings.filters.startMoment).add(7, 'day');
-            let nextEnd = moment($scope.bookings.filters.endMoment).add(7, 'day');
+            let nextStart = moment($scope.bookings.filters.startDate).add(7, 'day');
+            let nextEnd = moment($scope.bookings.filters.endDate).add(7, 'day');
             updateCalendarList(nextStart, nextEnd);
         };
 
         $scope.previousWeekBookingButton = function() {
-            let prevStart = moment($scope.bookings.filters.startMoment).subtract(7, 'day');
-            let prevEnd = moment($scope.bookings.filters.endMoment).subtract(7, 'day');
+            let prevStart = moment($scope.bookings.filters.startDate).subtract(7, 'day');
+            let prevEnd = moment($scope.bookings.filters.endDate).subtract(7, 'day');
             updateCalendarList(prevStart, prevEnd);
         };
 
         let updateCalendarList = async function(start, end) {
-            $scope.bookings.filters.startMoment = start;
-            $scope.bookings.filters.endMoment = end;
-            await $scope.bookings.sync(false, $scope.resources);
+            $scope.bookings.filters.startDate = start;
+            $scope.bookings.filters.endDate = end;
+            await $scope.bookings.sync(true, $scope.resources);
             $scope.bookings.applyFilters();
             $scope.$apply();
         };
@@ -398,7 +397,7 @@ export const rbsController = ng.controller('RbsController', [
             if (booking.isSlot()) {
                 // slot : view booking details and show slot
                 //call back-end to obtain all periodic slots
-                if (booking.occurrences !== booking.slots.length) {
+                if (booking.isSlot() && booking.occurrences !== booking.slots.length) {
                     await $scope.slots.sync(booking.parent_booking_id);
                 } else {
                     if (booking.status === 3) {
@@ -529,8 +528,6 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.bookings.filters.dates = true;
             } else {
                 $scope.bookings.filters.dates = undefined;
-                $scope.bookings.filters.startMoment = $scope.bookings.filters.startDate;
-                $scope.bookings.filters.endMoment = $scope.bookings.filters.endDate;
             }
             $scope.bookings.applyFilters($scope.display.list);
             $scope.$apply();
@@ -562,7 +559,7 @@ export const rbsController = ng.controller('RbsController', [
         };
 
         $scope.formatMomentDayMedium = function(date) {
-            return date.format('dddd DD MMM YYYY');
+            return moment(date).format('dddd DD MMM YYYY');
         };
 
         $scope.formatHour = function(date) {

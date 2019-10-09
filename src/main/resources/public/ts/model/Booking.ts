@@ -234,8 +234,8 @@ export class Bookings extends Selection<Booking> {
                             return (booking.isBooking()
                                 && booking.resource.selected)
                                 && (
-                                    (booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endMoment)
-                                        && booking.endMoment.isAfter(this.filters.startMoment))
+                                    (booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endDate)
+                                        && booking.endMoment.isAfter(this.filters.startDate))
                                     // ||
                                     // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
                                     //     && (_.last(booking.slots)).endMoment.isAfter(this.filters.startMoment))
@@ -245,8 +245,8 @@ export class Bookings extends Selection<Booking> {
                             return (booking.isBooking()
                                 && booking.resource.selected)
                                 && (
-                                    (booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endMoment)
-                                        && booking.endMoment.isAfter(this.filters.startMoment))
+                                    (booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endDate)
+                                        && booking.endMoment.isAfter(this.filters.startDate))
                                     // ||
                                     // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
                                     //     && (_.last(booking.slots)).endMoment.isAfter(this.filters.startMoment))
@@ -255,8 +255,8 @@ export class Bookings extends Selection<Booking> {
                         else {
                             return (booking.isBooking()
                                 && booking.resource.selected) &&
-                                ((booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endMoment)
-                                        && booking.endMoment.isAfter(this.filters.startMoment))
+                                ((booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endDate)
+                                        && booking.endMoment.isAfter(this.filters.startDate))
                                     // ||
                                     // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
                                     //     && (_.last(booking.slots)).endMoment.isAfter(this.filters.startMoment))
@@ -270,7 +270,7 @@ export class Bookings extends Selection<Booking> {
                 return (booking.isBooking()
                     && booking.unProcessed)
             }
-            else if(isDisplayList) {
+            else if (isDisplayList) {
                 return booking.isBooking() && booking.resource.selected;
             }
             else {
@@ -303,8 +303,8 @@ export class filterBookings {
     mine: any;
     unprocessed: any;
     dates: any;
-    startMoment: any;
-    endMoment: any;
+    startDate: any;
+    endDate: any;
 
     constructor() {
         this.showParentBooking = false;
