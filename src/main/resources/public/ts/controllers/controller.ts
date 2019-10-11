@@ -544,9 +544,9 @@ export const rbsController = ng.controller('RbsController', [
 
         $scope.formatMoment = function(date) {
             return (
-                date.format('DD/MM/YYYY ') +
+                moment(date).format('DD/MM/YYYY ') +
                 lang.translate('rbs.booking.details.header.at') +
-                date.format(' H[h]mm')
+                moment(date).format(' H[h]mm')
             );
         };
 
@@ -1274,7 +1274,7 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.booking.slots = [new Slot($scope.booking).toJson()];
                 await $scope.booking.save();
                 $scope.display.processing = undefined;
-                await $scope.bookings.sync(false, $scope.resources);
+                await $scope.bookings.sync(true, $scope.resources);
                 $scope.closeBooking();
             } catch (e) {
                 $scope.display.processing = undefined;
@@ -1611,13 +1611,18 @@ export const rbsController = ng.controller('RbsController', [
 
         $scope.removeBookingSelection = function(booking) {
             $scope.display.processing = undefined;
-            if ($scope.booking !== undefined) {
+            if ($scope.booking !== undefined && $scope.booking !== null) {
                 $scope.bookings.deselectAll();
-                $scope.booking.selected = true;
+            }
+            if ($scope.bookings.selectedElements[0]) {
+                $scope.booking = $scope.bookings.selectedElements[0];
+            }
+            if (!$scope.booking.isBooking()) {
+                $scope.booking = $scope.booking.booking;
             }
 
             let totalSelectionAsynchroneCall = 0;
-            let slots = booking.slots;
+
             _.each($scope.bookings.selectedElements, function(booking) {
                 if (!$scope.isViewBooking) {
                     $scope.currentBookingSelected = booking;
@@ -1721,31 +1726,6 @@ export const rbsController = ng.controller('RbsController', [
                 await $scope.bookings.sync(true, $scope.resources);
                 $scope.$apply();
                 $scope.closeBooking();
-
-                // let actions = $scope.processBookings.length;
-                // _.each($scope.processBookings, function(booking) {
-                //     booking.delete(
-                //         function() {
-                //             actions--;
-                //             if (actions === 0) {
-                //                 $scope.display.processing = undefined;
-                //                 $scope.bookings.deselectAll();
-                //                 $scope.closeBooking();
-                //                 $scope.refreshBookings($scope.display.list, $scope.resources);
-                //             }
-                //         },
-                //         function(e) {
-                //             $scope.currentErrors.push(e);
-                //             actions--;
-                //             if (actions === 0) {
-                //                 $scope.display.processing = undefined;
-                //                 $scope.showActionErrors();
-                //                 $scope.refreshBookings($scope.display.list, $scope.resources);
-                //             }
-                //         }
-                //     );
-                // });
-
             } catch (e) {
                 $scope.currentErrors.push({ error: 'rbs.error.technical' });
             }

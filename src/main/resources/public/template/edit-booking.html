@@ -21,7 +21,9 @@
 						<div class="row" ng-if="booking.id === undefined">
 							<div class="row">
 								<label class="three cell"><i18n>rbs.booking.edit.structure.label</i18n></label>
-								<select class="six cell" ng-model="structure" ng-options="lang.translate(struct.name) for struct in structures.all | orderBy: 'name'" ng-change="switchStructure(structure)" ng-if="structure !== undefined">
+								<select class="six cell" ng-model="structure"
+										ng-options="lang.translate(struct.name) for struct in structures.all | orderBy: 'name'"
+										ng-change="switchStructure(structure)" ng-if="structure !== undefined">
 								</select>
 								<div class="six cell warning" ng-if="structuresWithTypes.length < 1">
 									<i18n>rbs.booking.warning.no.structure</i18n>
@@ -30,7 +32,9 @@
 							<div class="row" ng-if="structure !== undefined">
 								<div class="row">
 									<label class="three cell"><i18n>rbs.booking.edit.type.label</i18n></label>
-									<select class="six cell" ng-model="booking.resourceType" ng-options="resourceType.name for resourceType in structure.resourceTypes.all | orderBy: 'name'" ng-change="autoSelectResource()" required ng-if="structure.resourceTypes.all.length > 0">
+									<select class="six cell" ng-model="booking.resourceType"
+											ng-options="resourceType.name for resourceType in structure.resourceTypes.all | orderBy: 'name'"
+											ng-change="autoSelectResource()" required ng-if="structure.resourceTypes.all.length > 0">
 									</select>
 									<div class="six cell warning" ng-if="booking.resourceType === undefined">
 										<i18n>rbs.booking.warning.no.types</i18n>
@@ -38,9 +42,11 @@
 								</div>
 								<div class="row" ng-if="booking.resourceType !== undefined">
 									<label class="three cell"><i18n>rbs.booking.edit.resource.label</i18n></label>
-									<select class="six cell" ng-model="booking.resource" ng-options="resource.name for resource in booking.resourceType.resources.filterAvailable(booking.is_periodic)" required ng-if="booking.resource !== undefined">
+									<select class="six cell" ng-model="booking.resource"
+											ng-options="resource.name for resource in booking.resourceType.resources.filterAvailable(booking.is_periodic)"
+											required ng-if="booking.resourceType.resources.all !== undefined">
 									</select>
-									<div class="six cell warning" ng-if="booking.resource === undefined">
+									<div class="six cell warning" ng-if="booking.resourceType.resources.all === undefined">
 										<i18n>rbs.booking.warning.no.resources</i18n>
 									</div>
 								</div>
