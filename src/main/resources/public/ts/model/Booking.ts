@@ -279,6 +279,31 @@ export class Bookings extends Selection<Booking> {
         });
     };
 
+    sortChildSlot(bookings) {
+        let child = {};
+        let parent = bookings.all.filter(function (book) {
+            if (book.parent_booking_id !== null) {
+                if(!child[book.parent_booking_id]){
+                    child[book.parent_booking_id] = [];
+                }
+                child[book.parent_booking_id].push(book);
+                return false;
+            }
+            else {
+                return true;
+            }
+        });
+        console.log(child);
+        console.log(parent);
+        this.sortParentSlot(child, parent);
+    };
+
+    sortParentSlot(child, parent) {
+        _.each(parent, function(parent) {
+            parent.slots = child[parent.id]
+        });
+    }
+
     showSlots(booking) {
         this.all.filter(item => {
             if (item.parent_booking_id === booking.id) {
@@ -289,7 +314,7 @@ export class Bookings extends Selection<Booking> {
 
     hideSlots(booking) {
         booking.slots.all = [];
-        _.each(this.slots, function(slot){
+        _.each(this.slots, function(slot) {
             slot.selected = undefined;
         });
     };
