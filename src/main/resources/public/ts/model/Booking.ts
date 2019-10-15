@@ -40,6 +40,7 @@ export class Booking implements Selectable {
     endMoment: Object;
     resource: Resource;
     slots: Slots;
+    _slots: Array<Booking>;
 
     constructor(id?: number) {
         if (id) this.id = id;
@@ -223,8 +224,32 @@ export class Bookings extends Selection<Booking> {
             booking.unProcessed = booking.status === 1 || booking.status === 9;
             if (resources) booking.resource = _.findWhere(resources.all, {id: booking.resource_id});
         });
+        this.sortChildSlot();
         this.applyFilters();
     }
+
+    sortChildSlot() {
+        let child = {};
+        let parent = this.all.filter(function (book) {
+            if (book.parent_booking_id !== null) {
+                if(!child[book.parent_booking_id]){
+                    child[book.parent_booking_id] = [];
+                }
+                child[book.parent_booking_id].push(book);
+                return false;
+            }
+            else {
+                return true;
+            }
+        });
+        this.sortParentSlot(child, parent);
+    };
+
+    sortParentSlot(child, parent) {
+        _.each(parent, function(parent) {
+            parent._slots = child[parent.id]
+        });
+    };
 
     applyFilters(isDisplayList?) {
         this.filtered = this.all;
@@ -236,9 +261,9 @@ export class Bookings extends Selection<Booking> {
                                 && (
                                     (booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endDate)
                                         && booking.endMoment.isAfter(this.filters.startDate))
-                                    // ||
-                                    // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
-                                    //     && (_.last(booking.slots)).endMoment.isAfter(this.filters.startMoment))
+                                    ||
+                                    (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endDate)
+                                        && (_.last(booking._slots)).endMoment.isAfter(this.filters.startDate))
                                      && booking.isMine);
                         }
                         else if (this.filters.unprocessed) {
@@ -247,9 +272,9 @@ export class Bookings extends Selection<Booking> {
                                 && (
                                     (booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endDate)
                                         && booking.endMoment.isAfter(this.filters.startDate))
-                                    // ||
-                                    // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
-                                    //     && (_.last(booking.slots)).endMoment.isAfter(this.filters.startMoment))
+                                    ||
+                                    (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endDate)
+                                        && (_.last(booking._slots)).endMoment.isAfter(this.filters.startDate))
                                      && booking.unProcessed);
                         }
                         else {
@@ -257,9 +282,9 @@ export class Bookings extends Selection<Booking> {
                                 && booking.resource.selected) &&
                                 ((booking.is_periodic !== true && booking.startMoment.isBefore(this.filters.endDate)
                                         && booking.endMoment.isAfter(this.filters.startDate))
-                                    // ||
-                                    // (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endMoment)
-                                    //     && (_.last(booking.slots)).endMoment.isAfter(this.filters.startMoment))
+                                    ||
+                                    (booking.is_periodic === true && booking.startMoment.isBefore(this.filters.endDate)
+                                        && (_.last(booking._slots)).endMoment.isAfter(this.filters.startDate))
                                 );
                         }
                 } else if (this.filters.mine) {
@@ -279,41 +304,12 @@ export class Bookings extends Selection<Booking> {
         });
     };
 
-    sortChildSlot(bookings) {
-        let child = {};
-        let parent = bookings.all.filter(function (book) {
-            if (book.parent_booking_id !== null) {
-                if(!child[book.parent_booking_id]){
-                    child[book.parent_booking_id] = [];
-                }
-                child[book.parent_booking_id].push(book);
-                return false;
-            }
-            else {
-                return true;
-            }
-        });
-        console.log(child);
-        console.log(parent);
-        this.sortParentSlot(child, parent);
-    };
-
-    sortParentSlot(child, parent) {
-        _.each(parent, function(parent) {
-            parent.slots = child[parent.id]
-        });
-    }
-
     showSlots(booking) {
-        this.all.filter(item => {
-            if (item.parent_booking_id === booking.id) {
-                booking.slots.all.push(item)
-            }
-        })
+        booking.slots = booking._slots;
     };
 
     hideSlots(booking) {
-        booking.slots.all = [];
+        booking.slots = [];
         _.each(this.slots, function(slot) {
             slot.selected = undefined;
         });

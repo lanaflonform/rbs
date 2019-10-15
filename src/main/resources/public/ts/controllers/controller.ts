@@ -146,8 +146,8 @@ export const rbsController = ng.controller('RbsController', [
             await $scope.bookings.sync(true, $scope.resources);
             $scope.bookings.filters.endDate =
                 moment($scope.bookings.filters.endDate).add(2, 'month').startOf('day');
-            $scope.bookings.applyFilters();
             $scope.bookings.sortChildSlot($scope.bookings);
+            $scope.bookings.applyFilters();
             template.open('bookings', 'main-list');
             $scope.$apply();
         };
