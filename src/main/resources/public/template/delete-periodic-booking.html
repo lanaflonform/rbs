@@ -32,7 +32,9 @@
 							<i18n ng-if="booking.status === 9">rbs.booking.status.partial</i18n>
 						</td>
 					</tr>
-					<tr ng-if="processBookings.length === 0"><td colspan="6" class="invisible"><i18n>rbs.bookings.selected.empty</i18n></td></tr>
+					<tr ng-if="processBookings.length === 0">
+						<td colspan="6" class="invisible"><i18n>rbs.bookings.selected.empty</i18n></td>
+					</tr>
 				</tbody>
 			</table>
 			<em style="color:red; margin-right:10px ">*</em><i18n>rbs.booking.periodic.delete.details</i18n>
@@ -43,11 +45,22 @@
 		</div>
 
 		<div class="row">
-			<button class="right-magnet" ng-click="doRemoveCurrentPeriodicBookingSelection()" ng-if="display.processing !== true && processBookings.length > 0"><i18n>rbs.booking.periodic.delete.this_occurrence</i18n></button>
-			<button class="right-magnet" ng-click="doRemoveCurrentAndFuturBookingSelection()" ng-if="display.processing !== true && processBookings.length > 0"><i18n>rbs.booking.periodic.delete.this_and_future_occurrence</i18n></button>
-			<input type="button" class="cancel right-magnet" i18n-value="cancel" ng-click="closeBooking()" ng-if="display.processing !== true" />
+			<button class="right-magnet"
+					ng-click="doRemoveCurrentPeriodicBookingSelection()"
+					ng-if="display.processing !== true && processBookings.length > 0">
+				<i18n>rbs.booking.periodic.delete.this_occurrence</i18n>
+			</button>
+			<button class="right-magnet"
+					ng-click="doRemoveCurrentAndFuturBookingSelection()"
+					ng-if="display.processing !== true && processBookings.length > 0">
+				<i18n>rbs.booking.periodic.delete.this_and_future_occurrence</i18n>
+			</button>
+			<input type="button" class="cancel right-magnet" i18n-value="cancel"
+				   ng-click="closeBooking()" ng-if="display.processing !== true" />
 
-			<button class="right-magnet cancel disabled" disabled ng-if="display.processing === true"><i18n>rbs.deleting</i18n></button>
+			<button class="right-magnet cancel disabled" disabled ng-if="display.processing === true">
+				<i18n>rbs.deleting</i18n>
+			</button>
 		</div>
 	</article>
 </div>

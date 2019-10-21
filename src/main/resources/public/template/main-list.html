@@ -94,11 +94,11 @@
 			<td><input type="checkbox" ng-if="canDeleteBookingDateCheck(booking.endMoment) && hasAnyBookingRight(booking)" ng-model="booking.selected" /></td>
 			<td class="[[booking.color]]"></td>
 			<td></td>
-			<td ng-click="viewBooking(slot)">[[booking.owner_name]]</td>
-			<td ng-click="viewBooking(slot)">[[booking.resource.name]]</td>
-			<td ng-click="viewBooking(slot)">[[formatMoment(slot.startMoment)]]</td>
-			<td ng-click="viewBooking(slot)">[[formatMoment(slot.endMoment)]]</td>
-			<td ng-click="viewBooking(slot)">
+			<td ng-click="viewBooking(booking, slot)">[[booking.owner_name]]</td>
+			<td ng-click="viewBooking(booking, slot)">[[booking.resource.name]]</td>
+			<td ng-click="viewBooking(booking, slot)">[[formatMoment(slot.startMoment)]]</td>
+			<td ng-click="viewBooking(booking, slot)">[[formatMoment(slot.endMoment)]]</td>
+			<td ng-click="viewBooking(booking, slot)">
 				<i ng-if="booking.isPending() === true" class="pending-icon"></i>
 				<i ng-if="booking.isValidated() === true" class="validated-icon"></i>
 				<i ng-if="booking.isRefused() === true" class="refused-icon"></i>

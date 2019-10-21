@@ -87,23 +87,23 @@
 
 			<h2 ng-click="booking.displaySection = 3;">
 				<i18n>rbs.booking.title.periodic</i18n>
-				<span class="right-magnet" ng-if="countRefusedSlots(booking.slots.all) <= 1">
-					[[countRefusedSlots(booking.slots.all)]]&nbsp;<i18n>rbs.booking.details.header.refused.one</i18n>
+				<span class="right-magnet" ng-if="countRefusedSlots(booking.slots) <= 1">
+					[[countRefusedSlots(booking.slots)]]&nbsp;<i18n>rbs.booking.details.header.refused.one</i18n>
 				</span>
-				<span class="right-magnet" ng-if="countRefusedSlots(booking.slots.all) > 1">
-					[[countRefusedSlots(booking.slots.all)]]&nbsp;<i18n>rbs.booking.details.header.refused.many</i18n>
+				<span class="right-magnet" ng-if="countRefusedSlots(booking.slots) > 1">
+					[[countRefusedSlots(booking.slots)]]&nbsp;<i18n>rbs.booking.details.header.refused.many</i18n>
 				</span>
-				<span class="right-magnet" ng-if="countValidatedSlots(booking.slots.all) <= 1">
-					[[countValidatedSlots(booking.slots.all)]]&nbsp;<i18n>rbs.booking.details.header.validated.one</i18n>&nbsp;-&nbsp;
+				<span class="right-magnet" ng-if="countValidatedSlots(booking.slots) <= 1">
+					[[countValidatedSlots(booking.slots)]]&nbsp;<i18n>rbs.booking.details.header.validated.one</i18n>&nbsp;-&nbsp;
 				</span>
-				<span class="right-magnet" ng-if="countValidatedSlots(booking.slots.all) > 1">
-					[[countValidatedSlots(booking.slots.all)]]&nbsp;<i18n>rbs.booking.details.header.validated.many</i18n>&nbsp;-&nbsp;
+				<span class="right-magnet" ng-if="countValidatedSlots(booking.slots) > 1">
+					[[countValidatedSlots(booking.slots)]]&nbsp;<i18n>rbs.booking.details.header.validated.many</i18n>&nbsp;-&nbsp;
 				</span>
-				<span class="right-magnet" ng-if="booking.slots.all.length <= 1">
-					[[booking.slots.all.length]]&nbsp;<i18n>rbs.booking.details.header.slots.one</i18n>&nbsp;-&nbsp;
+				<span class="right-magnet" ng-if="booking.slots.length <= 1">
+					[[booking.slots.length]]&nbsp;<i18n>rbs.booking.details.header.slots.one</i18n>&nbsp;-&nbsp;
 				</span>
-				<span class="right-magnet" ng-if="booking.slots.all.length > 1">
-					[[booking.slots.all.length]]&nbsp;<i18n>rbs.booking.details.header.slots.many</i18n>&nbsp;-&nbsp;
+				<span class="right-magnet" ng-if="booking.slots.length > 1">
+					[[booking.slots.length]]&nbsp;<i18n>rbs.booking.details.header.slots.many</i18n>&nbsp;-&nbsp;
 				</span>
 			</h2>
 
@@ -124,7 +124,7 @@
 								<th><i18n>rbs.booking.headers.status</i18n></th>
 							</tr>
 						</thead>
-						<tbody ng-repeat="booking in booking.slots.all | orderBy: 'startMoment'">
+						<tbody ng-repeat="booking in booking.slots | orderBy: 'startMoment'">
 							<tr>
                                 <td ng-if="booking == currentBookingSelected">[[$index + 1]] <em style="color:red">*</em></td>
                                 <td ng-if="booking != currentBookingSelected">[[$index + 1]]</td>

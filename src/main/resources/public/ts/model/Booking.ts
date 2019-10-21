@@ -254,7 +254,7 @@ export class Bookings extends Selection<Booking> {
     applyFilters(isDisplayList?) {
         this.filtered = this.all;
         this.filtered = _.filter(this.all, (booking) => {
-                if (this.filters.dates && this.filters.dates === true) {
+                if (isDisplayList && this.filters.dates && this.filters.dates === true) {
                         if (this.filters.mine) {
                             return (booking.isBooking()
                                 && booking.resource.selected)
