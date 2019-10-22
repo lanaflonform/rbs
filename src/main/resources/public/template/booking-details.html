@@ -239,7 +239,7 @@
 			<button class="right-magnet" ng-if="booking.isPending()" ng-click="validateBookingSelection()"><i18n>rbs.booking.validate</i18n></button>
 		</behaviour>
 		<behaviour name="process" resource="booking">
-			<button class="right-magnet" ng-click="removeBookingSelection(booking)"><i18n>remove</i18n></button>
+			<button class="right-magnet" ng-click="removeBookingSelection(currentBookingSelected)"><i18n>remove</i18n></button>
 			<button class="right-magnet" nf-if="booking.resource.is_available === true" ng-click="editBooking()"><i18n>edit</i18n></button>
 		</behaviour>
 	</div>

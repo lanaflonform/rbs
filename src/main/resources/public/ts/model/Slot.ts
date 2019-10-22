@@ -1,7 +1,8 @@
-import {_, moment} from 'entcore';
+import {_, moment, notify} from 'entcore';
 import { Selectable, Mix, Selection } from 'entcore-toolkit';
 import http from "axios";
 import {Booking} from "./Booking";
+import {Resource} from "./Resource";
 
 
 export class Slot implements Selectable{
@@ -9,9 +10,17 @@ export class Slot implements Selectable{
     start_date;
     end_date;
     selected:boolean;
-    constructor (booking?: Booking) {
-        if(booking.startDate)  this.start_date = booking.startMoment;
-        if(booking.endDate) this.end_date = booking.endMoment;
+
+    resource: Resource;
+    id: number;
+
+    constructor (booking?: Booking, id?: number) {
+        if (booking) {
+            if(booking.startDate)  this.start_date = booking.startMoment;
+            if(booking.endDate) this.end_date = booking.endMoment;
+        }
+        if (id) this.id = id;
+        this.resource = new Resource();
     }
 
     toJson (){
@@ -24,6 +33,15 @@ export class Slot implements Selectable{
             iana : Intl.DateTimeFormat().resolvedOptions().timeZone
         }
     }
+
+    async delete() {
+        try {
+            return await http.delete('/rbs/resource/' + this.resource.id + '/booking/' + this.id + "/false");
+        }
+        catch (e) {
+            notify.error('rbs.errors.title.delete.booking');
+        }
+    };
 }
 
 export class Slots  extends Selection<Slot> {

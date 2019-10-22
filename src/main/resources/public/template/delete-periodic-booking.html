@@ -46,7 +46,7 @@
 
 		<div class="row">
 			<button class="right-magnet"
-					ng-click="doRemoveCurrentPeriodicBookingSelection()"
+					ng-click="doRemoveCurrentPeriodicBookingSelection(currentBookingSelected)"
 					ng-if="display.processing !== true && processBookings.length > 0">
 				<i18n>rbs.booking.periodic.delete.this_occurrence</i18n>
 			</button>
