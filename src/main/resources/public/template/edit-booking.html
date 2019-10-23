@@ -122,23 +122,6 @@
                         <div class="row" ng-if=" booking.resourceType.slotprofile === undefined">
                             <label class="three cell"><i18n>rbs.booking.edit.time.label</i18n></label>
                             <label class="one cell centered-text "><i18n>from</i18n> </label>
-<!--                            <div ng-if="booking.startDate.getDate() == booking.endDate.getDate() && booking.startDate.getMonth() == booking.endDate.getMonth()-->
-<!--      									&& booking.startDate.getFullYear() == booking.endDate.getFullYear()">-->
-<!--                                <input type ="time" class="two cell horizontal-spacing" ng-max="[[booking.endTime]]" ng-model="booking.startTime._d" required>-->
-<!--                            </div>-->
-<!--                            <div ng-if="booking.startDate.getDate() != booking.endDate.getDate() || booking.startDate.getMonth() != booking.endDate.getMonth()-->
-<!--      									|| booking.startDate.getFullYear() != booking.endDate.getFullYear()">-->
-<!--                                <input type ="time" class="two cell horizontal-spacing" ng-model="booking.startTime._d" required>-->
-<!--                            </div>-->
-<!--                            <label class="one cell centered-text"><i18n>to</i18n> </label>-->
-<!--                            <div ng-if="booking.startDate.getDate() == booking.endDate.getDate() && booking.startDate.getMonth() == booking.endDate.getMonth()-->
-<!--      									&& booking.startDate.getFullYear() == booking.endDate.getFullYear()">-->
-<!--                                <input type ="time"  class="two cell horizontal-spacing" ng-min="[[booking.startTime]]" ng-model="booking.endTime._d" required>-->
-<!--                            </div>-->
-<!--                            <div ng-if="booking.startDate.getDate() != booking.endDate.getDate() || booking.startDate.getMonth() != booking.endDate.getMonth()-->
-<!--      									|| booking.startDate.getFullYear() != booking.endDate.getFullYear()">-->
-<!--                                <input type ="time" class="two cell horizontal-spacing" ng-model="booking.endTime._d" required>-->
-<!--                            </div>-->
 							<div>
 								<input type="time" class="two cell horizontal-spacing" ng-model="booking.startTime._d" required>
 							</div>
@@ -277,7 +260,7 @@
 					<i18n>rbs.save</i18n>
 				</button>
 				<button class="right-magnet"
-						ng-click="saveBooking()"
+						ng-click="saveBooking(display.list)"
 						ng-if="display.processing !== true && booking.is_periodic && booking.display.state === booking.display.STATE_PERIODIC
 							&& booking.resourceType.slotprofile === undefined">
 					<i18n>rbs.save</i18n>

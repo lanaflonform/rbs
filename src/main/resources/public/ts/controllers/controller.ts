@@ -786,11 +786,10 @@ export const rbsController = ng.controller('RbsController', [
                 } else {
                     $scope.booking.byOccurrences = false;
                 }
+                // $scope.initPeriodic($scope.booking.days);
+                $scope.booking.periodDays = Utils.bitMaskToDays($scope.booking.days);
                 $scope.booking.slots = _.sortBy($scope.booking.slots, 'id');
                 $scope.booking.startMoment = $scope.booking._slots[0].startMoment;
-                $scope.booking.startMoment.date($scope.booking.start.date());
-                $scope.booking.startMoment.month($scope.booking.start.month());
-                $scope.booking.startMoment.year($scope.booking.start.year());
                 $scope.booking.endMoment = $scope.booking._slots[0].endMoment;
             }
             $scope.initBookingDates(
@@ -835,7 +834,7 @@ export const rbsController = ng.controller('RbsController', [
 
         $scope.initPeriodic = function () {
             $scope.booking.is_periodic = true;
-            $scope.booking.periodDays = Utils.bitMaskToDays(); // no days selected
+            $scope.booking.periodDays = Utils.bitMaskToDays($scope.booking.days); // no days selected
             $scope.booking.byOccurrences = true;
             $scope.booking.periodicity = 1;
             $scope.booking.occurrences = 1;
@@ -1288,7 +1287,8 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.booking.slots = [new Slot($scope.booking).toJson()];
                 await $scope.booking.save();
                 $scope.display.processing = undefined;
-                await $scope.bookings.sync(true, $scope.resources);
+                if ($scope.display.list) await $scope.bookings.sync(true, $scope.resources);
+                else await $scope.bookings.sync(false, $scope.resources);
                 $scope.closeBooking();
             } catch (e) {
                 $scope.display.processing = undefined;
