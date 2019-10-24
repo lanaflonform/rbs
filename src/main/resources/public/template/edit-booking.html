@@ -266,13 +266,13 @@
 					<i18n>rbs.save</i18n>
 				</button>
 				<button class="right-magnet"
-						ng-click="saveBookingSlotProfile()"
+						ng-click="saveBooking()"
 						ng-if="display.processing !== true && booking.is_periodic !== true && booking.display.state === booking.display.STATE_BOOKING
 							&& booking.resourceType.slotprofile !== undefined">
 					<i18n>rbs.save</i18n>
 				</button>
 				<button class="right-magnet"
-						ng-click="saveBookingSlotProfile()"
+						ng-click="saveBooking()"
 						ng-if="display.processing !== true && booking.is_periodic && booking.display.state === booking.display.STATE_PERIODIC
 							&& booking.resourceType.slotprofile !== undefined">
 					<i18n>rbs.save</i18n>

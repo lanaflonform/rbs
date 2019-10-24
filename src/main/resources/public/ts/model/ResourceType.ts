@@ -37,7 +37,8 @@ export class ResourceType implements Selectable, Shareable{
             name: this.name,
             color: this.color,
             validation: this.validation,
-            school_id: this.school_id
+            school_id: this.school_id,
+            slotprofile: this.slotprofile
         };
     }
 
