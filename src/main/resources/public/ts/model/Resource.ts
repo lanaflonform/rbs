@@ -1,8 +1,7 @@
 import { Mix, Selectable, Selection } from "entcore-toolkit";
-import {_, Behaviours, model, moment, notify} from 'entcore';
+import {_, Behaviours, notify} from 'entcore';
 import {Booking, ResourceType} from "./index";
 import http from "axios";
-import {BD_DATE_FORMAT} from "./constantes";
 
 export class Resource implements Selectable {
     id:number;
@@ -61,6 +60,14 @@ export class Resource implements Selectable {
         }
     }
 
+    async delete() {
+        try {
+            return await http.delete('/rbs/resource/' + this.id);
+        }
+        catch (e) {
+            notify.error('rbs.errors.title.delete.resource');
+        }
+    };
 
     setPreference(preferenceResource){
         let state = _.findWhere(preferenceResource, {id : this.id});

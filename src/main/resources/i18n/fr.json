@@ -229,6 +229,7 @@
   "rbs.manage.resource.delete.confirm.multi": "Suppression des ressources sélectionnées",
   "rbs.manage.resource.delete.confirm.one": "Suppression de la ressource",
   "rbs.manage.resource.delete.details": "Les réservations concernant ces ressources seront supprimées. Les personnes ayant effectué des réservations, et les personnes en charge de la validation et de la gestion de ces ressources seront notifiées des suppressions.",
+  "rbs.manage.resource.delete.error": "Une erreur est survenue lors de la suppression de la ressource",
   "rbs.manage.resource.edit": "Editer la ressource",
   "rbs.manage.resource.edits": "Editer les ressources",
   "rbs.manage.resource.icon": "Vignette",

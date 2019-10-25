@@ -11,7 +11,7 @@
 					<input type="checkbox"
 						ng-model="display.selectAllRessources" 
 						ng-change="swicthSelectAllRessources()"
-						ng-show="resourceTypes.selection().length === 0"
+						ng-show="resourceTypes.selected.length === 0"
 						ng-click="resourceTypes.deselectAll()"/>
 				</th>
 				<th class="two"><i18n>rbs.manage.resource.name</i18n></th>
@@ -24,7 +24,7 @@
 		</thead>
 		<tbody ng-repeat="resource in currentResourceType.resources.all">
 			<tr>
-				<td><input type="checkbox" ng-model="resource.selected" ng-click="resourceTypes.deselectAll()" ng-show="resourceTypes.selection().length === 0" /></td>
+				<td><input type="checkbox" ng-model="resource.selected" ng-click="resourceTypes.deselectAll()" ng-show="resourceTypes.selected.length === 0" /></td>
 				<td class="two">
 					<a ng-click="switchExpandResource(resource)">[[resource.name]]</a>
 				</td>

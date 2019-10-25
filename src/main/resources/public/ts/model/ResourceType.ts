@@ -26,8 +26,10 @@ export class ResourceType implements Selectable, Shareable{
     constructor (resourceType?) {
         if (resourceType) {
             Mix.extend(this, resourceType);
-            this.myRights = new Rights(this);
-            this.myRights.fromBehaviours();
+            // this.myRights = new Rights(this);
+            // console.log('first --->', this.myRights);
+            // this.myRights.fromBehaviours();
+            // console.log('second --->', this.myRights);
         }
     }
 
@@ -57,6 +59,10 @@ export class ResourceType implements Selectable, Shareable{
             let url = '/rbs/type';
             let { data } = await http.post(url, this.toJSON());
             this.id =  data.id;
+            this.myRights = new Rights(this);
+            console.log('first --->', this.myRights);
+            this.myRights.fromBehaviours();
+            console.log('second --->', this.myRights);
         } catch (e) {
             notify.error('Function create type failed');
         }

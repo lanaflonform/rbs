@@ -14,7 +14,7 @@
 		</div>
 
 		<div class="row">
-			<button class="right-magnet" ng-click="doDeleteResource()" ng-if="display.processing !== true"><i18n>rbs.delete</i18n></button>
+			<button class="right-magnet" ng-click="doDeleteResource(resourcesToDelete)" ng-if="display.processing !== true"><i18n>rbs.delete</i18n></button>
 			<input type="button" class="cancel right-magnet" i18n-value="cancel" ng-click="closeResource()" ng-if="display.processing !== true" />
 
 			<button class="right-magnet cancel disabled" disabled ng-if="display.processing === true"><i18n>rbs.deleting</i18n></button>

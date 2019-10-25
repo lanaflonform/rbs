@@ -1795,7 +1795,7 @@ export const rbsController = ng.controller('RbsController', [
         $scope.editSelectedResource = function () {
             $scope.isCreation = false;
             $scope.display.processing = undefined;
-            $scope.editedResource = $scope.currentResourceType.resources.selection()[0];
+            $scope.editedResource = $scope.currentResourceType.resources.selected;
             $scope.currentResourceType.resources.deselectAll();
 
             // Field to track Resource availability change
@@ -1819,7 +1819,7 @@ export const rbsController = ng.controller('RbsController', [
             $scope.isManage = true;
             $scope.currentErrors = [];
             $scope.currentResourceType = $scope.editedResourceType;
-            await $scope.editedResourceType.save($scope.structure.id);
+            await $scope.editedResourceType.save($scope.editedResourceType.structure.id);
             $scope.$apply();
             await $scope.resourceTypes.sync($scope.resources);
             refreshType($scope.editedResourceType);
@@ -1845,37 +1845,49 @@ export const rbsController = ng.controller('RbsController', [
         };
 
         $scope.deleteResourcesSelection = function () {
-            $scope.currentResourceType.resourcesToDelete = $scope.currentResourceType.resources.selection();
+            $scope.currentResourceType.resourcesToDelete = $scope.currentResourceType.resources.selected;
             $scope.currentResourceType.resources.deselectAll();
             template.open('resources', 'confirm-delete-resource');
         };
 
-        $scope.doDeleteResource = function () {
+        $scope.doDeleteResource = async function (resourcesToDelete) {
+            console.log("doDelete")
             $scope.isManage = true;
             $scope.display.processing = true;
             $scope.currentErrors = [];
-            let actions = $scope.currentResourceType.resourcesToDelete.length;
-            _.each($scope.currentResourceType.resourcesToDelete, function (resource) {
-                resource.delete(
-                    function () {
-                        actions--;
-                        if (actions === 0) {
-                            $scope.display.processing = undefined;
-                            $scope.closeResource();
-                            $scope.refreshRessourceType();
-                        }
-                    },
-                    function (e) {
-                        $scope.currentErrors.push(e);
-                        actions--;
-                        if (actions === 0) {
-                            $scope.display.processing = undefined;
-                            $scope.showActionErrors();
-                            $scope.refreshRessourceType();
-                        }
-                    }
-                );
-            });
+            // let actions = $scope.currentResourceType.resourcesToDelete.length;
+            // _.each($scope.currentResourceType.resourcesToDelete, function (resource) {
+            //     resource.delete(
+            //         function () {
+            //             actions--;
+            //             if (actions === 0) {
+            //                 $scope.display.processing = undefined;
+            //                 $scope.closeResource();
+            //                 $scope.refreshRessourceType();
+            //             }
+            //         },
+            //         function (e) {
+            //             $scope.currentErrors.push(e);
+            //             actions--;
+            //             if (actions === 0) {
+            //                 $scope.display.processing = undefined;
+            //                 $scope.showActionErrors();
+            //                 $scope.refreshRessourceType();
+            //             }
+            //         }
+            //     );
+            // });
+            try {
+                let resourceToDelete = $scope.currentResourceType.resourcesToDelete[0];
+                await resourceToDelete.delete();
+                $scope.display.processing = undefined;
+                refreshResource($scope.currentResourceType, resourceToDelete);
+                $scope.$apply();
+                $scope.closeResource();
+            } catch (e) {
+                $scope.currentErrors.push({error: 'rbs.manage.resource.delete.error'});
+            }
+
         };
 
         $scope.closeResourceType = function () {
