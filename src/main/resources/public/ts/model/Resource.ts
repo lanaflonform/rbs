@@ -1,14 +1,15 @@
 import { Mix, Selectable, Selection } from "entcore-toolkit";
-import {_, Behaviours, notify} from 'entcore';
-import {Booking, ResourceType} from "./index";
+import { _, Behaviours, notify } from 'entcore';
+import { ResourceType } from "./index";
 import http from "axios";
 
 export class Resource implements Selectable {
-    id:number;
+    id: number;
     color: string;
     description: string;
     icon: null|any ;
     is_available: boolean;
+    was_available: boolean;
     max_delay: null | number;
     min_delay: null | number;
     name: string;
@@ -20,23 +21,24 @@ export class Resource implements Selectable {
     type_id: number;
     created: string|Date;
     modified: string|Date;
-    owner:any;
+    owner: any;
     shared: any;
     myRights: any;
-    selected:boolean;
+    selected: boolean;
     school_id: string;
 
     constructor (resource?) {
 
     }
 
-    toJSON(){
+    toJSON() {
         return {
-            id: this.id,
+            type_id: this.type_id,
             name: this.name,
             color: this.color,
             validation: this.validation,
             is_available: this.is_available,
+            was_available: this.was_available,
             periodic_booking: this.periodic_booking,
             description: this.description
         };
@@ -44,7 +46,7 @@ export class Resource implements Selectable {
 
     save() {
         if(this.id) {
-            //this.update();
+            this.update();
         }
         else {
             this.create();
@@ -60,6 +62,14 @@ export class Resource implements Selectable {
         }
     }
 
+    async update() {
+        try {
+            await http.put('/rbs/resource/' + this.id, this.toJSON());
+        } catch (e) {
+            notify.error('Function update resource failed');
+        }
+    }
+
     async delete() {
         try {
             return await http.delete('/rbs/resource/' + this.id);
@@ -69,14 +79,14 @@ export class Resource implements Selectable {
         }
     };
 
-    setPreference(preferenceResource){
+    setPreference(preferenceResource) {
         let state = _.findWhere(preferenceResource, {id : this.id});
         if(!state || state.length == 0) return;
         this.selected = !!state.selected;
         return state;
     }
 
-    isBookable(periodic){
+    isBookable(periodic) {
         return this.is_available === true
             && this.myRights !== undefined
             && this.myRights.contrib !== undefined

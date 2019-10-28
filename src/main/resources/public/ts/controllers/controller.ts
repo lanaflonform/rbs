@@ -1795,7 +1795,7 @@ export const rbsController = ng.controller('RbsController', [
         $scope.editSelectedResource = function () {
             $scope.isCreation = false;
             $scope.display.processing = undefined;
-            $scope.editedResource = $scope.currentResourceType.resources.selected;
+            $scope.editedResource = $scope.currentResourceType.resources.selected[0];
             $scope.currentResourceType.resources.deselectAll();
 
             // Field to track Resource availability change
@@ -1822,7 +1822,6 @@ export const rbsController = ng.controller('RbsController', [
             await $scope.editedResourceType.save($scope.editedResourceType.structure.id);
             $scope.$apply();
             await $scope.resourceTypes.sync($scope.resources);
-            refreshType($scope.editedResourceType);
             $scope.display.processing = undefined;
             $scope.closeResourceType();
         };
@@ -1839,7 +1838,6 @@ export const rbsController = ng.controller('RbsController', [
             await $scope.editedResource.save();
             $scope.$apply();
             await $scope.resources.sync();
-            refreshResource($scope.currentResourceType, $scope.editedResource);
             $scope.display.processing = undefined;
             $scope.closeResource();
         };
@@ -1855,28 +1853,6 @@ export const rbsController = ng.controller('RbsController', [
             $scope.isManage = true;
             $scope.display.processing = true;
             $scope.currentErrors = [];
-            // let actions = $scope.currentResourceType.resourcesToDelete.length;
-            // _.each($scope.currentResourceType.resourcesToDelete, function (resource) {
-            //     resource.delete(
-            //         function () {
-            //             actions--;
-            //             if (actions === 0) {
-            //                 $scope.display.processing = undefined;
-            //                 $scope.closeResource();
-            //                 $scope.refreshRessourceType();
-            //             }
-            //         },
-            //         function (e) {
-            //             $scope.currentErrors.push(e);
-            //             actions--;
-            //             if (actions === 0) {
-            //                 $scope.display.processing = undefined;
-            //                 $scope.showActionErrors();
-            //                 $scope.refreshRessourceType();
-            //             }
-            //         }
-            //     );
-            // });
             try {
                 let resourceToDelete = $scope.currentResourceType.resourcesToDelete[0];
                 await resourceToDelete.delete();
@@ -2079,27 +2055,27 @@ export const rbsController = ng.controller('RbsController', [
             $scope.maxExportDate = moment().week(moment().week() + 12).day(7).toDate();
             template.open('lightbox', 'export-format');
             $scope.display.showPanel = true;
-        }
+        };
 
         $scope.checkMinExportDate = function () {
             if ($scope.exportComponent.startDate < $scope.minExportDate) {
                 $scope.exportComponent.startDate = $scope.minExportDate;
             }
             $scope.maxExportDate = moment($scope.exportComponent.startDate).week(moment($scope.exportComponent.startDate).week() + 12).day(7).toDate();
-        }
+        };
 
         $scope.checkMaxExportDate = function () {
             if ($scope.exportComponent.endDate > $scope.maxExportDate) {
                 $scope.exportComponent.endDate = $scope.maxExportDate;
             }
             $scope.minExportDate = moment($scope.exportComponent.endDate).week(moment($scope.exportComponent.endDate).week() - 12).day(1).toDate();
-        }
+        };
 
         $scope.closeExport = function () {
             $scope.display.showPanel = false;
             $scope.exportation = undefined;
             template.close('lightbox');
-        }
+        };
 
         $scope.saveExport = function () {
             $scope.exportComponent.startDate = moment([
@@ -2162,7 +2138,7 @@ export const rbsController = ng.controller('RbsController', [
                 //  xhr.send(angular.toJson($scope.exportComponent.toJSON()));
             }
             $scope.closeExport();
-        }
+        };
 
         $scope.switchNotification = function (resource, resourceType) {
             //$scope.switchSelect(resource);
@@ -2174,7 +2150,7 @@ export const rbsController = ng.controller('RbsController', [
                 resource.notified = true;
             }
             $scope.checkNotificationsResourceType(resourceType);
-        }
+        };
 
         $scope.switchNotifications = function (resourceType) {
             if (
