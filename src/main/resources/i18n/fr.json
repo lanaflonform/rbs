@@ -242,6 +242,7 @@
   "rbs.manage.resource.periodic_booking": "Réservations périodiques",
   "rbs.manage.resource.periodic_booking.false": "Interdites",
   "rbs.manage.resource.periodic_booking.true": "Autorisées",
+  "rbs.manage.type.delete.error": "Une erreur est survenue lors de la suppression du type de ressource",
   "rbs.manage.resource.remove": "Supprimer la ressource",
   "rbs.manage.resource.removes": "Supprimer les ressources",
   "rbs.manage.resources.empty": "Aucune ressource pour ce Type",

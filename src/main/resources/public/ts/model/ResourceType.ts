@@ -1,4 +1,4 @@
-import { Rights, _, Shareable, Behaviours, notify } from 'entcore';
+import {Rights, _, Shareable, Behaviours, notify, moment} from 'entcore';
 import { Selectable, Mix, Selection } from 'entcore-toolkit';
 import http from 'axios';
 import { Resources, Structure } from './';
@@ -34,19 +34,21 @@ export class ResourceType implements Selectable, Shareable{
     }
 
     toJSON() {
-        return {
-            id: this.id,
+        let json = {
             name: this.name,
             color: this.color,
             validation: this.validation,
-            school_id: this.school_id,
-            slotprofile: this.slotprofile
+            school_id: this.school_id
         };
+        if (this.slotprofile) {
+            json['slotprofile'] = this.slotprofile;
+        }
+        return json;
     }
 
     save(structureId) {
       if(this.id) {
-        //this.update();
+        this.update();
       }
       else {
         this.create(structureId);
@@ -67,6 +69,23 @@ export class ResourceType implements Selectable, Shareable{
             notify.error('Function create type failed');
         }
     }
+
+    async update() {
+        try {
+            await http.put('/rbs/type/' + this.id, this.toJSON());
+        } catch (e) {
+            notify.error('Function update type failed');
+        }
+    };
+
+    async delete() {
+        try {
+            return await http.delete('/rbs/type/' + this.id);
+        }
+        catch (e) {
+            notify.error('rbs.errors.title.delete.type');
+        }
+    };
 
     setPreference(preferenceType, resources?:boolean){
         let state = _.findWhere(preferenceType, {id : this.id});

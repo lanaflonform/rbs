@@ -24,8 +24,9 @@
 										type="checkbox"
 										ng-model="resourceType.selected"
 										ng-click="resources.deselectAll(); $event.stopPropagation()"
-										ng-show="!currentResourceType || resources.selected.length === 0"
-										ng-if="resourceType.school_id === selectedStructure.id"/>
+										ng-show="!currentResourceType || resources.selectedElements.length === 0"
+										ng-if="resourceType.school_id === struct.id"
+								/>
 							</resource-right>
 
 							[[resourceType.name]]
@@ -137,7 +138,7 @@
 	</div>
 </lightbox>
 
-<section class="toggle-buttons" ng-show="checkSelectedElements(bookings).length > 0">
+<section class="toggle-buttons" ng-class="{ hide: (resourceTypes.selected.length === 0) }">
 	<div class="toggle">
 		<div class="row">
 			<behaviour name="manage" resource="resourceTypes.selected">

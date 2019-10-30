@@ -1299,7 +1299,6 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.display.processing = undefined;
                 $scope.currentErrors.push({error: 'rbs.error.technical'});
             }
-            $scope.$apply();
         };
 
         $scope.checkSaveBooking = function () {
@@ -1413,73 +1412,31 @@ export const rbsController = ng.controller('RbsController', [
             }
         };
 
-        // $scope.removeBookingSelection = function (booking) {
-        //     $scope.display.processing = undefined;
-        //     if (booking !== undefined && booking !== null) {
-        //         $scope.bookings.deselectAll();
-        //     }
-        //     if ($scope.bookings.selectedElements[0]) {
-        //         $scope.booking = $scope.bookings.selectedElements[0];
-        //     }
-        //     if (!$scope.booking.isBooking()) {
-        //         $scope.booking = $scope.booking.booking;
-        //     }
-        //
-        //     let totalSelectionAsynchroneCall = 0;
-        //
-        //     _.each($scope.bookings.selectedElements, function (booking) {
-        //         if (!$scope.isViewBooking) {
-        //             $scope.currentBookingSelected = booking;
-        //         }
-        //         if (
-        //             booking.isSlot() &&
-        //             booking.booking.occurrences !== booking.booking._slots.length
-        //         ) {
-        //             totalSelectionAsynchroneCall++;
-        //         } else if (booking.isSlot() && booking.booking.selected !== true) {
-        //             booking.booking.selected = true;
-        //             booking.booking.selectAllSlots();
-        //         } else if (booking.is_periodic) {
-        //             booking.selectAllSlots();
-        //         }
-        //     });
-            $scope.removeBookingSelection = function (booking) {
-                $scope.display.processing = undefined;
-                if ($scope.booking !== undefined && $scope.booking !== null) {
-                    $scope.bookings.deselectAll();
-                    $scope.bookings.selectedElements[0] = $scope.booking;
+        $scope.removeBookingSelection = function (booking) {
+            $scope.display.processing = undefined;
+            if ($scope.booking !== undefined && $scope.booking !== null) {
+                $scope.bookings.deselectAll();
+                $scope.bookings.selectedElements[0] = $scope.booking;
+            }
+            else {
+                $scope.bookings.selectedElements[0] = $scope.booking;
+            }
+            $scope.currentBookingSelected = booking;
+
+            let totalSelectionAsynchroneCall = 0;
+
+            _.each($scope.bookings.selectedElements, function (booking) {
+                if (booking.isSlot() && booking.occurrences !== booking._slots.length) {
+                    totalSelectionAsynchroneCall++;
+                } else if (booking.isSlot() && booking.selected !== true) {
+                    $scope.booking.selected = true;
+                    $scope.selectAllSlots();
+                } else if (booking.is_periodic) {
+                    $scope.selectAllSlots();
                 }
-                else {
-                    $scope.bookings.selectedElements[0] = $scope.booking;
-                }
-                $scope.currentBookingSelected = booking;
-                // $scope.booking = $scope.bookings.selectedElements[0];
+            });
 
-                // if ($scope.bookings.selectedElements[0]) {
-                //     $scope.booking = $scope.bookings.selectedElements[0];
-                // }
-                // if (!$scope.booking.isBooking()) {
-                //     $scope.booking = $scope.booking.booking;
-                // }
-
-                let totalSelectionAsynchroneCall = 0;
-
-                _.each($scope.bookings.selectedElements, function (booking) {
-                    // if (!$scope.isViewBooking) {
-                    //     $scope.currentBookingSelected = booking;
-                    // }
-                    // $scope.currentBookingSelected = booking;
-                    if (booking.isSlot() && booking.occurrences !== booking._slots.length) {
-                        totalSelectionAsynchroneCall++;
-                    } else if (booking.isSlot() && booking.selected !== true) {
-                        $scope.booking.selected = true;
-                        $scope.selectAllSlots();
-                    } else if (booking.is_periodic) {
-                        $scope.selectAllSlots();
-                    }
-                });
-
-                //if all slots are already completed
+            //if all slots are already completed
             if (totalSelectionAsynchroneCall === 0) {
                 //confirm message
                 if (
@@ -1819,10 +1776,15 @@ export const rbsController = ng.controller('RbsController', [
             $scope.isManage = true;
             $scope.currentErrors = [];
             $scope.currentResourceType = $scope.editedResourceType;
-            await $scope.editedResourceType.save($scope.editedResourceType.structure.id);
+            if ($scope.editedResourceType.structure) {
+                await $scope.editedResourceType.save($scope.editedResourceType.structure.id);
+            }
+            else await $scope.editedResourceType.save($scope.editedResourceType.school_id);
             $scope.$apply();
+            refreshType($scope.currentResourceType);
             await $scope.resourceTypes.sync($scope.resources);
             $scope.display.processing = undefined;
+            $scope.resourceTypes.deselectAllResources();
             $scope.closeResourceType();
         };
 
@@ -1837,6 +1799,7 @@ export const rbsController = ng.controller('RbsController', [
             $scope.currentErrors = [];
             await $scope.editedResource.save();
             $scope.$apply();
+            refreshResource($scope.currentResourceType, $scope.editedResource);
             await $scope.resources.sync();
             $scope.display.processing = undefined;
             $scope.closeResource();
@@ -1848,8 +1811,7 @@ export const rbsController = ng.controller('RbsController', [
             template.open('resources', 'confirm-delete-resource');
         };
 
-        $scope.doDeleteResource = async function (resourcesToDelete) {
-            console.log("doDelete")
+        $scope.doDeleteResource = async function () {
             $scope.isManage = true;
             $scope.display.processing = true;
             $scope.currentErrors = [];
@@ -1857,13 +1819,16 @@ export const rbsController = ng.controller('RbsController', [
                 let resourceToDelete = $scope.currentResourceType.resourcesToDelete[0];
                 await resourceToDelete.delete();
                 $scope.display.processing = undefined;
-                refreshResource($scope.currentResourceType, resourceToDelete);
+                $scope.currentResourceType.resources.all = $scope.currentResourceType.resources.all.filter(
+                    resource => resource.id !== resourceToDelete.id
+                );
+                await $scope.resources.sync($scope.resources);
                 $scope.$apply();
                 $scope.closeResource();
+                $scope.resources.deselectAllResources();
             } catch (e) {
                 $scope.currentErrors.push({error: 'rbs.manage.resource.delete.error'});
             }
-
         };
 
         $scope.closeResourceType = function () {
@@ -1943,7 +1908,7 @@ export const rbsController = ng.controller('RbsController', [
 
         $scope.editSelectedType = function () {
             $scope.display.processing = undefined;
-            $scope.editedResourceType = $scope.resourceTypes.selection()[0];
+            $scope.editedResourceType = $scope.resourceTypes.selectedElements[0];
             template.close('resources');
             $scope.updateSlotProfileField($scope.editedResourceType.structure);
             template.open('resources', 'edit-resource-type');
@@ -1959,14 +1924,31 @@ export const rbsController = ng.controller('RbsController', [
             $scope.display.confirmRemoveTypes = true;
         };
 
-        $scope.doRemoveTypes = function () {
-            $scope.resourceTypes.removeSelectedTypes();
-            $scope.display.confirmRemoveTypes = false;
-            template.close('resources');
-            $scope.closeResourceType();
+        $scope.doRemoveTypes = async function () {
             $scope.isManage = true;
-            $scope.currentResourceType = undefined;
-            $scope.refreshRessourceType();
+            $scope.display.processing = true;
+            $scope.currentErrors = [];
+            try {
+                let typeToDelete = $scope.resourceTypes.all.filter(type => type.selected)[0];
+                await typeToDelete.delete();
+                $scope.display.confirmRemoveTypes = false;
+                $scope.display.processing = undefined;
+                $scope.$apply();
+                let struct = $scope.structures.all.find(struct => {
+                    return struct.resourceTypes.selected.length > 0
+                });
+                struct.resourceTypes.all = $scope.resourceTypes.all.filter(type =>
+                    type.id !== typeToDelete.id && type.school_id === struct.id);
+                if (typeToDelete.resources.all.length > 0) {
+                    $scope.currentResourceType.resources.all = [];
+                }
+                $scope.resourceTypes.deselectAllResources();
+                await $scope.resourceTypes.sync($scope.resources);
+                $scope.$apply();
+                $scope.closeResourceType();
+            } catch (e) {
+                $scope.currentErrors.push({error: 'rbs.manage.type.delete.error'});
+            }
         };
 
         // display a warning when editing a resource and changing the resource type (not in creation mode).
