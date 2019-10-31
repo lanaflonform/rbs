@@ -35,7 +35,7 @@ Behaviours.register('rbs', {
                 return structure_id === resource.school_id;
             });
 
-            for (var behaviour in rbsBehaviours.resources) {
+            for (let behaviour in rbsBehaviours.resources) {
                 if (model.me.userId === resource.owner || isAdmlForResource || model.me.hasRight(resource, rbsBehaviours.resources[behaviour])) {
                     if (resource.myRights[behaviour] !== undefined) {
                         resource.myRights[behaviour] = resource.myRights[behaviour] && rbsBehaviours.resources[behaviour];
@@ -53,9 +53,9 @@ Behaviours.register('rbs', {
         return [ 'contrib', 'process', 'manage', 'share'];
     },
     workflow: function(){
-		var workflow = {};
-		var rbsWorkflow = rbsBehaviours.workflow;
-		for(var prop in rbsWorkflow){
+		let workflow = {};
+		let rbsWorkflow = rbsBehaviours.workflow;
+		for(let prop in rbsWorkflow){
 			if(model.me.hasWorkflow(rbsWorkflow[prop])){
 				workflow[prop] = true;
 			}

@@ -78,8 +78,8 @@
 				</td>
 			</tr>
 		</tbody>
-		<tbody ng-if="currentResourceType.resources.empty() === true">
-			<tr><td colspan="4" class="invisible"><i18n>rbs.manage.resources.empty</i18n></td></tr>
+		<tbody ng-if="!currentResourceType.resources.all">
+			<tr><td colspan="4" class="invisible"><i18n>rbs.resourcetype.resource.empty</i18n></td></tr>
 		</tbody>
 	</table>
 	<hr />

@@ -13,7 +13,7 @@
 					<i class="caretBlack"></i>[[struct.name]]
 				</a>
 
-				<a ng-if="struct.expanded === true" ng-click="setSelectedStructureForCreation(struct)" ng-class="{ selected: structure.selected }">
+				<a ng-if="struct.expanded === true" ng-click="setSelectedStructureForCreation(struct)" ng-class="{ selected: struct.selected }">
 					<i class="caretBlack expanded" ng-click="collapseStructureSettings(struct)"></i> [[struct.name]]
 				</a>
 				<ul ng-if="struct.expanded === true">
@@ -24,8 +24,8 @@
 										type="checkbox"
 										ng-model="resourceType.selected"
 										ng-click="resources.deselectAll(); $event.stopPropagation()"
-										ng-show="!currentResourceType || resources.selectedElements.length === 0"
-										ng-if="resourceType.school_id === struct.id"
+										ng-show="(!currentResourceType || resources.selectedElements.length === 0) &&
+										(resourceType.school_id === structure.id)"
 								/>
 							</resource-right>
 
@@ -51,9 +51,10 @@
                                 <input
                                         type="checkbox"
                                         ng-model="resourceType.selected"
-                                        ng-click="resources.deselectAll(); $event.stopPropagation()"
-                                        ng-show="!currentResourceType || resources.selected.length === 0"
-                                        ng-if="selectedStructure.id === sharedStructure.id"/>
+                                        ng-click="resources.deselectAll();"
+                                        ng-show="(!currentResourceType || resources.selected.length === 0) &&
+										(selectedStructure.id === sharedStructure.id)"
+                                        />
                             </resource-right>
 
                             [[resourceType.name]]
@@ -124,8 +125,8 @@
 		</div>
 
 		<div class="row">
-			<p ng-if="!type.resources.empty()"><i18n>rbs.manage.type.delete.details.notempty</i18n></p>
-			<p ng-if="type.resources.empty()"><i18n>rbs.manage.type.delete.details.empty</i18n></p>
+			<p ng-if="currentResourceType.resources.all"><i18n>rbs.manage.type.delete.details.notempty</i18n></p>
+			<p ng-if="!currentResourceType.resources.all"><i18n>rbs.manage.type.delete.details.empty</i18n></p>
 		</div>
 	</div>
 

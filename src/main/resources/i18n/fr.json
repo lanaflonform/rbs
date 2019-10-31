@@ -245,7 +245,6 @@
   "rbs.manage.type.delete.error": "Une erreur est survenue lors de la suppression du type de ressource",
   "rbs.manage.resource.remove": "Supprimer la ressource",
   "rbs.manage.resource.removes": "Supprimer les ressources",
-  "rbs.manage.resources.empty": "Aucune ressource pour ce Type",
   "rbs.manage.resource.validation": "Validation",
   "rbs.manage.resource.validation.true": "À valider",
   "rbs.manage.resource.validation.false": "Sans validation",

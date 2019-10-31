@@ -1771,20 +1771,16 @@ export const rbsController = ng.controller('RbsController', [
             $scope.display.showPanel = true;
         };
 
-        $scope.saveResourceType = async () => {
+        $scope.saveResourceType = async (structureId) => {
             $scope.display.processing = true;
             $scope.isManage = true;
             $scope.currentErrors = [];
             $scope.currentResourceType = $scope.editedResourceType;
-            if ($scope.editedResourceType.structure) {
-                await $scope.editedResourceType.save($scope.editedResourceType.structure.id);
-            }
-            else await $scope.editedResourceType.save($scope.editedResourceType.school_id);
+            await $scope.editedResourceType.save(structureId);
             $scope.$apply();
             refreshType($scope.currentResourceType);
             await $scope.resourceTypes.sync($scope.resources);
             $scope.display.processing = undefined;
-            $scope.resourceTypes.deselectAllResources();
             $scope.closeResourceType();
         };
 
@@ -1939,7 +1935,7 @@ export const rbsController = ng.controller('RbsController', [
                 });
                 struct.resourceTypes.all = $scope.resourceTypes.all.filter(type =>
                     type.id !== typeToDelete.id && type.school_id === struct.id);
-                if (typeToDelete.resources.all.length > 0) {
+                if (typeToDelete.resources.all && typeToDelete.resources.all.length > 0) {
                     $scope.currentResourceType.resources.all = [];
                 }
                 $scope.resourceTypes.deselectAllResources();
