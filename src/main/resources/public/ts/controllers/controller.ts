@@ -1925,23 +1925,25 @@ export const rbsController = ng.controller('RbsController', [
             $scope.display.processing = true;
             $scope.currentErrors = [];
             try {
-                let typeToDelete = $scope.resourceTypes.all.filter(type => type.selected)[0];
-                await typeToDelete.delete();
+                let typeToDelete = $scope.resourceTypes.all.filter(type => type.selected);
+                await typeToDelete.forEach(function(type) {
+                    type.delete();
+                });
+                // await typeToDelete.delete();
                 $scope.display.confirmRemoveTypes = false;
                 $scope.display.processing = undefined;
-                $scope.$apply();
                 let struct = $scope.structures.all.find(struct => {
                     return struct.resourceTypes.selected.length > 0
                 });
+                await $scope.resourceTypes.sync($scope.resources);
+                $scope.closeResourceType();
                 struct.resourceTypes.all = $scope.resourceTypes.all.filter(type =>
                     type.id !== typeToDelete.id && type.school_id === struct.id);
                 if (typeToDelete.resources.all && typeToDelete.resources.all.length > 0) {
                     $scope.currentResourceType.resources.all = [];
                 }
                 $scope.resourceTypes.deselectAllResources();
-                await $scope.resourceTypes.sync($scope.resources);
                 $scope.$apply();
-                $scope.closeResourceType();
             } catch (e) {
                 $scope.currentErrors.push({error: 'rbs.manage.type.delete.error'});
             }
