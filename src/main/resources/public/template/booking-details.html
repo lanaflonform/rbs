@@ -158,9 +158,9 @@
 
 					<div class="row details" ng-if="booking.hasAtLeastOnePendingSlot()">
 						<p class="four cell"><i18n>rbs.booking.details.pending</i18n></p>
-						<div class="row" ng-if="booking.resource.type.moderators">
+						<div class="row" ng-if="booking.resource.resourceType.moderators">
 							<p class="row">
-								<span ng-repeat="moderator in booking.resource.type.moderators" class="cell four cell-ellipsis horizontal-spacing-twice"
+								<span ng-repeat="moderator in booking.resource.resourceType.moderators" class="cell four cell-ellipsis horizontal-spacing-twice"
 									  title="[[moderator.username+' ('+lang.translate(moderator.type)+')']]">
 										[[moderator.username]] <em class="small-text">([[lang.translate(moderator.type)]])</em>[[$last ? '' : ', ']]
 								</span>
@@ -191,9 +191,9 @@
 
 					<div class="row details" ng-if="booking.isPending()">
 						<p class="four cell"><i18n>rbs.booking.details.pending</i18n></p>
-						<div class="row" ng-if="booking.resource.type.moderators">
+						<div class="row" ng-if="booking.resource.resourceType.moderators">
 							<p class="row">
-								<span ng-repeat="moderator in booking.resource.type.moderators">
+								<span ng-repeat="moderator in booking.resource.resourceType.moderators">
 										[[moderator.username]][[$last ? '' : ', ']]
 								</span>
 							</p>
@@ -234,11 +234,11 @@
 	<hr />
 
 	<div class="row" ng-if="canDeleteBookingDateCheck(currentBookingSelected.end_date)">
-		<behaviour name="process" resource="booking.resource">
-			<button class="right-magnet" ng-if="booking.isPending()" ng-click="refuseBookingSelection()"><i18n>rbs.booking.refuse</i18n></button>
-			<button class="right-magnet" ng-if="booking.isPending()" ng-click="validateBookingSelection()"><i18n>rbs.booking.validate</i18n></button>
+		<behaviour name="process" resource="currentBookingSelected.resource">
+			<button class="right-magnet" ng-if="currentBookingSelected.isPending()" ng-click="refuseBookingSelection()"><i18n>rbs.booking.refuse</i18n></button>
+			<button class="right-magnet" ng-if="currentBookingSelected.isPending()" ng-click="validateBookingSelection()"><i18n>rbs.booking.validate</i18n></button>
 		</behaviour>
-		<behaviour name="process" resource="booking">
+		<behaviour name="process" resource="currentBookingSelected">
 			<button class="right-magnet" ng-click="removeBookingSelection(currentBookingSelected)"><i18n>remove</i18n></button>
 			<button class="right-magnet" nf-if="booking.resource.is_available === true" ng-click="editBooking()"><i18n>edit</i18n></button>
 		</behaviour>

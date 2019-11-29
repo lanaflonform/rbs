@@ -108,7 +108,7 @@ export class Booking implements Selectable {
     }
 
     validate() {
-        this.status = 1;
+        this.status = 2;
         this.process({
             status: this.status
         });
@@ -126,10 +126,10 @@ export class Booking implements Selectable {
 
     async process(json) {
         try {
-            return await http.put('/rbs/resource/' + this.resource.id + '/booking/' + this.id + '/process', json);
+             await http.put('/rbs/resource/' + this.resource.id + '/booking/' + this.id + '/process', json);
         }
         catch (e) {
-            notify.error('');
+            notify.error('rbs.error.title.process.booking');
         }
     };
 
@@ -147,7 +147,12 @@ export class Booking implements Selectable {
     };
 
     isPending() {
-        return this.status === 1;
+        if (this.slots.length > 0) {
+            _.forEach(this.slots, function (slot) {
+                return slot.status === 1;
+            });
+        }
+        else return this.status === 1;
     };
 
     isValidated() {

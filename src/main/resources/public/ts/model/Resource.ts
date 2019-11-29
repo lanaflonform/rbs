@@ -1,6 +1,6 @@
 import { Mix, Selectable, Selection } from "entcore-toolkit";
 import { _, Behaviours, notify } from 'entcore';
-import { ResourceType } from "./index";
+import {Booking, ResourceType} from "./index";
 import http from "axios";
 
 export class Resource implements Selectable {
@@ -86,10 +86,10 @@ export class Resource implements Selectable {
         return state;
     }
 
-    isBookable(periodic) {
+    isBookable(booking, periodic) {
         return this.is_available === true
             && this.myRights !== undefined
-            && this.myRights.contrib !== undefined
+            && booking.resourceType.myRights.contrib !== undefined
             && (!periodic || this.periodic_booking);
     };
 }
@@ -108,8 +108,8 @@ export class Resources extends Selection<Resource> {
         })
     }
 
-    filterAvailable(periodic) {
-        return _.filter(this.all, (resource)=> resource.isBookable(periodic));
+    filterAvailable(booking, periodic) {
+        return _.filter(this.all, (resource)=> resource.isBookable(booking, periodic));
     }
 
 }

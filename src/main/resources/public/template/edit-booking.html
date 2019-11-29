@@ -43,7 +43,8 @@
 								<div class="row" ng-if="booking.resourceType !== undefined">
 									<label class="three cell"><i18n>rbs.booking.edit.resource.label</i18n></label>
 									<select class="six cell" ng-model="booking.resource"
-											ng-options="resource.name for resource in booking.resourceType.resources.filterAvailable(booking.is_periodic)"
+											ng-options="resource.name for resource in
+											booking.resourceType.resources.filterAvailable(booking, booking.is_periodic)"
 											required ng-if="booking.resourceType.resources.all !== undefined">
 									</select>
 									<div class="six cell warning" ng-if="booking.resourceType.resources.all === undefined">

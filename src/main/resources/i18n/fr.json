@@ -186,6 +186,7 @@
   "rbs.errors.title.create.booking": "Une erreur est survenue lors de la création de la réservation",
   "rbs.errors.title.update.booking": "Une erreur est survenue lors de la modification de la réservation",
   "rbs.errors.title.delete.booking": "Une erreur est survenue lors de la suppression de la réservation",
+  "rbs.error.title.process.booking": "Une erreur est survenue lors de la validation ou du refus de la réservation",
   "rbs.export": "Exporter",
   "rbs.export.title": "Export",
   "rbs.export.format": "1 - Format",

@@ -12,7 +12,10 @@
 
 	<authorize name="process" resource="item.data" class="cell checkbox" ng-if="canDeleteBookingDateCheck(item.end_date)">
 
-		<input type="checkbox" ng-model="item.selected" ng-if="item.owner === me.userId || item.data.isPending() || item.myRights.process !== undefined" />
+		<input type="checkbox" ng-model="item.selected"
+			   ng-if="item.owner === me.userId || item.data.isPending() || item.myRights.process !== undefined"
+			   ng-change="displayToggle(item.data)"
+		/>
 	</authorize>
 
 	<div class="cell twelve" ng-click="viewBooking(item.data)">

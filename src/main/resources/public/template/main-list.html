@@ -66,7 +66,8 @@
 	<tbody ng-repeat="booking in bookings.filtered">
 		<tr>
 			<td ng-if="booking.is_periodic" >
-				<input type="checkbox" ng-model="booking.selected" ng-if="canDeleteBookingDateCheck(booking.end_date) && hasAnyBookingRight(booking)" ng-change="switchSelectAllSlots(booking)"/>
+				<input type="checkbox" ng-model="booking.selected" ng-if="canDeleteBookingDateCheck(booking.end_date) && hasAnyBookingRight(booking)"
+					   ng-change="switchSelectAllSlots(booking); displayToggle(booking)"/>
 			</td>
 			<td ng-if="booking.is_periodic === false">
 				<input type="checkbox" ng-model="booking.selected" ng-change="displayToggle(booking)"/>
@@ -99,10 +100,10 @@
 			<td ng-click="viewBooking(booking, slot)">[[formatMoment(slot.startMoment)]]</td>
 			<td ng-click="viewBooking(booking, slot)">[[formatMoment(slot.endMoment)]]</td>
 			<td ng-click="viewBooking(booking, slot)">
-				<i ng-if="booking.isPending() === true" class="pending-icon"></i>
-				<i ng-if="booking.isValidated() === true" class="validated-icon"></i>
-				<i ng-if="booking.isRefused() === true" class="refused-icon"></i>
-				<i ng-if="booking.isSuspended() === true" class="suspended-icon"></i>
+				<i ng-if="booking.isPending() === true || slot.isPending()" class="pending-icon"></i>
+				<i ng-if="booking.isValidated() === true || slot.isValidated()" class="validated-icon"></i>
+				<i ng-if="booking.isRefused() === true || slot.isRefused()" class="refused-icon"></i>
+				<i ng-if="booking.isSuspended() === true || slot.isSuspended()" class="suspended-icon"></i>
 			</td>
 			<td></td>
 		</tr>

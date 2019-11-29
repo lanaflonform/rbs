@@ -1,10 +1,11 @@
-import {Rights, _, Shareable, Behaviours, notify, moment} from 'entcore';
+import {Rights, _, Shareable, Behaviours, notify} from 'entcore';
 import { Selectable, Mix, Selection } from 'entcore-toolkit';
 import http from 'axios';
 import { Resources, Structure } from './';
 
-export class ResourceType implements Selectable, Shareable{
+export class ResourceType extends Rights<ResourceType> implements Selectable, Shareable {
     id: number;
+    _id: number;
     expanded: boolean;
     color:string;
     name: string;
@@ -24,12 +25,12 @@ export class ResourceType implements Selectable, Shareable{
     owner;
 
     constructor (resourceType?) {
+        super(resourceType);
         if (resourceType) {
-            Mix.extend(this, resourceType);
-            this.myRights = new Rights(this);
-            this.myRights.fromBehaviours();
+            Mix.extend(this, Behaviours.applicationsBehaviours.rbs.resource(resourceType));
         }
-    }
+        this.fromBehaviours();
+    };
 
     toJSON() {
         let json = {
@@ -42,7 +43,7 @@ export class ResourceType implements Selectable, Shareable{
             json['slotprofile'] = this.slotprofile;
         }
         return json;
-    }
+    };
 
     save(structureId) {
       if(this.id) {
