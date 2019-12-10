@@ -25,7 +25,6 @@ export class Booking implements Selectable {
     start_date: string;
     startDate: string;
     status: number | null;
-    color: string;
     booking_reason: string;
 
     resourceType?: ResourceType;
@@ -163,6 +162,14 @@ export class Booking implements Selectable {
         return this.status === 3;
     };
 
+    isSuspended() {
+        return this.status === 4;
+    };
+
+    isPartial() {
+        return this.status === 9;
+    };
+
     isNotPeriodicRoot() {
         return this.is_periodic !== true;
     };
@@ -259,7 +266,7 @@ export class Bookings extends Selection<Booking> {
     applyFilters(isDisplayList?) {
         this.filtered = this.all;
         this.filtered = _.filter(this.all, (booking) => {
-                if (isDisplayList || (this.filters.dates && this.filters.dates === true)) {
+                if (this.filters.dates && this.filters.dates === true) {
                         if (this.filters.mine) {
                             return (booking.isBooking()
                                 && booking.resource.selected)
@@ -293,12 +300,10 @@ export class Bookings extends Selection<Booking> {
                                 );
                         }
                 } else if (this.filters.mine) {
-                return (booking.isBooking()
-                    && booking.isMine)
+                return (booking.isMine) && booking.resource.selected
             }
             else if (this.filters.unprocessed) {
-                return (booking.isBooking()
-                    && booking.unProcessed)
+                return (booking.unProcessed && (booking.status === 1 || booking.status === 9) && booking.resource.selected)
             }
             else if (isDisplayList) {
                 return booking.isBooking() && booking.resource.selected;

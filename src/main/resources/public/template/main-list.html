@@ -92,7 +92,8 @@
 		</tr>
 		<tr ng-repeat="slot in booking.slots">
 			<td class="invisible"></td>
-			<td><input type="checkbox" ng-if="canDeleteBookingDateCheck(booking.endMoment) && hasAnyBookingRight(booking)" ng-model="booking.selected" /></td>
+			<td><input type="checkbox" ng-if="canDeleteBookingDateCheck(booking.endMoment) && hasAnyBookingRight(booking)"
+					   ng-model="slot.selected" ng-change="displayToggle(slot)"/></td>
 			<td class="[[booking.color]]"></td>
 			<td></td>
 			<td ng-click="viewBooking(booking, slot)">[[booking.owner_name]]</td>
