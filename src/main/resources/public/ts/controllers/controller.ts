@@ -400,6 +400,7 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.currentBookingSelected = booking;
             }
             $scope.isViewBooking = true;
+            let setStatus = new Set();
             if (slot != undefined && slot.isSlot()) {
                 if (slot.status === 3) {
                     slot.expanded = true;
@@ -411,6 +412,7 @@ export const rbsController = ng.controller('RbsController', [
                         $scope.showBookingDetail(booking, booking._slots, 1);
                     }
                 });
+                booking.status = (setStatus.size === 1) ? setStatus.values().next().value : 9;
                 booking.slots = booking._slots;
             }
             else {
@@ -424,6 +426,14 @@ export const rbsController = ng.controller('RbsController', [
             if(calendarSlot) {
                 $scope.booking = calendarSlot;
                 calendarSlot.slots = calendarSlot._slots;
+                _.each(calendarSlot._slots, function (slot) {
+                    if (slot.status != 1 && slot.parent_booking_id != null) {
+                        calendarSlot.status = 9;
+                    }
+                });
+                if (calendarSlot.status != 9) {
+                    calendarSlot.status = 1;
+                }
             }
             else {
                 $scope.booking = booking;
@@ -448,8 +458,8 @@ export const rbsController = ng.controller('RbsController', [
             if ($scope.display.list !== true) {
                 // In calendar view, deselect all when closing lightboxes
                 $scope.bookings.deselectAll();
-                $scope.bookings.selectedElements = [];
             }
+            $scope.bookings.selectedElements = [];
             $scope.booking = undefined;
             $scope.booking = null;
             $scope.processBookings = [];
@@ -516,6 +526,46 @@ export const rbsController = ng.controller('RbsController', [
                 }
             // });
         };
+
+        $scope.checkStatus = function (bookings) {
+            return _.every(bookings, function(booking) {
+                if (booking.status && booking.status != 1 && booking.status != null) {
+                    if (booking.parent_booking_id == null) {
+                        booking.status = 9;
+                    }
+                    return booking.isPending();
+                }
+                else if (booking.parent_booking_id == null) {
+                    return booking.status == null || booking.isPending();
+                }
+                else return booking.isPending();
+            });
+        };
+
+        $scope.canEditBookingSelection = function () {
+            if ($scope.display.list === true) {
+                let localSelection = _.filter($scope.bookings.selectedElements, function (
+                    booking
+                ) {
+                    return booking.isBooking();
+                });
+                return (
+                    localSelection.length === 1 &&
+                    localSelection[0].resource.is_available === true
+                );
+            } else {
+                let isAvailable = _.filter($scope.bookings.selectedElements, function (
+                    booking
+                ) {
+                    return booking.resource.is_available === true;
+                });
+                return (
+                    $scope.bookings.selectedElements.length === 1 &&
+                    isAvailable[0].resource.is_available === true
+                );
+            }
+        };
+
 
         $scope.switchExpandSlot = function (slot) {
             if (slot.expanded !== true) {
@@ -1260,7 +1310,7 @@ export const rbsController = ng.controller('RbsController', [
                     return;
                 }
                 // Save
-                $scope.display.processing = true;
+                // $scope.display.processing = true;
 
                 // dates management
                 $scope.booking.startMoment = ($scope.booking.startDate)
@@ -1538,10 +1588,12 @@ export const rbsController = ng.controller('RbsController', [
         };
 
         $scope.selectionForProcess = function (booking) {
-            // return _.filter($scope.bookings.all, function (booking) {
-            //     return booking.isNotPeriodicRoot();
-            // });
-            return booking.isNotPeriodicRoot();
+            if ($scope.display.list) {
+                return _.filter(booking, function (slot) {
+                    return slot.isNotPeriodicRoot();
+                });
+            }
+            else return booking.isNotPeriodicRoot();
         };
 
         $scope.selectionForDelete = function () {
@@ -1551,17 +1603,15 @@ export const rbsController = ng.controller('RbsController', [
         };
 
         // Booking Validation
-        $scope.canProcessBookingSelection = function (booking) {
-            console.log("booking -->" + booking);
-            console.log("$scope.booking -->" + $scope.booking);
-            // return _.forEach(booking.slots, function (slot) {
-            //     return slot.isPending();
-            // });
-        };
+        // $scope.canProcessBookingSelection = function (booking) {
+        //     return _.forEach(booking.slots, function (slot) {
+        //         return slot.isPending();
+        //     });
+        // };
 
         $scope.validateBookingSelection = function (isToggle) {
             if(isToggle) {
-                $scope.booking = $scope.bookings.selectedElements[0];
+                $scope.booking = $scope.bookings.selectedElements;
             }
             $scope.display.processing = undefined;
             if ($scope.booking !== undefined) {
@@ -1583,7 +1633,7 @@ export const rbsController = ng.controller('RbsController', [
 
         $scope.refuseBookingSelection = function (isToggle) {
             if(isToggle) {
-                $scope.booking = $scope.bookings.selectedElements[0];
+                $scope.booking = $scope.bookings.selectedElements;
             }
             $scope.display.processing = undefined;
             if ($scope.booking !== undefined) {
@@ -1614,6 +1664,7 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.display.processing = undefined;
                 $scope.bookings.deselectAll();
                 $scope.closeBooking();
+                $scope.bookings.selectedElements = [];
                 $scope.bookings.sync(false, $scope.resources);
             } catch (e) {
                 $scope.display.processing = undefined;
@@ -1633,6 +1684,7 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.bookings.deselectAll();
                 $scope.bookings.refuseReason = undefined;
                 $scope.closeBooking();
+                $scope.bookings.selectedElements = [];
                 $scope.bookings.sync(false, $scope.resources);
             } catch (e) {
                 $scope.display.processing = undefined;

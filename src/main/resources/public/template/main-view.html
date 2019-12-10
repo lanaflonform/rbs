@@ -75,10 +75,10 @@
                 <button ng-click="removeBookingSelection()"><i18n>remove</i18n></button>
             </behaviour>
             <behaviour name="process" resource="booking.resource" class="cell">
-                <button ng-if="bookings.selectedElements[0].isPending()" ng-click="validateBookingSelection($scope.isToggle = true)"><i18n>rbs.booking.validate</i18n></button>
-                <button ng-if="!bookings.selectedElements[0].isPending()" disabled class="disabled"><i18n>rbs.booking.validate</i18n></button>
-                <button ng-if="bookings.selectedElements[0].isPending()" ng-click="refuseBookingSelection($scope.isToggle = true)"><i18n>rbs.booking.refuse</i18n></button>
-                <button ng-if="!bookings.selectedElements[0].isPending()" disabled class="disabled"><i18n>rbs.booking.refuse</i18n></button>
+                <button ng-if="checkStatus(bookings.selectedElements)" ng-click="validateBookingSelection($scope.isToggle = true)"><i18n>rbs.booking.validate</i18n></button>
+                <button ng-if="!checkStatus(bookings.selectedElements)" disabled class="disabled"><i18n>rbs.booking.validate</i18n></button>
+                <button ng-if="checkStatus(bookings.selectedElements)" ng-click="refuseBookingSelection($scope.isToggle = true)"><i18n>rbs.booking.refuse</i18n></button>
+                <button ng-if="!checkStatus(bookings.selectedElements)" disabled class="disabled"><i18n>rbs.booking.refuse</i18n></button>
             </behaviour>
         </div>
     </div>
