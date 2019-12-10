@@ -16,7 +16,7 @@
 				</thead>
 				<tbody>
 					<tr ng-repeat="booking in processBookings">
-						<td class="icon" ng-class="booking.color"></td>
+						<td class="icon" style="background:[[currentBookingSelected.resource.color]]"></td>
 						<td><i ng-if="booking.isOccurence()" class="periodic-icon"></i></td>
 						<td>[[$parent.booking.owner_name]]</td>
 						<td>[[$parent.booking.resource.name]]</td>
