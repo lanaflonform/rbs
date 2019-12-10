@@ -124,14 +124,16 @@ export const rbsController = ng.controller('RbsController', [
         };
 
         // Navigation
-        $scope.showCalendar = function (refresh) {
+        $scope.showCalendar = async function (refresh) {
             if (refresh === true) {
-                $scope.initMain();
+              await $scope.initMain();
             }
             $scope.display.admin = false;
             $scope.display.list = false;
             $scope.bookings.filters.booking = undefined;
+            $scope.bookings.selectedElements = [];
             $scope.bookings.applyFilters();
+            await $scope.structures.sync($scope.resourceTypes, $scope.preference);
             template.open('bookings', 'main-calendar');
         };
 
@@ -148,15 +150,17 @@ export const rbsController = ng.controller('RbsController', [
             $scope.bookings.filters.endDate =
                 moment($scope.bookings.filters.startDate).add(2, 'month').startOf('day');
             $scope.bookings.sortChildSlot($scope.bookings);
+            $scope.bookings.selectedElements = [];
             $scope.bookings.applyFilters($scope.display.list);
             template.open('bookings', 'main-list');
             $scope.$apply();
         };
 
         $scope.showManage = () => {
-            $scope.display.list = false;
+            $scope.display.list = undefined;
             $scope.display.admin = true;
             $scope.resourceTypes.deselectAllResources();
+
             let processableResourceTypes = $scope.resourceTypes.all
                 .filter(resourceType => Utils.keepProcessableResourceTypes(resourceType));
             if (processableResourceTypes && processableResourceTypes.length > 0) {
@@ -166,11 +170,7 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.structure = $scope.structures.all[0];
                 $scope.structure.selected = true;
             }
-
-            /*
-            function is delete in controller
-            $scope.initStructuresManage(false);
-             */
+            $scope.bookings.selectedElements = [];
             template.open('main', 'manage-view');
             template.open('resources', 'manage-resources');
         };
@@ -367,7 +367,6 @@ export const rbsController = ng.controller('RbsController', [
                 }
                 $scope.bookings.applyFilters();
             }
-
             $scope.saveTreeState();
         };
 
@@ -449,6 +448,7 @@ export const rbsController = ng.controller('RbsController', [
             if ($scope.display.list !== true) {
                 // In calendar view, deselect all when closing lightboxes
                 $scope.bookings.deselectAll();
+                $scope.bookings.selectedElements = [];
             }
             $scope.booking = undefined;
             $scope.booking = null;
@@ -547,7 +547,6 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.bookings.filters.dates = undefined;
             }
             $scope.bookings.applyFilters($scope.display.list);
-            $scope.$apply();
         };
 
         // General
@@ -1285,7 +1284,7 @@ export const rbsController = ng.controller('RbsController', [
                     $scope.booking.endMoment = ($scope.booking.endDate)
                         .setHours($scope.booking.endTime.hour(), $scope.booking.endTime.minute());
                 }
-                if ($scope.slots.all.length > 0) {
+                if ($scope.slots && $scope.slots.slots.length > 0) {
                     let start = $scope.slots.slots.indexOf($scope.selectedSlotStart);
                     let end = $scope.slots.slots.indexOf($scope.selectedSlotEnd);
                     $scope.resolveSlotsSelected(start, end);
