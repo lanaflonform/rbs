@@ -529,7 +529,7 @@ export const rbsController = ng.controller('RbsController', [
 
         $scope.checkStatus = function (bookings) {
             return _.every(bookings, function(booking) {
-                if (booking.status && booking.status != 1 && booking.status != null) {
+                if (booking && booking.status != 1 && booking.status != null) {
                     if (booking.parent_booking_id == null) {
                         booking.status = 9;
                     }
@@ -949,7 +949,6 @@ export const rbsController = ng.controller('RbsController', [
             }
 
             // dates management
-            if ($scope.booking.startDate == undefined) {
                 $scope.booking.startDate = startMoment.toDate();
                 $scope.booking.startDate.setFullYear(startMoment.years());
                 $scope.booking.startDate.setMonth(startMoment.month());
@@ -959,7 +958,6 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.booking.endDate.setMonth(endMoment.month());
                 $scope.booking.endDate.setDate(endMoment.date());
                 $scope.booking.periodicEndDate = endMoment.toDate();
-            }
         };
 
         $scope.autoSelectTypeAndResource = function () {
