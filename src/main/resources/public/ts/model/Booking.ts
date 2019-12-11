@@ -146,12 +146,6 @@ export class Booking implements Selectable {
     };
 
     isPending() {
-        // if (this.isSlot()) {
-        //     _.forEach(this.slots, function (slot) {
-        //         return slot.status === 1;
-        //     });
-        // }
-        // else
         return this.status === 1;
     };
 
