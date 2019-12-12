@@ -134,7 +134,7 @@ export class Booking implements Selectable {
 
     async delete() {
         try {
-            return await http.delete('/rbs/resource/' + this.resource.id + '/booking/' + this.id + "/false");
+            await http.delete('/rbs/resource/' + this.resource.id + '/booking/' + this.id + "/false");
         }
         catch (e) {
             notify.error('rbs.errors.title.delete.booking');

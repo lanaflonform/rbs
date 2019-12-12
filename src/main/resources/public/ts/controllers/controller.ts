@@ -1570,13 +1570,12 @@ export const rbsController = ng.controller('RbsController', [
             } catch (e) {
                 $scope.currentErrors.push({error: 'rbs.error.technical'});
                 throw e;
-            } finally {
-                $scope.display.processing = undefined;
-                $scope.bookings.deselectAll();
-                await $scope.bookings.sync(true, $scope.resources);
-                $scope.closeBooking();
-                $scope.$apply();
             }
+            $scope.display.processing = undefined;
+            $scope.bookings.deselectAll();
+            await $scope.bookings.sync(true, $scope.resources);
+            $scope.closeBooking();
+            $scope.$apply();
         };
 
         $scope.doRemoveCurrentPeriodicBookingSelection = async function (slot) {
@@ -1611,13 +1610,8 @@ export const rbsController = ng.controller('RbsController', [
             }
         };
 
-        $scope.selectionForProcess = function (booking) {
-            if ($scope.display.list) {
-                return _.filter(booking, function (slot) {
-                    return slot.isNotPeriodicRoot();
-                });
-            }
-            else return booking.isNotPeriodicRoot();
+        $scope.selectionForProcess = (bookings:Array<Booking>):Array<Booking> => {
+            return bookings.filter(  (slot) => slot.isNotPeriodicRoot());
         };
 
         $scope.selectionForDelete = function () {
