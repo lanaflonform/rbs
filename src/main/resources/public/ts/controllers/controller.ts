@@ -457,7 +457,7 @@ export const rbsController = ng.controller('RbsController', [
             }
             if ($scope.display.list !== true) {
                 // In calendar view, deselect all when closing lightboxes
-                $scope.bookings.deselectAll();
+                //$scope.bookings.deselectAll();
             }
             $scope.bookings.selectedElements = [];
             $scope.booking = undefined;
@@ -467,6 +467,7 @@ export const rbsController = ng.controller('RbsController', [
             $scope.display.showPanel = false;
             $scope.slots = undefined;
             template.close('lightbox');
+            $scope.$apply()
         };
 
         $scope.expandPeriodicBooking = function (booking) {
@@ -500,6 +501,7 @@ export const rbsController = ng.controller('RbsController', [
         };
 
         $scope.displayToggle = function (booking) {
+            booking.selected = !booking.selected;
             if (!_.contains($scope.bookings.selectedElements, booking)) {
                 $scope.bookings.selectedElements.push(booking);
             } else {
@@ -1332,7 +1334,7 @@ export const rbsController = ng.controller('RbsController', [
                     $scope.booking.endMoment = ($scope.booking.endDate)
                         .setHours($scope.booking.endTime.hour(), $scope.booking.endTime.minute());
                 }
-                if ($scope.slots && $scope.slots.slots.length > 0) {
+                if ($scope.slots && $scope.slots.length > 0) {
                     let start = $scope.slots.slots.indexOf($scope.selectedSlotStart);
                     let end = $scope.slots.slots.indexOf($scope.selectedSlotEnd);
                     $scope.resolveSlotsSelected(start, end);
@@ -1340,10 +1342,14 @@ export const rbsController = ng.controller('RbsController', [
                 $scope.booking.slots = [new Slot($scope.booking).toJson()];
                 await $scope.booking.save();
                 $scope.display.processing = undefined;
-                if ($scope.display.list) await $scope.bookings.sync(true, $scope.resources);
-                else await $scope.bookings.sync(false, $scope.resources);
+                if ($scope.display.list){
+                    await $scope.bookings.sync(true, $scope.resources);
+                } else {
+                    await $scope.bookings.sync(false, $scope.resources);
+                }
                 $scope.closeBooking();
             } catch (e) {
+                console.log(e);
                 $scope.display.processing = undefined;
                 $scope.currentErrors.push({error: 'rbs.error.technical'});
             }

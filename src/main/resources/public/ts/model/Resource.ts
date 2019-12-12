@@ -44,12 +44,12 @@ export class Resource implements Selectable {
         };
     }
 
-    save() {
+    async save() {
         if(this.id) {
-            this.update();
+            await this.update();
         }
         else {
-            this.create();
+            await this.create();
         }
     };
 
