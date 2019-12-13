@@ -96,6 +96,8 @@ export class Resource implements Selectable {
 
 export class Resources extends Selection<Resource> {
 
+    all:Array<Resource>;
+
     constructor() {
         super([]);
     }

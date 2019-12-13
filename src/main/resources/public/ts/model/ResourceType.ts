@@ -100,6 +100,8 @@ export class ResourceType extends Rights<ResourceType> implements Selectable, Sh
 
 export class ResourceTypes  extends Selection<ResourceType> {
 
+    all:Array<ResourceType>;
+
     constructor () {
         super([]);
     }

@@ -206,6 +206,7 @@ export class Bookings extends Selection<Booking> {
     filters: filterBookings;
     resources: Resources;
     slots: Array<Booking>;
+    all: Array<Booking>;
 
     constructor() {
         super([]);
