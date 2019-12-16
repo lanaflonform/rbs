@@ -1303,16 +1303,11 @@ export const rbsController = ng.controller('RbsController', [
         };
 
         $scope.saveBooking = async function () {
-            // Check
             $scope.currentErrors = [];
             try {
                 if ($scope.checkSaveBooking()) {
                     return;
                 }
-                // Save
-                // $scope.display.processing = true;
-
-                // dates management
                 $scope.booking.startMoment = ($scope.booking.startDate)
                     .setHours($scope.booking.startTime.hour(), $scope.booking.startTime.minute());
                 if ($scope.booking.is_periodic === true) {
@@ -1330,7 +1325,6 @@ export const rbsController = ng.controller('RbsController', [
                     }
                     $scope.resolvePeriodicMoments();
                 } else {
-                    // non periodic
                     $scope.booking.endMoment = ($scope.booking.endDate)
                         .setHours($scope.booking.endTime.hour(), $scope.booking.endTime.minute());
                 }
@@ -1340,13 +1334,9 @@ export const rbsController = ng.controller('RbsController', [
                     $scope.resolveSlotsSelected(start, end);
                 }
                 $scope.booking.slots = [new Slot($scope.booking).toJson()];
-                await $scope.booking.save();
+                await $scope.booking.save()
                 $scope.display.processing = undefined;
-                if ($scope.display.list){
-                    await $scope.bookings.sync(true, $scope.resources);
-                } else {
-                    await $scope.bookings.sync(false, $scope.resources);
-                }
+                await $scope.bookings.sync($scope.display.list? true : false, $scope.resources);
                 $scope.closeBooking();
             } catch (e) {
                 console.log(e);

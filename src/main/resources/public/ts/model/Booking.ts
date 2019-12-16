@@ -51,10 +51,10 @@ export class Booking implements Selectable {
 
     async save() {
         if (this.id) {
-            this.update();
+            await this.update();
         }
         else {
-            this.create();
+            await this.create();
         }
     }
 
