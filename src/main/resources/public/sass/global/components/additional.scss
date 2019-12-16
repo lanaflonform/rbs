@@ -244,3 +244,12 @@ a.structure:hover {
     margin-top: 10px;
 }
 
+input[type=time]{
+    padding-left: 30px;
+}
+@media screen and (max-width: 574px) {
+    input[type=time]{
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+}
