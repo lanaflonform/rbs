@@ -946,19 +946,6 @@ export const rbsController = ng.controller('RbsController', [
             } else {
                 $scope.booking.endTime = maxTime;
             }
-            const makerFormatTimeInput = (hours) => {
-                return  new Date(
-                    1970,
-                    0,
-                    1,
-                    moment(hours).format('HH'),
-                    0,
-                    0,
-                );
-            };
-
-            $scope.booking.endTime = moment(makerFormatTimeInput($scope.booking.endTime));
-            $scope.booking.startTime = moment(makerFormatTimeInput($scope.booking.startTime));
             // dates management
                 $scope.booking.startDate = startMoment.toDate();
                 $scope.booking.startDate.setFullYear(startMoment.years());

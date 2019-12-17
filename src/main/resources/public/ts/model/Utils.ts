@@ -49,4 +49,9 @@ export class Utils {
         });
         return periodDays;
     };
+
+    static getUtcTime = (getMomentScopeUtc:Date):number => {
+        return moment(moment(getMomentScopeUtc)).format('Z').split(':')[0];
+    };
+
 }

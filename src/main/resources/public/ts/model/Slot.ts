@@ -3,6 +3,7 @@ import { Selectable, Mix, Selection } from 'entcore-toolkit';
 import http from "axios";
 import {Booking} from "./Booking";
 import {Resource} from "./Resource";
+import {Utils} from "./Utils";
 
 
 export class Slot implements Selectable{
@@ -28,8 +29,8 @@ export class Slot implements Selectable{
     }
     slotJson(start, end) {
         return {
-            start_date : (moment.utc(start).add(moment(this.startMoment).format('Z').split(':')[0],'hours' )).unix(),
-            end_date : (moment.utc(end).add(moment(this.startMoment).format('Z').split(':')[0], 'hours')).unix(),
+            start_date : (moment.utc(start).add(Utils.getUtcTime(start),'hours' )).unix(),
+            end_date : (moment.utc(end).add(Utils.getUtcTime(end), 'hours')).unix(),
             iana : Intl.DateTimeFormat().resolvedOptions().timeZone
         }
     }
