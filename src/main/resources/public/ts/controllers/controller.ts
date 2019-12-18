@@ -1811,12 +1811,11 @@ export const rbsController = ng.controller('RbsController', [
         };
 
         $scope.saveResourceType = async (structureId) => {
-            $scope.display.processing = true;
-            $scope.isManage = true;
-            $scope.currentErrors = [];
             $scope.currentResourceType = $scope.editedResourceType;
             await $scope.editedResourceType.save(structureId);
-            $scope.$apply();
+            $scope.currentErrors = [];
+            $scope.display.processing = true;
+            $scope.isManage = true;
             await $scope.resourceTypes.sync($scope.resources);
             const newResourceType:ResourceType = $scope.resourceTypes.all.find((resourceTypeSearch: ResourceType): Boolean => {
                 return $scope.currentResourceType.id === resourceTypeSearch.id
@@ -1824,6 +1823,7 @@ export const rbsController = ng.controller('RbsController', [
             refreshType(newResourceType);
             $scope.display.processing = undefined;
             $scope.closeResourceType();
+            $scope.$apply();
         };
 
         $scope.saveResource = async () => {

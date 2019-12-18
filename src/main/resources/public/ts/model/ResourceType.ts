@@ -45,12 +45,12 @@ export class ResourceType extends Rights<ResourceType> implements Selectable, Sh
         return json;
     };
 
-    save(structureId) {
+    async save(structureId) {
       if(this.id) {
-        this.update();
+        await this.update();
       }
       else {
-        this.create(structureId);
+        await this.create(structureId);
       }
     };
 
