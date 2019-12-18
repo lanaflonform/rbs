@@ -50,8 +50,11 @@ export class Utils {
         return periodDays;
     };
 
-    static getUtcTime = (getMomentScopeUtc:Date):number => {
-        return moment(moment(getMomentScopeUtc)).format('Z').split(':')[0];
+    static getUtcTime = (getMomentScopeUtc:any):string => {
+            return moment(moment(getMomentScopeUtc)
+                .format("YYYY MM DD HH:MM"), "YYYY MM DD HH:MM")
+                .format('Z')
+                .split(':')[0];
     };
 
 }
